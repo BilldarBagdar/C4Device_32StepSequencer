@@ -1,6 +1,8 @@
 <p>This Max 8.6.2 project implements a midi data server (in javascript) and leverages the server to implement a 32 step 
 midi sequencer.
 </p>
+<img src="./C4DeviceProject/other/mackieC4_ControlLayout.png" alt="Image from the C4 manual(?) showing a C4 Commander app 
+screenshot of the physical control layout on the C4 hardware (with 'Commander overlay' button labels)">
 <p>
 When first opening the project patch, you'll need to select 3 or 4 midi ports on your system to connect the patch to 
 your C4, a midi sound module, and possibly an external clock via midi RTC.  You can make those selections in the "umenu" 
@@ -38,23 +40,34 @@ external midi RTC signals in addition to Max internal clocking.  The sequencer c
 notes or dotted 32nd notes (0.75 length 16ths).
 </p>
 <h3> Sequencer Operations</h3>
+<p>
+<b>NOTE:</b> The Control Button labels that are screenprinted on the C4 case are a little different from the "Commander 
+overlay" labels in the image above.  Specifically, the buttons labeled "Parameter Layout" (Left, Right) above are labeled 
+"Parameter Bank" (Left, Right) on the C4 case; and the buttons labeled "(Session) Bank" (Up, Down) above are labeled
+"(Session) Slot" (Up, Down) on the case.  Since the four buttons grouped around the diamond shape on the right in the
+image above is not named above nor physically on the C4 case, a useful shorthand name is the "Session" group. (The shape painted 
+on the case is much more oval-shaped (ovular?), no sharp diamond corners.) The "Select" button in the "Split" group (on 
+the "Commander overlay") above is labeled the "Split" button in the "Function" group on the case.  The "Function" group 
+above is named the "Assignment" group on the case.  All the sequencer operational descriptions below are based on the labels
+painted on the C4 case itself, not on any overlay labels (shown above or otherwise).
+</p>
 <h5> Function group Buttons</h5>
 <p>
-Change the current "encoder display page" using the C4's "Split" button.  Page 0 is the "main page" whose display 
+Change the current "encoder display page" using the C4's "Split" button ("Select" above).  Page 0 is the "main page" whose display 
 alternates with display of the other three pages in the biased cycle 0, 1, 0, 2, 0, 3. The Split button LEDs are 
 associated with the 3 "other pages" 1/3, 2/3, 3/3. The main page displays when all Split LEDs are OFF.
 </p>
 <p>
-The Lock button reverses the direction of the Split button LED cycle.  When the Lock LED is ON, the Split LED cycles
-in reverse 3, 2, 1.  When the Lock LED is OFF, the Split LED cycles forward, 1, 2, 3.  The described cycle
+The Lock button ("Upper" above) reverses the direction of the Split button LED cycle.  When the Lock LED is ON, the Split 
+LED cycles in reverse 3, 2, 1.  When the Lock LED is OFF, the Split LED cycles forward, 1, 2, 3.  The described cycle
 reversing logic is always true based on the underlying data in the button dictionary, but the physical Lock LED status depends on
 whether the sequencer is running or not.  If the sequencer is not running, the physical Lock button LED On/Off status will 
 correspond with the (Lock button's ledValue property) data in the button dictionary.  But if the sequencer is running, 
 the green Lock button LED pulses with the sequencer tempo.
 </p>
 <p>
-When Max Transport is selected, Start and Stop the sequencer using the C4's "Spot Erase" button.  Otherwise, Start and 
-Stop the sequencer using external Transport controls.
+When Max Transport is selected, Start and Stop the sequencer using the C4's "Spot Erase" button ("Lower" above).  Otherwise, 
+Start and Stop the sequencer using external Transport controls.
 </p>
 <p>
 When the sequencer is running under Max Transport, the "Spot Erase" button LED will be ON (red), and the "Lock" button
@@ -108,6 +121,10 @@ button cycles pages in "main page biased" order 0,1,0,2,0,3. (depending on "Lock
 "Bank" buttons cycle pages-of-data evenly 0,1,2,3.  The "Split" button only changes the display-page view not any data, 
 and the Parameter and Session buttons change (rotate) data not the display-page view.
 </p>
+<p>
+You can rotate the data associated with any sequence to be on the "main page" so that sequence enjoys the "Split button 
+cycle bias".
+</p>
 <h5> Modifier group Buttons</h5>
 <p>
 Every "virtual" encoder stores and recalls a unique value associated with each Modifier button when the modifier is 
@@ -122,4 +139,26 @@ for a sequence's active, playing steps.
 The four "Assignment" buttons (Marker, Track, Chan Strip, and Function) are not mapped to any sequencer behavior.  Midi 
 data produced by these buttons is stored by the server and fed back to the C4, but has no impact on the sequencer.
 (The "Assignment" LEDs turn on and off, but serve no purpose)
+</p>
+<h5>Links</h5>
+
+<ul>-<a href="https://loudaudio.netx.net/api/file/asset/9331?sessionKey=KlNY16QMrM8t1URx7xTEziHfI">
+https://mackie.com/en/support/discontinued-products</a>/Software/Control Surfaces/C4Pro/c4c_pc_v1.0.zip (and instruments.zip)
+
+-<a href="https://loudaudio.netx.net/api/file/asset/18461?sessionKey=KlNY16QMrM8t1URx7xTEziHfI">
+https://mackie.com/en/support/discontinued-products</a>/Manuals/Control Surfaces/C4/Mackie Control C4_OM.pdf 
+(also /Manuals/Control Surfaces/C4Commander/Programmer's Guide.pdf and User's Guide.pdf)
+</ul>
+<p>
+The Commander Programmer's Guide is about the xml syntax of the "instrument definition files" found in the 
+instruments.zip download archive (how to write custom instrument definition files for other instruments, basically).  
+The Commander User's guide is about how to create "Performance layout" files using the Commander app (in Edit mode) where 
+the "user layout" files define both "page views" that will be shown on the C4 (while Commander is connected and running in 
+"Performance" mode) and exactly how the C4 will communicate via Commander translations with the defined "instrument 
+parameter" at the other end of each C4 control).  No synth instruments that entered the market after about 2005 are represented 
+in the instruments.zip download.
+</p>
+<p>
+Maybe someday some future version of "this" Max patch will be able to read, write, and react to those "Commander" 
+definition and layout files ("replacing" the Commander app's versatile "performance" functionality in modern Max)
 </p>
