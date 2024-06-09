@@ -1,7 +1,7 @@
 <p>This Max 8.6.2 project implements a midi data server (in javascript) and leverages the server to implement a 32 step 
 midi sequencer.
 </p>
-<img src="./C4DeviceProject/other/mackieC4_ControlLayout.png" alt="Image from the C4 manual(?) showing a C4 Commander app 
+<img src="./C4DeviceProject/other/mackieC4_ControlLayout.PNG" alt="Image from the C4 manual(?) showing a C4 Commander app 
 screenshot of the physical control layout on the C4 hardware (with 'Commander overlay' button labels)">
 <p>
 When first opening the project patch, you'll need to select 3 or 4 midi ports on your system to connect the patch to 
