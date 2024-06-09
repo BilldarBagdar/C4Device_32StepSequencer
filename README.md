@@ -1,7 +1,7 @@
 <p>This Max 8.6.2 project implements a midi data server (in javascript) and leverages the server to implement a 32 step 
 midi sequencer.
 </p>
-<img src="./C4DeviceProject/other/mackieC4_ControlLayout.PNG" alt="Image from the C4 manual(?) showing a C4 Commander app 
+<img src="./C4DeviceProject/media/mackieC4_ControlLayout.PNG" alt="Image from the C4 manual(?) showing a C4 Commander app 
 screenshot of the physical control layout on the C4 hardware (with 'Commander overlay' button labels)">
 <p>
 When first opening the project patch, you'll need to select 3 or 4 midi ports on your system to connect the patch to 
@@ -9,6 +9,7 @@ your C4, a midi sound module, and possibly an external clock via midi RTC.  You 
 ui objects every time you load the patch, or you can open the underlying project "bpatcher" to save your selections 
 so they reload again every time you reload the patch.  
 </p>
+<img src="./C4DeviceProject/media/sequencerPatcher.PNG" alt="Image of main project patcher window">
 <p>
 To save your Midi Port selections, open the project <a href="./C4DeviceProject/patchers/setupProjectMidiPorts.maxpat">
 "setup midi" bpatcher</a> for editing and select from the "C4" dropdown menus the 
