@@ -42,15 +42,24 @@ notes or dotted 32nd notes (0.75 length 16ths).
 </p>
 <h3> Sequencer Operations</h3>
 <p>
-<b>NOTE:</b> The Control Button labels that are screenprinted on the C4 case are a little different from the "Commander 
-overlay" labels in the image above.  Specifically, the buttons labeled "Parameter Layout" (Left, Right) above are labeled 
-"Parameter Bank" (Left, Right) on the C4 case; and the buttons labeled "(Session) Bank" (Up, Down) above are labeled
-"(Session) Slot" (Up, Down) on the case.  Since the four buttons grouped around the diamond shape on the right in the
-image above is not named above nor physically on the C4 case, a useful shorthand name is the "Session" group. (The shape painted 
-on the case is much more oval-shaped (ovular?), no sharp diamond corners.) The "Select" button in the "Split" group (on 
-the "Commander overlay") above is labeled the "Split" button in the "Function" group on the case.  The "Function" group 
-above is named the "Assignment" group on the case.  All the sequencer operational descriptions below are based on the labels
-painted on the C4 case itself, not on any overlay labels (shown above or otherwise).
+<b>NOTE:</b> The Control Button labels screenprinted on the C4 case are a little different from the "Commander 
+overlay" labels in the image above-top.  The image (of the C4 device front panel layout) above shows a screenshot of the 
+left side of the "C4 Commander" app window (in Edit mode, and the only view of the app in Performance mode).  Specifically, 
+the buttons labeled (on the Commander overlay sticker) "Parameter Layout" (Left, Right) in the image above are labeled 
+"Parameter Bank" (Left, Right) on the C4 case itself; and the buttons labeled "(Session) Bank" (Up, Down) above are labeled 
+"(Session) Slot" (Up, Down) on the case.  Since the area around the four buttons grouped around the diamond shape on the 
+right in the image above is not grouped by name above nor physically on the C4 case, a useful shorthand name is the "Session" 
+group. (The shape "inside the buttons" painted on the case is bigger and rounder much more oval-shaped (ovular?), no sharp 
+diamond-pointy corners.) The "Select" button in the "Split" group (on the "Commander overlay") above is labeled the "Split" 
+button in the "Function" group on the case.  The "Function" group above is named the "Assignment" group on the case.  All 
+the sequencer operational descriptions below are based on the labels painted on the C4 case itself, not on any overlay 
+labels (shown above or otherwise).
+</p>
+<p>
+Activate sequencer steps by pressing encoder buttons, turning leds ON, deactivate steps by turning encoder button leds OFF; 
+and adjust active step (playback) pitches by turning active encoders left or right.  The sequencer only outputs about 
+15 unique pitches (pentatonic scale, three octaves) and the encoders store 128 possible values, so you will experience 
+roughly 10 nothing-happened "encoder clicks" between audible playback pitch changes.
 </p>
 <h5> Function group Buttons</h5>
 <p>
@@ -92,11 +101,11 @@ the "Slot Down" button (in time) as the sequence plays.
 </p>
 <p>
 It's not difficult to randomly create sequences that "feel" like the One of the sequence is off from the One of the 
-Transport metronome.  This sequencer's downbeats, the One of each bar of sixteenth notes are represented by 
-encoder 00 and encoder 16.  Say the "feel" of some random sequence puts the One of the sequence at encoder 12 instead. If 
-that's a problem, you could fix it, for example, by pressing "Track Right" four times to rotate the sequence's One 
-from encoder 12 to encoder 16 to align with the Transport metronome's One (in bar two of sequence).  Of course, you can 
-always "rotate" any sequences for any reason.
+Transport metronome.  The Ones of each bar of sixteenth-note-steps in this 32-step sequencer are represented by encoder 00 and 
+encoder 16.  Say the "feel" of some random sequence puts the One of the sequence at encoder 12 instead. If that's a problem, 
+you could fix it, for example, by pressing "Track Right" four times to rotate the sequence's One from encoder 12 to encoder 
+16 to align with the Transport metronome's One (in bar two of sequence).  Of course, you can always "rotate" any sequences 
+for any reason.
 </p>
 <h5> Parameter group Buttons</h5>
 <p>
@@ -131,7 +140,7 @@ cycle bias".
 Every "virtual" encoder stores and recalls a unique value associated with each Modifier button when the modifier is 
 pressed.  In effect, this means each of the four main "encoder display page" sequences also has four "modified sequences" 
 readily available. In other words every 32-step "encoder display page" sequence also has a "Shift Pressed" modified 
-version, and an "Option Pressed" modified version, etc...  However, these modified sequences remain unchanged stepwise.  
+version, and an "Option Pressed" modified version, etc...  These modified sequences remain unchanged stepwise.  
 The only thing that changes when Modifier buttons are pressed (and held) is the pitch value data recalled from storage 
 for a sequence's active, playing steps.
 </p>
@@ -156,10 +165,13 @@ instruments.zip download archive (how to write custom instrument definition file
 The Commander User's guide is about how to create "Performance layout" files using the Commander app (in Edit mode) where 
 the "user layout" files define both "page views" that will be shown on the C4 (while Commander is connected and running in 
 "Performance" mode) and exactly how the C4 will communicate via Commander translations with the defined "instrument 
-parameter" at the other end of each C4 control).  No synth instruments that entered the market after about 2005 are represented 
-in the instruments.zip download.
+parameter" mapped to each C4 control).  No instruments that entered the market after about 2005 are represented 
+in the instruments.zip download archive.
 </p>
 <p>
 Maybe someday some future version of "this" Max patch will be able to read, write, and react to those "Commander" 
 definition and layout files ("replacing" the Commander app's versatile "performance" functionality in modern Max)
+</p>
+<p>
+Otherwise, the biggest patch TODO is implementing the saving and recalling of patch (sequencer data) presets.
 </p>
