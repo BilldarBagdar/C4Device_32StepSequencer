@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 842.0, 342.0, 532.0, 291.0 ],
+		"rect" : [ 616.0, 295.0, 532.0, 295.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 1,
 		"default_fontsize" : 12.0,
@@ -39,6 +39,30 @@
 		"subpatcher_template" : "",
 		"assistshowspatchername" : 0,
 		"boxes" : [ 			{
+				"box" : 				{
+					"id" : "obj-20",
+					"linecount" : 2,
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 330.0, 100.0, 100.0, 34.0 ],
+					"text" : "defer so loadUp finishes first"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-5",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 437.0, 100.0, 54.0, 22.0 ],
+					"text" : "deferlow"
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"bgmode" : 0,
 					"border" : 0,
@@ -106,7 +130,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 345.0, 127.0, 163.0, 34.0 ],
+					"patching_rect" : [ 345.0, 22.0, 163.0, 34.0 ],
 					"presentation" : 1,
 					"presentation_linecount" : 2,
 					"presentation_rect" : [ 317.0, 2.0, 163.0, 34.0 ],
@@ -133,7 +157,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 437.0, 167.0, 70.0, 22.0 ],
+					"patching_rect" : [ 437.0, 72.5, 70.0, 22.0 ],
 					"text" : "loadmess 1"
 				}
 
@@ -296,7 +320,7 @@
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 1988.0, 285.0, 865.0, 694.0 ],
+						"rect" : [ 134.0, 134.0, 865.0, 694.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -2161,6 +2185,85 @@
 										"assistshowspatchername" : 0,
 										"boxes" : [ 											{
 												"box" : 												{
+													"id" : "obj-54",
+													"linecount" : 11,
+													"maxclass" : "comment",
+													"numinlets" : 1,
+													"numoutlets" : 0,
+													"patching_rect" : [ 1014.0, 190.0, 199.0, 158.0 ],
+													"text" : "button 21 is a spare (logical) dictionary element being used to signal the state of external transport to javascript objects  \n\nThe  ledValue is going to change independently of the pressedValue  for this \"signal button\" element. (led value On means external sync is selected, pressed value On means external sync is running)"
+												}
+
+											}
+, 											{
+												"box" : 												{
+													"id" : "obj-52",
+													"maxclass" : "newobj",
+													"numinlets" : 3,
+													"numoutlets" : 1,
+													"outlettype" : [ "" ],
+													"patching_rect" : [ 897.0, 225.0, 97.0, 22.0 ],
+													"text" : "switch"
+												}
+
+											}
+, 											{
+												"box" : 												{
+													"id" : "obj-51",
+													"maxclass" : "message",
+													"numinlets" : 2,
+													"numoutlets" : 1,
+													"outlettype" : [ "" ],
+													"patching_rect" : [ 975.0, 190.0, 29.5, 22.0 ],
+													"text" : "127"
+												}
+
+											}
+, 											{
+												"box" : 												{
+													"id" : "obj-48",
+													"maxclass" : "message",
+													"numinlets" : 2,
+													"numoutlets" : 1,
+													"outlettype" : [ "" ],
+													"patching_rect" : [ 936.0, 190.0, 29.5, 22.0 ],
+													"text" : "0"
+												}
+
+											}
+, 											{
+												"box" : 												{
+													"id" : "obj-42",
+													"maxclass" : "message",
+													"numinlets" : 2,
+													"numoutlets" : 1,
+													"outlettype" : [ "" ],
+													"patching_rect" : [ 897.0, 260.0, 110.0, 22.0 ],
+													"text" : "set 21::ledValue $1"
+												}
+
+											}
+, 											{
+												"box" : 												{
+													"id" : "obj-1",
+													"maxclass" : "newobj",
+													"numinlets" : 2,
+													"numoutlets" : 5,
+													"outlettype" : [ "dictionary", "", "", "", "" ],
+													"patching_rect" : [ 897.0, 294.0, 84.0, 22.0 ],
+													"saved_object_attributes" : 													{
+														"embed" : 0,
+														"legacy" : 0,
+														"parameter_enable" : 0,
+														"parameter_mappable" : 0
+													}
+,
+													"text" : "dict c4Buttons"
+												}
+
+											}
+, 											{
+												"box" : 												{
 													"id" : "obj-43",
 													"linecount" : 3,
 													"maxclass" : "comment",
@@ -2224,10 +2327,10 @@
 													"id" : "obj-25",
 													"maxclass" : "newobj",
 													"numinlets" : 1,
-													"numoutlets" : 4,
-													"outlettype" : [ "int", "bang", "bang", "int" ],
-													"patching_rect" : [ 552.5, 60.0, 189.0, 22.0 ],
-													"text" : "t i b b i"
+													"numoutlets" : 7,
+													"outlettype" : [ "int", "bang", "bang", "int", "bang", "bang", "int" ],
+													"patching_rect" : [ 552.5, 60.0, 359.0, 22.0 ],
+													"text" : "t i b b i b b i"
 												}
 
 											}
@@ -2382,7 +2485,7 @@
 														}
 ,
 														"classnamespace" : "box",
-														"rect" : [ 2000.0, 244.0, 1255.0, 588.0 ],
+														"rect" : [ 2376.0, 384.0, 1255.0, 588.0 ],
 														"bglocked" : 0,
 														"openinpresentation" : 0,
 														"default_fontsize" : 12.0,
@@ -2411,6 +2514,85 @@
 														"subpatcher_template" : "",
 														"assistshowspatchername" : 0,
 														"boxes" : [ 															{
+																"box" : 																{
+																	"id" : "obj-4",
+																	"linecount" : 11,
+																	"maxclass" : "comment",
+																	"numinlets" : 1,
+																	"numoutlets" : 0,
+																	"patching_rect" : [ 80.75, 355.5, 219.0, 158.0 ],
+																	"text" : "button 21 is a spare (logical) dictionary element being used to signal the state of external transport to javascript objects  \n\nThe  pressedValue is going to change independently of the ledValue  for this \"signal button\" element. (led value On means external sync is selected, pressed value On means external sync is running)\n\n "
+																}
+
+															}
+, 															{
+																"box" : 																{
+																	"id" : "obj-6",
+																	"maxclass" : "newobj",
+																	"numinlets" : 3,
+																	"numoutlets" : 1,
+																	"outlettype" : [ "" ],
+																	"patching_rect" : [ 124.0, 274.0, 97.0, 22.0 ],
+																	"text" : "switch"
+																}
+
+															}
+, 															{
+																"box" : 																{
+																	"id" : "obj-9",
+																	"maxclass" : "message",
+																	"numinlets" : 2,
+																	"numoutlets" : 1,
+																	"outlettype" : [ "" ],
+																	"patching_rect" : [ 202.0, 223.0, 29.5, 22.0 ],
+																	"text" : "0"
+																}
+
+															}
+, 															{
+																"box" : 																{
+																	"id" : "obj-11",
+																	"maxclass" : "message",
+																	"numinlets" : 2,
+																	"numoutlets" : 1,
+																	"outlettype" : [ "" ],
+																	"patching_rect" : [ 163.0, 223.0, 29.5, 22.0 ],
+																	"text" : "127"
+																}
+
+															}
+, 															{
+																"box" : 																{
+																	"id" : "obj-42",
+																	"maxclass" : "message",
+																	"numinlets" : 2,
+																	"numoutlets" : 1,
+																	"outlettype" : [ "" ],
+																	"patching_rect" : [ 124.0, 303.0, 137.0, 22.0 ],
+																	"text" : "set 21::pressedValue $1"
+																}
+
+															}
+, 															{
+																"box" : 																{
+																	"id" : "obj-12",
+																	"maxclass" : "newobj",
+																	"numinlets" : 2,
+																	"numoutlets" : 5,
+																	"outlettype" : [ "dictionary", "", "", "", "" ],
+																	"patching_rect" : [ 124.0, 327.0, 84.0, 22.0 ],
+																	"saved_object_attributes" : 																	{
+																		"embed" : 0,
+																		"legacy" : 0,
+																		"parameter_enable" : 0,
+																		"parameter_mappable" : 0
+																	}
+,
+																	"text" : "dict c4Buttons"
+																}
+
+															}
+, 															{
 																"box" : 																{
 																	"id" : "obj-10",
 																	"maxclass" : "message",
@@ -2846,7 +3028,7 @@
 																	"maxclass" : "newobj",
 																	"numinlets" : 1,
 																	"numoutlets" : 0,
-																	"patching_rect" : [ 88.0, 359.0, 55.0, 22.0 ],
+																	"patching_rect" : [ 21.0, 258.0, 55.0, 22.0 ],
 																	"text" : "s depSig"
 																}
 
@@ -2858,7 +3040,7 @@
 																	"numinlets" : 2,
 																	"numoutlets" : 1,
 																	"outlettype" : [ "" ],
-																	"patching_rect" : [ 131.0, 309.0, 29.5, 22.0 ],
+																	"patching_rect" : [ 64.0, 208.0, 29.5, 22.0 ],
 																	"text" : "2"
 																}
 
@@ -2870,7 +3052,7 @@
 																	"numinlets" : 2,
 																	"numoutlets" : 1,
 																	"outlettype" : [ "" ],
-																	"patching_rect" : [ 88.0, 309.0, 29.5, 22.0 ],
+																	"patching_rect" : [ 21.0, 208.0, 29.5, 22.0 ],
 																	"text" : "1"
 																}
 
@@ -3094,7 +3276,7 @@
 																	"numinlets" : 2,
 																	"numoutlets" : 1,
 																	"outlettype" : [ "" ],
-																	"patching_rect" : [ 167.0, 309.0, 31.0, 22.0 ],
+																	"patching_rect" : [ 100.0, 208.0, 31.0, 22.0 ],
 																	"text" : "stop"
 																}
 
@@ -3106,7 +3288,7 @@
 																	"numinlets" : 2,
 																	"numoutlets" : 1,
 																	"outlettype" : [ "" ],
-																	"patching_rect" : [ 54.0, 309.0, 32.0, 22.0 ],
+																	"patching_rect" : [ -13.0, 208.0, 32.0, 22.0 ],
 																	"text" : "start"
 																}
 
@@ -3218,6 +3400,13 @@
 															}
 , 															{
 																"patchline" : 																{
+																	"destination" : [ "obj-6", 1 ],
+																	"source" : [ "obj-11", 0 ]
+																}
+
+															}
+, 															{
+																"patchline" : 																{
 																	"destination" : [ "obj-5", 1 ],
 																	"source" : [ "obj-2", 0 ]
 																}
@@ -3232,6 +3421,13 @@
 															}
 , 															{
 																"patchline" : 																{
+																	"destination" : [ "obj-12", 0 ],
+																	"source" : [ "obj-42", 0 ]
+																}
+
+															}
+, 															{
+																"patchline" : 																{
 																	"destination" : [ "obj-52", 0 ],
 																	"source" : [ "obj-46", 3 ]
 																}
@@ -3239,8 +3435,15 @@
 															}
 , 															{
 																"patchline" : 																{
-																	"destination" : [ "obj-67", 0 ],
+																	"destination" : [ "obj-11", 0 ],
 																	"source" : [ "obj-47", 0 ]
+																}
+
+															}
+, 															{
+																"patchline" : 																{
+																	"destination" : [ "obj-67", 0 ],
+																	"source" : [ "obj-47", 1 ]
 																}
 
 															}
@@ -3313,6 +3516,13 @@
 																"patchline" : 																{
 																	"destination" : [ "obj-71", 0 ],
 																	"source" : [ "obj-59", 3 ]
+																}
+
+															}
+, 															{
+																"patchline" : 																{
+																	"destination" : [ "obj-42", 0 ],
+																	"source" : [ "obj-6", 0 ]
 																}
 
 															}
@@ -3409,7 +3619,16 @@
 															}
 , 															{
 																"patchline" : 																{
+																	"destination" : [ "obj-6", 0 ],
+																	"order" : 0,
+																	"source" : [ "obj-67", 0 ]
+																}
+
+															}
+, 															{
+																"patchline" : 																{
 																	"destination" : [ "obj-70", 0 ],
+																	"order" : 1,
 																	"source" : [ "obj-67", 0 ]
 																}
 
@@ -3423,7 +3642,16 @@
 															}
 , 															{
 																"patchline" : 																{
+																	"destination" : [ "obj-6", 0 ],
+																	"order" : 0,
+																	"source" : [ "obj-69", 0 ]
+																}
+
+															}
+, 															{
+																"patchline" : 																{
 																	"destination" : [ "obj-70", 0 ],
+																	"order" : 1,
 																	"source" : [ "obj-69", 0 ]
 																}
 
@@ -3574,6 +3802,13 @@
 															}
 , 															{
 																"patchline" : 																{
+																	"destination" : [ "obj-6", 2 ],
+																	"source" : [ "obj-9", 0 ]
+																}
+
+															}
+, 															{
+																"patchline" : 																{
 																	"destination" : [ "obj-105", 0 ],
 																	"source" : [ "obj-91", 0 ]
 																}
@@ -3590,6 +3825,13 @@
 																"patchline" : 																{
 																	"destination" : [ "obj-83", 0 ],
 																	"source" : [ "obj-95", 4 ]
+																}
+
+															}
+, 															{
+																"patchline" : 																{
+																	"destination" : [ "obj-9", 0 ],
+																	"source" : [ "obj-95", 1 ]
 																}
 
 															}
@@ -3746,7 +3988,7 @@
 													"numoutlets" : 1,
 													"outlettype" : [ "" ],
 													"patching_rect" : [ 154.0, 716.0, 50.0, 22.0 ],
-													"text" : "32"
+													"text" : "0"
 												}
 
 											}
@@ -4431,6 +4673,27 @@
 											}
 , 											{
 												"patchline" : 												{
+													"destination" : [ "obj-48", 0 ],
+													"source" : [ "obj-25", 4 ]
+												}
+
+											}
+, 											{
+												"patchline" : 												{
+													"destination" : [ "obj-51", 0 ],
+													"source" : [ "obj-25", 5 ]
+												}
+
+											}
+, 											{
+												"patchline" : 												{
+													"destination" : [ "obj-52", 0 ],
+													"source" : [ "obj-25", 6 ]
+												}
+
+											}
+, 											{
+												"patchline" : 												{
 													"destination" : [ "obj-36", 2 ],
 													"source" : [ "obj-28", 2 ]
 												}
@@ -4559,6 +4822,13 @@
 											}
 , 											{
 												"patchline" : 												{
+													"destination" : [ "obj-1", 0 ],
+													"source" : [ "obj-42", 0 ]
+												}
+
+											}
+, 											{
+												"patchline" : 												{
 													"destination" : [ "obj-46", 1 ],
 													"source" : [ "obj-45", 0 ]
 												}
@@ -4580,6 +4850,13 @@
 											}
 , 											{
 												"patchline" : 												{
+													"destination" : [ "obj-52", 1 ],
+													"source" : [ "obj-48", 0 ]
+												}
+
+											}
+, 											{
+												"patchline" : 												{
 													"destination" : [ "obj-2", 1 ],
 													"order" : 0,
 													"source" : [ "obj-5", 0 ]
@@ -4591,6 +4868,20 @@
 													"destination" : [ "obj-4", 0 ],
 													"order" : 1,
 													"source" : [ "obj-5", 0 ]
+												}
+
+											}
+, 											{
+												"patchline" : 												{
+													"destination" : [ "obj-52", 2 ],
+													"source" : [ "obj-51", 0 ]
+												}
+
+											}
+, 											{
+												"patchline" : 												{
+													"destination" : [ "obj-42", 0 ],
+													"source" : [ "obj-52", 0 ]
 												}
 
 											}
@@ -5344,7 +5635,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-8", 0 ],
+					"destination" : [ "obj-5", 0 ],
 					"source" : [ "obj-17", 0 ]
 				}
 
@@ -5374,6 +5665,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-11", 0 ],
 					"source" : [ "obj-4", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-8", 0 ],
+					"source" : [ "obj-5", 0 ]
 				}
 
 			}

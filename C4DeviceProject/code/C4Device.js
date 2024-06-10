@@ -316,6 +316,12 @@ function transformEncoderData(encoderPageOffset, wrapBoundary, rotateBy) {
 
 function isSequencerRunning() {
     buttonsDict.name = "c4Buttons";
+    // Note ID 21 is a logically spare button element (doesn't physically exist on the C4) being used
+    // to globally signal (from Max to javascript via dict data) the state of the patch's "external transport"
+    var isExternalSyncSelected = buttonsDict.get("21::ledValue") === BUTTON_LED_ON_VALUE;
+    if (isExternalSyncSelected) {
+        return 0 !== buttonsDict.get("21::pressedValue");// pressed === running
+    }
     return 0 !== buttonsDict.get("4::ledValue");// Note ID 4 === Spot Erase button === Sequencer Start/Stop
 }
 

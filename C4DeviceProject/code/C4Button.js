@@ -44,8 +44,15 @@ C4Button.prototype.setMyName = function() {
             case 18: this.name = "SLOTD"; break;
             case 19: this.name = "TRACKL"; break;
             case 20: this.name = "TRACKR"; break;
+            // end of physical C4 buttons
+            // begin of logical patch specific buttons
+            case 21: // External Transport Status
+                // ledValue: ON == Using External Transport, OFF == Using Max Transport
+                // pressedValue: Pressed == External RTC Running, Released == External RTC Stopped
+                this.name = "EXTRSP"; break;
             default:
-                this.name = "SPR" + this.index.toString();// inactive placeholders < 32
+                // inactive placeholders > 21 && < 32
+                this.name = "SPR" + this.index.toString();
         }
     } else {// encoder buttons
         this.name = setFormattedName(this.name, "ENB");
