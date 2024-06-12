@@ -38,7 +38,7 @@ function loadUp() {
         initEncoders("single");// "Single Dot" ring feedback style by default on load
         encLedRingFeedbackStyleDict.import_json("ledRingFeedbackStyleReference.json");
         encIndexesByLcdRowDict.import_json("rowMap16RowsOf8Keys.json");
-        displayWelcomePage();
+        sendEncoderPageData(generateWelcomePageMsgs);
         isInitialized = true;
     }
 }
@@ -147,7 +147,7 @@ function midievent(midiMsgIn) {
             // if the sequencer is running and the page changes, defer sysex feedback to sequencer control
             // only send this "display page update" if the sequencer is not running when the page changes
             if (pageChangeSignal > 0 && !isSequencerRunning()) {
-                displayCurrentPage();
+                sendEncoderPageData(generateDisplayPageChangeMsgs);
             } else if (midiMsg[0] === MIDI_CC_ID && !isSequencerRunning()) {
                 var lcdFdbkMsg = generateLcdFeedback(midiMsg[1]);
                 // only send if content changed
@@ -166,21 +166,10 @@ function midievent(midiMsgIn) {
     }
 }
 
-function displayWelcomePage() {
-    var isWelcome = true;
-    displayCurrentPage(isWelcome);
-}
 
-function displayCurrentPage(isWelcome) {
-    // needed?? why would this get called when
-    // (isWelcome !== undefined && isWelcome === false)?
-    isWelcome = isWelcome !== undefined ? isWelcome : false;
+function sendEncoderPageData(encoderPageDataCallback) {
     var MILLIS_OF_LATENCY_BETWEEN_SYSEX = 5;
-    if (isWelcome) {
-        var rtn = processDisplayWelcomePage();
-    } else {
-        rtn = processDisplayPageChange();
-    }
+    var rtn = encoderPageDataCallback();
     if (rtn.length < 5) {
         post("displayCurrentPage: unexpected display processing result", rtn.toString());post();
     } else {
@@ -426,16 +415,16 @@ function arraysMatch(left, right) {
     return rtn;
 }
 
-function processDisplayPageChange() {
-    return processDisplayPageUpdate();// no "hot sequencer step" to display
+function generateDisplayPageChangeMsgs() {
+    return generateDisplayPageUpdateMsgs();// no "hot sequencer step" to display
 }
 
 function clearLastSequencerStep(signal) {
     if (signal === 1) {
-        displayCurrentPage();
+        sendEncoderPageData(generateDisplayPageChangeMsgs);
     }
 }
-function processDisplayWelcomePage() {
+function generateWelcomePageMsgs() {
     encodersDict.name = "c4Encoders";
     var rtn0 = [];
     var sysexTop00 = [];
@@ -483,7 +472,7 @@ function processDisplayWelcomePage() {
     }
     return [rtn0, sysexTop00, sysexTop01, sysexTop02, sysexTop03];
 }
-function processDisplayPageUpdate(seqStepId) {
+function generateDisplayPageUpdateMsgs(seqStepId) {
     encodersDict.name = "c4Encoders";
     var encoderPageOffset = reqModule.getPageOffset();
     var rtn0 = [];
@@ -538,7 +527,7 @@ var lastLcdSeq02 = [];
 var lastLcdSeq03 = [];
 function processSequencerStep(encoderId) {
 
-    var currentDisplayPage = processDisplayPageUpdate(encoderId);
+    var currentDisplayPage = generateDisplayPageUpdateMsgs(encoderId);
     if (currentDisplayPage[0].length < 96) {
         post("processSequencerStep: CC msg array length is shorter than it is supposed to be"); post();
     }
