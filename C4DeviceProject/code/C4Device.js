@@ -38,6 +38,7 @@ function loadUp() {
         initEncoders("single");// "Single Dot" ring feedback style by default on load
         encLedRingFeedbackStyleDict.import_json("ledRingFeedbackStyleReference.json");
         encIndexesByLcdRowDict.import_json("rowMap16RowsOf8Keys.json");
+        displayWelcomePage();
         isInitialized = true;
     }
 }
@@ -165,9 +166,21 @@ function midievent(midiMsgIn) {
     }
 }
 
-function displayCurrentPage() {
+function displayWelcomePage() {
+    var isWelcome = true;
+    displayCurrentPage(isWelcome);
+}
+
+function displayCurrentPage(isWelcome) {
+    // needed?? why would this get called when
+    // (isWelcome !== undefined && isWelcome === false)?
+    isWelcome = isWelcome !== undefined ? isWelcome : false;
     var MILLIS_OF_LATENCY_BETWEEN_SYSEX = 5;
-    var rtn = processDisplayPageChange();
+    if (isWelcome) {
+        var rtn = processDisplayWelcomePage();
+    } else {
+        rtn = processDisplayPageChange();
+    }
     if (rtn.length < 5) {
         post("displayCurrentPage: unexpected display processing result", rtn.toString());post();
     } else {
@@ -196,6 +209,7 @@ function displayCurrentPage() {
         }
     }
 }
+
 function processButtonMessage(midiNoteMsg) {
     buttonsDict.name = "c4Buttons";
     if (midiNoteMsg.length === 3) {
@@ -420,6 +434,54 @@ function clearLastSequencerStep(signal) {
     if (signal === 1) {
         displayCurrentPage();
     }
+}
+function processDisplayWelcomePage() {
+    encodersDict.name = "c4Encoders";
+    var rtn0 = [];
+    var sysexTop00 = [];
+    var sysexTop01 = [];
+    var sysexTop02 = [];
+    var sysexTop03 = [];
+    var sysexBtm00 = [];
+    var sysexBtm01 = [];
+    var sysexBtm02 = [];
+    var sysexBtm03 = [];
+    var isBottomLine = true;
+    for (var i = 0; i < NBR_PHYSICAL_ENCODERS; i++) {
+        var encJson = encodersDict.get(i);
+        var c4Enc = utilEncoder.newFromDict(encJson);
+        rtn0.push(MIDI_CC_ID);
+        rtn0.push(c4Enc.getFeedbackId());
+        rtn0.push(c4Enc.getFeedbackValueForWelcome());
+        switch(c4Enc.getLcdRowId()) {
+            case 0:
+                sysexTop00 = c4Enc.pushLcdDisplaySegmentWelcomeSysexBytes(sysexTop00);
+                sysexBtm00 = c4Enc.pushLcdDisplaySegmentWelcomeSysexBytes(sysexBtm00, isBottomLine);
+                break;
+            case 1:
+                sysexTop01 = c4Enc.pushLcdDisplaySegmentWelcomeSysexBytes(sysexTop01);
+                sysexBtm01 = c4Enc.pushLcdDisplaySegmentWelcomeSysexBytes(sysexBtm01, isBottomLine);
+                break;
+            case 2:
+                sysexTop02 = c4Enc.pushLcdDisplaySegmentWelcomeSysexBytes(sysexTop02);
+                sysexBtm02 = c4Enc.pushLcdDisplaySegmentWelcomeSysexBytes(sysexBtm02, isBottomLine);
+                break;
+            case 3:
+                sysexTop03 = c4Enc.pushLcdDisplaySegmentWelcomeSysexBytes(sysexTop03);
+                sysexBtm03 = c4Enc.pushLcdDisplaySegmentWelcomeSysexBytes(sysexBtm03, isBottomLine);
+                break;
+            default:
+                post("processDisplayWelcomePage: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonObj());
+        }
+    }// end for (var i = 0; i < NBR_PHYSICAL_ENCODERS; i++)
+
+    for (var k = 0; k < sysexBtm00.length; k++) {
+        sysexTop00.push(sysexBtm00[k]);
+        sysexTop01.push(sysexBtm01[k]);
+        sysexTop02.push(sysexBtm02[k]);
+        sysexTop03.push(sysexBtm03[k]);
+    }
+    return [rtn0, sysexTop00, sysexTop01, sysexTop02, sysexTop03];
 }
 function processDisplayPageUpdate(seqStepId) {
     encodersDict.name = "c4Encoders";

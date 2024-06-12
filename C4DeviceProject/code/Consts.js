@@ -26,6 +26,7 @@ var TOTAL_LCD_SCREENS = 4;// ~~(NBR_PHYSICAL_ENCODERS / ENCODERS_PER_LCD_SCREEN)
 var ENCODERS_PER_LCD_SCREEN = 8;// ~~(NBR_PHYSICAL_ENCODERS / TOTAL_LCD_SCREENS);
 var LCD_BOTTOM_ROW_OFFSET = 56;// 0x38
 var TOTAL_BYTES_PER_SYSEX_MSG = 63
+var BYTES_PER_SYSEX_SEG = 7;// ~~(LCD_BOTTOM_ROW_OFFSET / ENCODERS_PER_LCD_SCREEN);
 var MIDI_CC_ID = 176;
 var MIDI_NOTE_ON_ID = 144;
 var MIDI_NOTE_OFF_ID = 128;
@@ -44,6 +45,11 @@ var ENCODER_RING_BTN_LED_ON_OFFSET = 64;
 var TOTAL_BUTTONS = ENCODER_BTN_OFFSET + TOTAL_ENCODERS;// 32 + 128 = 160
 var ABORT_FEEDBACK_SIGNAL = MIDI_NOTE_OFF_ID;// LEDs 1/3, 2/3, and 3/3
 var SPLIT_FEEDBACK_IDS = [0, 1, 2];
+//                          55 === maximum visible text length per LCD line
+//                         0--------1---------2---------3---------4---------5---------6
+//                          but 56 is integer-divisible by 8
+//                         1-------10--------20--------30--------40--------50----56--60
+var welcomeMsg00 = "********** Max Patch Mackie C4 Sequencer **************?";// .length === 56
 
 function setFormattedName(name, prefix) {
     name = name.trim();

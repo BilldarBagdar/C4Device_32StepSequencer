@@ -218,9 +218,25 @@ C4Encoder.prototype.getActiveEncDictName = function() {
 C4Encoder.prototype.getHotStepText = function(isBottomLine) {
     return this.formatLcdDisplaySegmentText(isBottomLine ? "XXooXX" : "XXXXXX");
 };
-C4Encoder.prototype.pushLcdDisplaySegmentSysexBytes = function(recurIn, isBottomLine, isHotStep) {
+C4Encoder.prototype.getStepWelcomeText = function(isBottomLine) {
+    // start at 0 char position every row, increment start by 7 chars for every encoder on row
+    // 1------8-----15-----21-----28-----35-----42-----49-----56  // natural count === welcomeMsg00.length
+    // 0------1------2------3------4------5------6------7------8  // substring indexing by sevens
+    var ssStart = (this.lcdRowPosition() * BYTES_PER_SYSEX_SEG);
+    var ssEnd = ssStart + BYTES_PER_SYSEX_SEG;
+    if (!(ssEnd <= welcomeMsg00.length)) {
+        post("getStepWelcomeText:", this.name, "text offset calculation issue", ssEnd, welcomeMsg00.length);post();
+    }
+    var rtn = welcomeMsg00.substring(ssStart, ssEnd);
+    if (rtn.length !== BYTES_PER_SYSEX_SEG) {
+        post("getStepWelcomeText:", this.name, "substring size assumption issue", rtn, welcomeMsg00);post();
+    }
+    return rtn;
+};
+C4Encoder.prototype.pushLcdDisplaySegmentSysexBytes = function(recurIn, isBottomLine, isHotStep, isWelcome) {
     var txt = isBottomLine ? this.getLcdDisplayBottomText() : this.getLcdDisplayTopText();
     txt = isHotStep ? this.getHotStepText(isBottomLine) : txt;
+    txt = isWelcome ? this.getStepWelcomeText(isBottomLine) : txt;
     var rtn = recurIn !== undefined ? recurIn : [];
     if (this.isRowHeader()) {
         rtn = [240, 0, 0, 102, 23];
@@ -251,16 +267,24 @@ C4Encoder.prototype.pushLcdDisplaySegmentSysexBytes = function(recurIn, isBottom
         post("pushLcdDisplaySegmentSysexBytes:", this.name, "unexpected row location", this.index); post();
     }
     return rtn;
-}
+};
 C4Encoder.prototype.pushLcdDisplaySegmentTopSysexBytes = function(recurIn, hotStepId) {
     var isBottomLine = false;
     var isHotStep = hotStepId === undefined ? false : this.getPhysicalId() === hotStepId;
-    return this.pushLcdDisplaySegmentSysexBytes(recurIn, isBottomLine, isHotStep);
+    var isWelcome = false;
+    return this.pushLcdDisplaySegmentSysexBytes(recurIn, isBottomLine, isHotStep, isWelcome);
 };
 C4Encoder.prototype.pushLcdDisplaySegmentBottomSysexBytes = function(recurIn, hotStepId) {
     var isBottomLine = true;
     var isHotStep = hotStepId === undefined ? false : this.getPhysicalId() === hotStepId;
-    return this.pushLcdDisplaySegmentSysexBytes(recurIn, isBottomLine, isHotStep);
+    var isWelcome = false;
+    return this.pushLcdDisplaySegmentSysexBytes(recurIn, isBottomLine, isHotStep, isWelcome);
+};
+C4Encoder.prototype.pushLcdDisplaySegmentWelcomeSysexBytes = function(recurIn, isBottomLine) {
+    isBottomLine = isBottomLine !== undefined;
+    var isHotStep = false;
+    var isWelcome = true;
+    return this.pushLcdDisplaySegmentSysexBytes(recurIn, isBottomLine, isHotStep, isWelcome);
 };
 C4Encoder.prototype.formatLcdDisplaySegmentText = function(anyVal) {
     var b = " ";
@@ -282,7 +306,7 @@ C4Encoder.prototype.formatLcdDisplaySegmentText = function(anyVal) {
             default:txt = txt.substring(0, 6) + del;
         }
     }
-    if (!(txt.length === 7)) {
+    if (!(txt.length === BYTES_PER_SYSEX_SEG)) {
         post("formatLcdDisplaySegment: processed display segment is not 7 ascii text-byte values: ");
         post(txt);
         post();
@@ -340,13 +364,27 @@ C4Encoder.prototype.getFeedbackValueRaw = function() {
     }
     return rtn;
 };
-C4Encoder.prototype.getFeedbackValueForRingStyle = function(hotStepId) {
+C4Encoder.prototype.getFeedbackValueForWelcome = function() {
+    var isHotStep = false;
+    var isWelcome = true;
+    return this.getFeedbackValueForRingStyle(isHotStep, isWelcome);
+}
+C4Encoder.prototype.getFeedbackValueForRingStyle = function(hotStepId, isWelcome) {
     encLedRingFeedbackStyleDict.name = "ringStyleRef";
     var isHotStep = this.getPhysicalId() === hotStepId;// false for undefined input and non-matching id values
+    isWelcome = isWelcome !== undefined ? isWelcome : false;
     if (isHotStep) {
-        // bang the led ring "FULL ON" (every led in the ring)
+        // bang the led ring "FULL WRAP" (every led in the ring)
         var wrapMax = encLedRingFeedbackStyleDict.get("wrap")[1];
         return wrapMax + ENCODER_RING_BTN_LED_ON_OFFSET;
+    } else if (isWelcome) {
+        // bang the led rings alternately "FULL BOOST", "FULL CUT" (boosted button leds ON)
+        if (this.lcdRowPosition() % 2 === 0) {
+            var boosCutMax = encLedRingFeedbackStyleDict.get("booscut")[1];
+            return boosCutMax + ENCODER_RING_BTN_LED_ON_OFFSET;
+        } else {
+            return encLedRingFeedbackStyleDict.get("booscut")[0];
+        }
     } else {
         var sourceRangeMin = BUCKET_EMPTY_VALUE;
         var sourceRangeMax = BUCKET_FULL_VALUE;
