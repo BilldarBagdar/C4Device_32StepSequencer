@@ -460,7 +460,7 @@ function generateWelcomePageMsgs() {
                 sysexBtm03 = c4Enc.pushLcdDisplaySegmentWelcomeSysexBytes(sysexBtm03, isBottomLine);
                 break;
             default:
-                post("processDisplayWelcomePage: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonObj());
+                post("generateWelcomePageMsgs: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonObj());
         }
     }// end for (var i = 0; i < NBR_PHYSICAL_ENCODERS; i++)
 
@@ -508,7 +508,7 @@ function generateDisplayPageUpdateMsgs(seqStepId) {
                 sysexBtm03 = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(sysexBtm03, seqStepId);
                 break;
             default:
-                post("processDisplayPageChange: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonObj());
+                post("generateDisplayPageUpdateMsgs: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonObj());
         }
     }// end for (var i = encoderPageOffset; i < (encoderPageOffset + NBR_PHYSICAL_ENCODERS); i++)
 
