@@ -9,7 +9,7 @@
 function C4Button(idx, nm, pressedVal, pressedCnt, rlsdCnt, ledChgCt, ledVal) {
 
     this.index = idx !== undefined ? idx : THE_BOOK[0];
-    this.name = nm !== undefined ? nm.trim() : "000";// 000 - 127
+    this.kname = nm !== undefined ? nm.trim() : "000";// 000 - 127
     this.pressedValue = pressedVal !== undefined ? pressedVal : BUTTON_RELEASED_VALUE;
     this.pressedCount = pressedCnt !== undefined ? pressedCnt : BUTTON_RELEASED_VALUE;
     this.releasedCount = rlsdCnt !== undefined ? rlsdCnt : BUTTON_RELEASED_VALUE;
@@ -23,39 +23,39 @@ C4Button.prototype.setMyName = function() {
     // but they are contracted to a 6 character max length anyway
     if (this.index < 32) {
         switch (this.index) {
-            case 0: this.name = "SPLT13"; break;// FUNCTION buttons
-            case 1: this.name = "SPLT23"; break;
-            case 2: this.name = "SPLT33"; break;
-            case 3: this.name = "LOCK"; break;
-            case 4: this.name = "SPTERA"; break;
-            case 5: this.name = "MARKER"; break;// ASSIGNMENT buttons
-            case 6: this.name = "TRACK"; break;
-            case 7: this.name = "CSTRIP"; break;
-            case 8: this.name = "FUNCTN"; break;
-            case 9: this.name = "BANKL"; break;// PARAMETER buttons
-            case 10: this.name = "BANKR"; break;
-            case 11: this.name = "STEPL"; break;
-            case 12: this.name = "STEPR"; break;
-            case 13: this.name = "SHIFT"; break;// MODIFIER buttons
-            case 14: this.name = "OPTION"; break;
-            case 15: this.name = "CONTRL"; break;
-            case 16: this.name = "ALT"; break;
-            case 17: this.name = "SLOTU"; break;// "Session View" Navigation buttons
-            case 18: this.name = "SLOTD"; break;
-            case 19: this.name = "TRACKL"; break;
-            case 20: this.name = "TRACKR"; break;
+            case 0: this.kname = "SPLT13"; break;// FUNCTION buttons
+            case 1: this.kname = "SPLT23"; break;
+            case 2: this.kname = "SPLT33"; break;
+            case 3: this.kname = "LOCK"; break;
+            case 4: this.kname = "SPTERA"; break;
+            case 5: this.kname = "MARKER"; break;// ASSIGNMENT buttons
+            case 6: this.kname = "TRACK"; break;
+            case 7: this.kname = "CSTRIP"; break;
+            case 8: this.kname = "FUNCTN"; break;
+            case 9: this.kname = "BANKL"; break;// PARAMETER buttons
+            case 10: this.kname = "BANKR"; break;
+            case 11: this.kname = "STEPL"; break;
+            case 12: this.kname = "STEPR"; break;
+            case 13: this.kname = "SHIFT"; break;// MODIFIER buttons
+            case 14: this.kname = "OPTION"; break;
+            case 15: this.kname = "CONTRL"; break;
+            case 16: this.kname = "ALT"; break;
+            case 17: this.kname = "SLOTU"; break;// "Session View" Navigation buttons
+            case 18: this.kname = "SLOTD"; break;
+            case 19: this.kname = "TRACKL"; break;
+            case 20: this.kname = "TRACKR"; break;
             // end of physical C4 buttons
             // begin of logical patch specific buttons
             case 21: // External Transport Status
                 // ledValue: ON == Using External Transport, OFF == Using Max Transport
                 // pressedValue: Pressed == External RTC Running, Released == External RTC Stopped
-                this.name = "EXTRSP"; break;
+                this.kname = "EXTRSP"; break;
             default:
                 // inactive placeholders > 21 && < 32
-                this.name = "SPR" + this.index.toString();
+                this.kname = "SPR" + this.index.toString();
         }
     } else {// encoder buttons
-        this.name = setFormattedName(this.name, "ENB");
+        this.kname = setFormattedName(this.kname, "ENB");
     }
 }
 
@@ -65,20 +65,20 @@ var theCurrentSplitButtonLED = new C4Button(0);
 // If Dictionary content that "is JSON" is "set" as some key's value, that value is "just a string"
 // to Max in the Dict, so when you "get" that string-value data back, it's still a string and JSON.parse()
 // is needed to "objectify" the string content again.
-C4Button.prototype.newFromJSON = function(s) {
+C4Button.prototype.newFromJSONStr = function(s) {
     var btn = JSON.parse(s);
-    return new C4Button(btn.index, btn.name, btn.pressedValue,
+    return new C4Button(btn.index, btn.kname, btn.pressedValue,
         btn.pressedCount, btn.releasedCount, btn.ledChangeCount, btn.ledValue);
 };
 // But, if Dictionary content that "is JSON" is "setparse" as some key's value, that value is "another nested Dict"
 // to Max in the Dict, so when you "get" that Dict-value data back, it's not a string, it's a js-Dict object
 // JSON.parse() isn't needed because each key-value pair in the js-Dict object can be queried directly
 C4Button.prototype.newFromDict = function(d) {
-    return new C4Button(d.get("index"), d.get("name"), d.get("pressedValue"),
+    return new C4Button(d.get("index"), d.get("kname"), d.get("pressedValue"),
         d.get("pressedCount"), d.get("releasedCount"), d.get("ledChangeCount"), d.get("ledValue"));
 };
 // You can "set" or "setparse" this stringified "JSON object" into a Dict.
-C4Button.prototype.toJsonObj = function() {
+C4Button.prototype.toJsonStr = function() {
     return JSON.stringify(this);
 };
 
@@ -155,7 +155,7 @@ C4Button.prototype.processEvent = function (v) {
     var k = this.index;
     var offset = 0;
     var resetK = false;
-    var buttonJson = this.toJsonObj();// buttonsDict.get(k); //
+    var buttonJson = this.toJsonStr();// buttonsDict.get(k); //
     var encoderJson = " ";
     if (this.isEncoderButton()) {// fetch encoder references
         offset = reqModule.getPageOffset();
@@ -314,5 +314,5 @@ C4Button.prototype.processSplitEvent = function (v) {
 
 C4Button.prototype.bang = function() {
     post("This button "); post();
-    post(this.toJsonObj()); post();
+    post(this.toJsonStr()); post();
 };

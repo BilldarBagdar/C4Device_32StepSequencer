@@ -55,7 +55,7 @@ function forceLoadUp() {
 
 function initControllerDict() {
     c4DeviceControllerDict.name = "C4DeviceExecutiveController";
-    var tempDictStr = controller.toJsonObj();
+    var tempDictStr = controller.toJsonStr();
     c4DeviceControllerDict.parse(tempDictStr);
 }
 
@@ -76,7 +76,7 @@ function initButtons(){
         // only 51 actual buttons 19 + 32
         // only 38ish actual leds [1-3] + 6 + 32
         var button = bridgeButtons[i];
-        buttonsDict.setparse(button.index, button.toJsonObj());
+        buttonsDict.setparse(button.index, button.toJsonStr());
         var buttonJson = buttonsDict.get(i);
         button = utilButton.newFromDict(buttonJson);
         btnStateDict.set(i, button.pressedCount);
@@ -92,7 +92,7 @@ function initEncoders() {
     var bridgeEncoders = controller["bridgeDeck"].brdgEncoders;
     for(var i = 0; i < TOTAL_ENCODERS; i++) {
         var encoder = bridgeEncoders[i];
-        encodersDict.setparse(i, encoder.toJsonObj());
+        encodersDict.setparse(i, encoder.toJsonStr());
         var encoderJson = encodersDict.get(i);
         encoder = utilEncoder.newFromDict(encoderJson);
         encBtnReleasedStateDict.set(i, encoder.releasedValue);
@@ -118,8 +118,8 @@ function midievent(midiMsgIn) {
                     // (and only has 9 physical button LEDs for Note message numbers < 9)
                     feedbackMsg[0] = MIDI_CC_ID;
                     var encoderId = (feedbackMsg[1] - ENCODER_BTN_OFFSET) + reqModule.getPageOffset();
-                    var encoderJson = encodersDict.get(encoderId);
-                    var encoder = utilEncoder.newFromDict(encoderJson);
+                    var encDict = encodersDict.get(encoderId);
+                    var encoder = utilEncoder.newFromDict(encDict);
                     feedbackMsg[2] = encoder.getFeedbackValueForRingStyle();
                 } else if (feedbackMsg[1] < 3 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
                     // Split button "released" feedback.
@@ -220,8 +220,8 @@ function processButtonMessage(midiNoteMsg) {
     buttonsDict.name = "c4Buttons";
     if (midiNoteMsg.length === 3) {
         var feedbackRtn = [midiNoteMsg[0],midiNoteMsg[1],midiNoteMsg[2], 0];
-        var buttonJson = buttonsDict.get(midiNoteMsg[1]);
-        var c4Button = utilButton.newFromDict(buttonJson);
+        var btnDict = buttonsDict.get(midiNoteMsg[1]);
+        var c4Button = utilButton.newFromDict(btnDict);
         var rtn = c4Button.processEvent(midiNoteMsg[2]);
         if (midiNoteMsg[1] !== rtn[0]) {
             if (midiNoteMsg[1] === 0 && rtn[0] < 3) {
@@ -251,8 +251,8 @@ function processEncoderMessage(midiCCMsg) {
     var size = midiCCMsg.length;
     if (size === 3) {
         var feedbackRtn = [midiCCMsg[0], midiCCMsg[1], midiCCMsg[2], 0];
-        var encoderJson = encodersDict.get(midiCCMsg[1] + reqModule.getPageOffset());
-        var c4Encoder = utilEncoder.newFromDict(encoderJson);
+        var encDict = encodersDict.get(midiCCMsg[1] + reqModule.getPageOffset());
+        var c4Encoder = utilEncoder.newFromDict(encDict);
         var rtn = c4Encoder.processIncrement(midiCCMsg[2]);
         if (midiCCMsg[1] + ENCODER_BTN_OFFSET !== rtn[0]) {
             post("processEncoderMessage: CC number feedback address mismatch", midiCCMsg.toString(), rtn.toString());
@@ -373,8 +373,8 @@ function generateLcdFeedback(encoderId) {
     var topLine = [];
     var btmLine = [];
     for (var i = 0; i < encIdsInRow.length; i++) {
-        var encJson = encodersDict.get(encIdsInRow[i]);
-        var c4Enc = utilEncoder.newFromDict(encJson);
+        var encDict = encodersDict.get(encIdsInRow[i]);
+        var c4Enc = utilEncoder.newFromDict(encDict);
         topLine = c4Enc.pushLcdDisplaySegmentTopSysexBytes(topLine);
         btmLine = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(btmLine);
     }
@@ -455,8 +455,8 @@ function generateWelcomePageMsgs() {
     var sysexBtm03 = [];
     var isBottomLine = true;
     for (var i = 0; i < NBR_PHYSICAL_ENCODERS; i++) {
-        var encJson = encodersDict.get(i);
-        var c4Enc = utilEncoder.newFromDict(encJson);
+        var encDict = encodersDict.get(i);
+        var c4Enc = utilEncoder.newFromDict(encDict);
         rtn0.push(MIDI_CC_ID);
         rtn0.push(c4Enc.getFeedbackId());
         rtn0.push(c4Enc.getFeedbackValueForWelcome());
@@ -478,7 +478,7 @@ function generateWelcomePageMsgs() {
                 sysexBtm03 = c4Enc.pushLcdDisplaySegmentWelcomeSysexBytes(sysexBtm03, isBottomLine);
                 break;
             default:
-                post("generateWelcomePageMsgs: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonObj());
+                post("generateWelcomePageMsgs: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonStr());
         }
     }// end for (var i = 0; i < NBR_PHYSICAL_ENCODERS; i++)
 
@@ -503,8 +503,8 @@ function generateDisplayPageUpdateMsgs(seqStepId) {
     var sysexBtm02 = [];
     var sysexBtm03 = [];
     for (var i = encoderPageOffset; i < (encoderPageOffset + NBR_PHYSICAL_ENCODERS); i++) {
-        var encJson = encodersDict.get(i);
-        var c4Enc = utilEncoder.newFromDict(encJson);
+        var encDict = encodersDict.get(i);
+        var c4Enc = utilEncoder.newFromDict(encDict);
         rtn0.push(MIDI_CC_ID);
         rtn0.push(c4Enc.getFeedbackId());
         rtn0.push(c4Enc.getFeedbackValueForRingStyle(seqStepId));
@@ -526,7 +526,7 @@ function generateDisplayPageUpdateMsgs(seqStepId) {
                 sysexBtm03 = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(sysexBtm03, seqStepId);
                 break;
             default:
-                post("generateDisplayPageUpdateMsgs: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonObj());
+                post("generateDisplayPageUpdateMsgs: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonStr());
         }
     }// end for (var i = encoderPageOffset; i < (encoderPageOffset + NBR_PHYSICAL_ENCODERS); i++)
 

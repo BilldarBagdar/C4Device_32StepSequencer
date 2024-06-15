@@ -61,10 +61,10 @@ function C4DeviceController(feedbackStyle) {
     //this.bang();
 }
 
-C4DeviceController.prototype.toJsonObj = function() {
+C4DeviceController.prototype.toJsonStr = function() {
     return JSON.stringify(this);
 };
-C4DeviceController.prototype.deckToJsonObj = function(deck) {
+C4DeviceController.prototype.deckToJsonStr = function(deck) {
     deck = deck !== undefined ? deck : "bridgeDeck";
     var startsWith = deck.charAt(0);
     switch(startsWith) {
@@ -81,7 +81,7 @@ C4DeviceController.prototype.deckToJsonObj = function(deck) {
     }
     return JSON.stringify(objMap);
 };
-C4DeviceController.prototype.deckCrewToJsonObj = function(crew) {
+C4DeviceController.prototype.deckCrewToJsonStr = function(crew) {
     crew = crew !== undefined ? crew : "brdgButtons";
     var startsWith = crew.charAt(0);
     var deck = "bridgeDeck";
@@ -104,5 +104,5 @@ C4DeviceController.prototype.deckCrewToJsonObj = function(crew) {
 C4DeviceController.prototype.bang = function() {
     post("This controller"); post();
     // too big for one post() - need to break into chunks
-    post(this.toJsonObj()); post();
+    post(this.toJsonStr()); post();
 };

@@ -8,7 +8,7 @@
 
 function C4Encoder(idx, nm, pv, rv, ringStyle, btnLedVal, spv, opv, cpv, apv, liv) {
     this.index = idx !== undefined ? idx : 0;
-    this.name = nm !== undefined ? nm.trim() : "000";// 000 - 127
+    this.kname = nm !== undefined ? nm.trim() : "000";// 000 - 127
     this.pressedValue = pv !== undefined ? pv : 0;
     this.releasedValue = rv!== undefined ? rv : 0;
     this.ringLedFeedbackStyle = ringStyle !== undefined ? ringStyle : "single";// "Single Dot" style by default
@@ -21,21 +21,21 @@ function C4Encoder(idx, nm, pv, rv, ringStyle, btnLedVal, spv, opv, cpv, apv, li
     this.setMyName();
 }
 C4Encoder.prototype.setMyName = function() {
-    this.name = setFormattedName(this.name, "ENC");
+    this.kname = setFormattedName(this.kname, "ENC");
 };
 
-C4Encoder.prototype.newFromJSON = function(s) {
+C4Encoder.prototype.newFromJSONStr = function(s) {
     var enc = JSON.parse(s);
-    return new C4Encoder(enc.index, enc.name, enc.pressedValue, enc.releasedValue,
+    return new C4Encoder(enc.index, enc.kname, enc.pressedValue, enc.releasedValue,
         enc.ringLedFeedbackStyle, enc.buttonLedValue, enc.shiftPressedValue,
         enc.optionPressedValue, enc.controlPressedValue, enc.altPressedValue, enc.lastIncrementValue);
 };
 C4Encoder.prototype.newFromDict = function(d) {
-    return new C4Encoder(d.get("index"), d.get("name"), d.get("pressedValue"), d.get("releasedValue"),
+    return new C4Encoder(d.get("index"), d.get("kname"), d.get("pressedValue"), d.get("releasedValue"),
         d.get("ringLedFeedbackStyle"), d.get("buttonLedValue"), d.get("shiftPressedValue"),
         d.get("optionPressedValue"), d.get("controlPressedValue"), d.get("altPressedValue"), d.get("lastIncrementValue"));
 };
-C4Encoder.prototype.toJsonObj = function() {
+C4Encoder.prototype.toJsonStr = function() {
     return JSON.stringify(this);
 };
 C4Encoder.prototype.copyDataFrom = function(other) {
@@ -225,11 +225,11 @@ C4Encoder.prototype.getStepWelcomeText = function(isBottomLine) {
     var ssStart = (this.lcdRowPosition() * BYTES_PER_SYSEX_SEG);
     var ssEnd = ssStart + BYTES_PER_SYSEX_SEG;
     if (!(ssEnd <= welcomeMsg00.length)) {
-        post("getStepWelcomeText:", this.name, "text offset calculation issue", ssEnd, welcomeMsg00.length);post();
+        post("getStepWelcomeText:", this.kname, "text offset calculation issue", ssEnd, welcomeMsg00.length);post();
     }
     var rtn = welcomeMsg00.substring(ssStart, ssEnd);
     if (rtn.length !== BYTES_PER_SYSEX_SEG) {
-        post("getStepWelcomeText:", this.name, "substring size assumption issue", rtn, welcomeMsg00);post();
+        post("getStepWelcomeText:", this.kname, "substring size assumption issue", rtn, welcomeMsg00);post();
     }
     return rtn;
 };
@@ -260,11 +260,11 @@ C4Encoder.prototype.pushLcdDisplaySegmentSysexBytes = function(recurIn, isBottom
         } else if (rtn.length === TOTAL_BYTES_PER_SYSEX_MSG) {
             rtn[TOTAL_BYTES_PER_SYSEX_MSG - 1] = 247;
         } else {
-            post("pushLcdDisplaySegmentSysexBytes:", this.name, "unexpected sysex length",
+            post("pushLcdDisplaySegmentSysexBytes:", this.kname, "unexpected sysex length",
                 rtn.length, rtn.toString()); post();
         }
     } else {
-        post("pushLcdDisplaySegmentSysexBytes:", this.name, "unexpected row location", this.index); post();
+        post("pushLcdDisplaySegmentSysexBytes:", this.kname, "unexpected row location", this.index); post();
     }
     return rtn;
 };
@@ -342,7 +342,7 @@ C4Encoder.prototype.isRowTrailer = function() {
     return this.lcdRowPosition() === 7;
 };
 C4Encoder.prototype.getLcdDisplayTopText = function() {
-    return this.formatLcdDisplaySegmentText(this.name);
+    return this.formatLcdDisplaySegmentText(this.kname);
 };
 C4Encoder.prototype.getLcdDisplayBottomText = function() {
     return this.formatLcdDisplaySegmentText(this.getFeedbackValueRaw());
@@ -427,5 +427,5 @@ C4Encoder.prototype.setRingFeedbackStyle = function(style) {
 
 C4Encoder.prototype.bang = function() {
     post("This encoder "); post()
-    post(this.toJsonObj()); post();
+    post(this.toJsonStr()); post();
 };
