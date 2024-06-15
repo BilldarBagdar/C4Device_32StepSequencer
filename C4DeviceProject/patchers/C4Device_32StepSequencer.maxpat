@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 616.0, 295.0, 532.0, 295.0 ],
+		"rect" : [ 772.0, 365.0, 561.0, 291.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 1,
 		"default_fontsize" : 12.0,
@@ -320,7 +320,7 @@
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 134.0, 134.0, 865.0, 694.0 ],
+						"rect" : [ 203.0, 181.0, 865.0, 694.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -2155,7 +2155,7 @@
 										}
 ,
 										"classnamespace" : "box",
-										"rect" : [ 134.0, 134.0, 1274.0, 894.0 ],
+										"rect" : [ 399.0, 152.0, 1274.0, 894.0 ],
 										"bglocked" : 0,
 										"openinpresentation" : 0,
 										"default_fontsize" : 12.0,
@@ -2190,7 +2190,7 @@
 													"maxclass" : "comment",
 													"numinlets" : 1,
 													"numoutlets" : 0,
-													"patching_rect" : [ 1014.0, 190.0, 199.0, 158.0 ],
+													"patching_rect" : [ 1033.0, 188.0, 203.0, 158.0 ],
 													"text" : "button 21 is a spare (logical) dictionary element being used to signal the state of external transport to javascript objects  \n\nThe  ledValue is going to change independently of the pressedValue  for this \"signal button\" element. (led value On means external sync is selected, pressed value On means external sync is running)"
 												}
 
@@ -2238,8 +2238,8 @@
 													"numinlets" : 2,
 													"numoutlets" : 1,
 													"outlettype" : [ "" ],
-													"patching_rect" : [ 897.0, 260.0, 110.0, 22.0 ],
-													"text" : "set 21::ledValue $1"
+													"patching_rect" : [ 897.0, 260.0, 134.0, 22.0 ],
+													"text" : "replace 21::ledValue $1"
 												}
 
 											}
@@ -2485,7 +2485,7 @@
 														}
 ,
 														"classnamespace" : "box",
-														"rect" : [ 2376.0, 384.0, 1255.0, 588.0 ],
+														"rect" : [ 2368.0, 276.0, 1255.0, 588.0 ],
 														"bglocked" : 0,
 														"openinpresentation" : 0,
 														"default_fontsize" : 12.0,
@@ -2568,8 +2568,8 @@
 																	"numinlets" : 2,
 																	"numoutlets" : 1,
 																	"outlettype" : [ "" ],
-																	"patching_rect" : [ 124.0, 303.0, 137.0, 22.0 ],
-																	"text" : "set 21::pressedValue $1"
+																	"patching_rect" : [ 124.0, 303.0, 160.0, 22.0 ],
+																	"text" : "replace 21::pressedValue $1"
 																}
 
 															}
@@ -5756,6 +5756,13 @@
 			}
 , 			{
 				"name" : "C4Device.js",
+				"bootpath" : "D:/music/maxStuff/C4Projects/C4Device_32StepSequencer/C4DeviceProject/code",
+				"patcherrelativepath" : "../code",
+				"type" : "TEXT",
+				"implicit" : 1
+			}
+, 			{
+				"name" : "C4DeviceController.js",
 				"bootpath" : "D:/music/maxStuff/C4Projects/C4Device_32StepSequencer/C4DeviceProject/code",
 				"patcherrelativepath" : "../code",
 				"type" : "TEXT",

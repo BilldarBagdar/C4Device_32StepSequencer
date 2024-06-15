@@ -19,9 +19,10 @@ outlets = 3;
 //
 //
 
-include("Consts.js");// const before everybody
+include("Consts.js");
 include("C4Button.js");
 include("C4Encoder.js");
+include("C4DeviceController.js");
 
 var lastEncoderPageOffset = 0;
 var lastTopSysex = [];
@@ -29,15 +30,19 @@ var lastBtmSysex = [];
 var isInitialized = false;
 var utilEncoder = new C4Encoder();
 var utilButton = new C4Button();
+var controller = new C4DeviceController("single");
 
 function loadUp() {
     if (!isInitialized) {
         // Run garbage collection to clear out any old objects.
         gc();
+
+        initControllerDict();
         initButtons();
-        initEncoders("single");// "Single Dot" ring feedback style by default on load
+        initEncoders();
         encLedRingFeedbackStyleDict.import_json("ledRingFeedbackStyleReference.json");
         encIndexesByLcdRowDict.import_json("rowMap16RowsOf8Keys.json");
+        saveInitControllerDictToFile();
         sendEncoderPageData(generateWelcomePageMsgs);
         isInitialized = true;
     }
@@ -47,19 +52,31 @@ function forceLoadUp() {
     loadUp();
 }
 
-function initButtons()
-{
+
+function initControllerDict() {
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+    var tempDictStr = controller.toJsonObj();
+    c4DeviceControllerDict.parse(tempDictStr);
+}
+
+function saveInitControllerDictToFile() {
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+    var f = new Folder("data");
+    //post("pathname for 'data' folder is", f.pathname); post();
+    var saveFile = f.pathname + "/c4ControllerInit.json"
+    c4DeviceControllerDict.export_json(saveFile);
+}
+
+function initButtons(){
     buttonsDict.name = "c4Buttons";
     btnStateDict.name = "buttonStateChangeCount";
     ledStateDict.name = "ledStateChangeCount";
+    var bridgeButtons = controller["bridgeDeck"].brdgButtons;
     for(var i = 0; i < TOTAL_BUTTONS; i++) {
         // only 51 actual buttons 19 + 32
         // only 38ish actual leds [1-3] + 6 + 32
-        var button = new C4Button(i, i.toString(), BUTTON_RELEASED_VALUE, 0, 0,
-                                    0, BUTTON_LED_OFF_VALUE);
-        var btnDict = new Dict(button.name);
-        btnDict.parse(button.toJsonObj());
-        buttonsDict.set(i, btnDict);
+        var button = bridgeButtons[i];
+        buttonsDict.setparse(button.index, button.toJsonObj());
         var buttonJson = buttonsDict.get(i);
         button = utilButton.newFromDict(buttonJson);
         btnStateDict.set(i, button.pressedCount);
@@ -68,13 +85,13 @@ function initButtons()
 }
 
 // Max's console doesn't post() the correct Dict values above or below, but they're correct
-function initEncoders(feedbackStyle) {
+function initEncoders() {
     encodersDict.name = "c4Encoders";
     encBtnReleasedStateDict.name = "encoderBtnReleasedData";
     encBtnPressedStateDict.name = "encoderBtnPressedData";
+    var bridgeEncoders = controller["bridgeDeck"].brdgEncoders;
     for(var i = 0; i < TOTAL_ENCODERS; i++) {
-        var encoder = new C4Encoder(i, i.toString(), 0, 0, feedbackStyle, BUTTON_LED_OFF_VALUE,
-                                            0, 0, 0, 0, 0);
+        var encoder = bridgeEncoders[i];
         encodersDict.setparse(i, encoder.toJsonObj());
         var encoderJson = encodersDict.get(i);
         encoder = utilEncoder.newFromDict(encoderJson);
@@ -321,7 +338,8 @@ function isSequencerRunning() {
     buttonsDict.name = "c4Buttons";
     // Note ID 21 is a logically spare button element (doesn't physically exist on the C4) being used
     // to globally signal (from Max to javascript via dict data) the state of the patch's "external transport"
-    var isExternalSyncSelected = buttonsDict.get("21::ledValue") === BUTTON_LED_ON_VALUE;
+    var btnDict = buttonsDict.get("21");
+    var isExternalSyncSelected = btnDict.get("ledValue") === BUTTON_LED_ON_VALUE;
     if (isExternalSyncSelected) {
         return 0 !== buttonsDict.get("21::pressedValue");// pressed === running
     }
