@@ -89,27 +89,39 @@ C4Button.prototype.copyDataFrom = function(other) {
     this.ledChangeCount = other.ledChangeCount;
     this.ledValue = other.ledValue;
 };
-C4Button.prototype.updateMyDict = function() {
-    buttonsDict.name = "c4Buttons";
+C4Button.prototype.updateActiveDicts = function() {
     btnStateDict.name = "buttonStateChangeCount";
+    btnStateDict.replace(this.index, this.pressedCount + this.releasedCount);
     ledStateDict.name = "ledStateChangeCount";
-    var replaceKey = this.index + "::pressedValue";
-    buttonsDict.replace(replaceKey, this.pressedValue);
-    replaceKey = this.index + "::pressedCount";
-    buttonsDict.replace(replaceKey, this.pressedCount);
-    replaceKey = this.index + "::releasedCount";
-    buttonsDict.replace(replaceKey, this.releasedCount);
-    replaceKey = this.index + "::ledChangeCount";
-    buttonsDict.replace(replaceKey, this.ledChangeCount);
-    replaceKey = this.index + "::ledValue";
-    buttonsDict.replace(replaceKey, this.ledValue);
-
-    btnStateDict.set(this.index, this.pressedCount + this.releasedCount);
-    ledStateDict.set(this.index, this.ledChangeCount);
-}
+    ledStateDict.replace(this.index, this.ledChangeCount);
+    this.updateNamedDict("c4Buttons");
+};
+C4Button.prototype.updateNamedDict = function(dictName, keyPrefix) {
+    var temp = new Dict();
+    temp.name = dictName;
+    // "trackDeck::trckButtons" is shortest expected "defined" prefix length at 22 including ::
+    if (keyPrefix !== undefined && keyPrefix.length < 20) {
+        post("C4Button.updateNamedDict: unexpected keyPrefix", dictName, keyPrefix);post();
+    }
+    var meKey = keyPrefix !== undefined ? keyPrefix + "::" + this.index : this.index;
+    var replaceKey = meKey + "::pressedValue";
+    //post("C4Button.updateNamedDict: replace key for deck and value", dictName, replaceKey, this.pressedValue); post();
+    temp.replace(replaceKey, this.pressedValue);
+    replaceKey = meKey + "::pressedCount";
+    temp.replace(replaceKey, this.pressedCount);
+    replaceKey = meKey + "::releasedCount";
+    temp.replace(replaceKey, this.releasedCount);
+    replaceKey = meKey + "::ledChangeCount";
+    temp.replace(replaceKey, this.ledChangeCount);
+    replaceKey = meKey + "::ledValue";
+    temp.replace(replaceKey, this.ledValue);
+};
 
 C4Button.prototype.isEncoderButton = function() {
     return !(this.index < ENCODER_BTN_OFFSET);
+};
+C4Button.prototype.isAssignmentButton = function() {
+    return this.index >= 5 && this.index <= 8;
 };
 C4Button.prototype.isPressed = function() {
     btnStateDict.name = "buttonStateChangeCount";
@@ -155,7 +167,7 @@ C4Button.prototype.processEvent = function (v) {
     var k = this.index;
     var offset = 0;
     var resetK = false;
-    var buttonJson = this.toJsonStr();// buttonsDict.get(k); //
+    var buttonJson = this.toJsonStr();
     var encoderJson = " ";
     if (this.isEncoderButton()) {// fetch encoder references
         offset = reqModule.getPageOffset();
@@ -167,8 +179,8 @@ C4Button.prototype.processEvent = function (v) {
     }
 
     var rtn2 = [this.index, this.ledValue, this.pressedValue];
-    if (k === 0) {// k === Split button number input
-        rtn2 = this.processSplitEvent(v);// this.index === 0
+    if (k === 0) {
+        rtn2 = this.processSplitEvent(v);
     } else {
 
         var eventSource = this;// a "non-encoder button" but not Split
@@ -178,7 +190,7 @@ C4Button.prototype.processEvent = function (v) {
             encoderRef = encoderRef.newFromDict(encoderJson);
         }
         var oldBtnStateChangeCount = btnStateDict.get(eventSource.index)
-        if (v === BUTTON_PRESSED_VALUE) {// button pressed
+        if (v === BUTTON_PRESSED_VALUE) {
             eventSource.pressedCount += 1;
             var replaceKey = eventSource.index + "::pressedCount";
             buttonsDict.replace(replaceKey, eventSource.pressedCount);
@@ -212,9 +224,9 @@ C4Button.prototype.processEvent = function (v) {
                 buttonsDict.replace(replaceKey, eventSource.ledChangeCount);
                 ledStateDict.set(eventSource.index, eventSource.ledChangeCount);
                 if (eventSource.ledChangeCount % 2 !== eventSource.isLedON()) {
-                    post("C4Button.processEvent: button LED change count mismatch, Dict update issue?");
+                    post("C4Button.processEvent: button LED change count mismatch, Dict update issue?");post();
                 }
-                eventSource.ledValue = eventSource.isLedON() * BUTTON_LED_ON_VALUE;// 0 or 127
+                eventSource.ledValue = eventSource.isLedON() * BUTTON_LED_ON_VALUE;
                 replaceKey = eventSource.index + "::ledValue";
                 buttonsDict.replace(replaceKey, eventSource.ledValue);
                 if (resetK) {
@@ -231,6 +243,16 @@ C4Button.prototype.processEvent = function (v) {
             eventSource.index = k;// eventSource is never an alias for "this" here (never a "Note feedback" button)
         }
         rtn2 = [eventSource.index, eventSource.ledValue, eventSource.pressedValue];
+    }
+    if (k > 0 && eventSource.isAssignmentButton()) {
+        // "eventSource" above was an alias for "this" (an Assignment button)
+        // reassigning the rtn2 value here is currently redundant
+        if (!(eventSource.ledValue === this.ledValue && eventSource.pressedValue === this.pressedValue)) {
+            post("C4Button.processEvent: object reference assumption issue");post();
+        }
+        rtn2 = eventSource.propagateOnDutyAssignmentChange();
+        // post("updated Assignment Button JSON after assignment change processing", eventSource.toJsonStr());
+        // post();
     }
     return rtn2;
 };
@@ -307,10 +329,56 @@ C4Button.prototype.processSplitEvent = function (v) {
         }
     } // else after (possibly during held) press event, before release event
 
-    // post("updated buttons Dict JSON after Split event processing", c4SplitLed.toJsonObj());
+    // post("updated buttons Dict JSON after Split event processing", c4SplitLed.toJsonStr());
     // post();post("----- -----", pressedOrReleased, "event processing complete ----- -----");post();
     return [c4SplitLed.index, c4SplitLed.ledValue, c4SplitLed.pressedValue];// [k, l, v]
 };
+
+C4Button.prototype.propagateOnDutyAssignmentChange = function() {
+    // "this" is always a js-object from the "on duty" deck (the "c4Buttons" Dict) that has already been processed
+    // normally, but "Assignment" data is common to all decks, so propagate "this" feedback to all decks
+    var allDecks = reqModule.getAllControllerDeckNames();
+    var oneDeckCrew = "error";
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+
+    for (var i = 0; i < allDecks.length; i++) {
+        var deckName = allDecks[i];
+        var crewName = "Buttons";
+        // Not using C4DeviceController.getCrewReplaceKeyForDeck() functionality here
+        // because (so far) C4Button js-objects only couple with the underlying Max Dict-js-objects
+        // and their crew-mate "Encoder" js-objects on the same deck (when their deck is "on duty").
+        // Not using C4DeviceController.getCrewNameForDeck() either (for the same reason).
+        // An instance of C4DeviceController "contains" every button and encoder stored by the controller,
+        // don't want to reserve all that "memory" for a util-object here just to call a string-cat function 5 times
+        // every time this method is called.
+        var startsWith = deckName.charAt(0);
+        switch(startsWith) {
+            case "b": oneDeckCrew = deckName + "::brdg" + crewName; break;
+            case "c": oneDeckCrew = deckName + "::chst" + crewName; break;
+            case "f": oneDeckCrew = deckName + "::fnct" + crewName; break;
+            case "m": oneDeckCrew = deckName + "::mrkr" + crewName; break;
+            case "t": oneDeckCrew = deckName + "::trck" + crewName; break;
+            default: post("propagateOnDutyAssignmentChange: unexpected start of deck key-name", deckName); post();
+        }
+        var meKey = "::" + this.index;
+        var cmdKeyPrefix = oneDeckCrew + meKey;
+        if (cmdKeyPrefix.charAt(0) === "e") {
+            post("propagateOnDutyAssignmentChange: unexpected errorKey", deckName, cmdKeyPrefix); post();
+        }
+
+        var cmdBtnDict = c4DeviceControllerDict.get(cmdKeyPrefix);
+        var c4Btn = this.newFromDict(cmdBtnDict);
+        // post("propagateOnDutyAssignmentChange: assembled key for deck", deckName, cmdKeyPrefix); post();
+        // post("propagateOnDutyAssignmentChange: value for key", c4Btn.toJsonStr()); post();
+        // post("propagateOnDutyAssignmentChange: value to be copied", this.toJsonStr()); post();
+        c4Btn.copyDataFrom(this);
+        cmdKeyPrefix = oneDeckCrew;
+        // post("propagateOnDutyAssignmentChange: propagating this data to", cmdKeyPrefix); post();
+        // post(this.toJsonStr()); post();
+        c4Btn.updateNamedDict("C4DeviceExecutiveController", cmdKeyPrefix);
+    }
+    return [this.index, this.ledValue, this.pressedValue];
+}
 
 C4Button.prototype.bang = function() {
     post("This button "); post();

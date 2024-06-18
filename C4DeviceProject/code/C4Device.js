@@ -4,6 +4,7 @@
 // server's only "midi data client" connection.
 //
 // The loadUp() function should be called before any midi messages get received and processed.
+// AND loadUp() should finish running before any of the associated Max Dict objects are "ready" (loaded)
 //
 // Otherwise, the "public" functions are designed to be:
 // function midievent(midiMsgIn) {
@@ -132,6 +133,16 @@ function midievent(midiMsgIn) {
                     } else {
                         // post("NO, offset", lastEncoderPageOffset, "remaining", encoderPageOffset);post();
                     }
+                } else if (feedbackMsg[1] >= 5 && feedbackMsg[1] <= 8 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
+                    // (Assignment) Button "released" feedback
+                    // Reassign which "controller deck crew" is "on duty"
+                    swapActiveCrewsOnDuty(feedbackMsg[1]);
+                    // and set the stage the way they left it
+                    encoderPageOffset = reqModule.getPageOffset();
+                    if (lastEncoderPageOffset !== encoderPageOffset) {
+                        lastEncoderPageOffset = encoderPageOffset;
+                    }
+                    pageChangeSignal = 1;
                 } else if (feedbackMsg[1] >= 9 && feedbackMsg[1] <= 12 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
                     // (Parameter) Bank Left, Bank Right; Single Left or Single Right Button "released" feedback
                     // Transform "encoder book" dict data by rotation
@@ -169,10 +180,10 @@ function midievent(midiMsgIn) {
                 var lcdFdbkMsg = generateLcdFeedback(midiMsg[1]);
                 // only send if content changed
                 if (lcdFdbkMsg[0][0] !== ABORT_FEEDBACK_SIGNAL) {
-                    outlet(0, lcdFdbkMsg[0]);//top line
+                    outlet(1, lcdFdbkMsg[0]);//top line
                 }
                 if (lcdFdbkMsg[1][0] !== ABORT_FEEDBACK_SIGNAL) {
-                    outlet(0, lcdFdbkMsg[1]);//bottom line
+                    outlet(1, lcdFdbkMsg[1]);//bottom line
                 }
             }
         } else {
@@ -180,6 +191,88 @@ function midievent(midiMsgIn) {
         }
     } else {
         post("midievent: too small for a 3 byte midi message", arguments);post();
+    }
+}
+
+var currentDeckName = "bridgeDeck";
+// There are 5 decks to the controller, but only one of the decks is "on duty" at a time
+// When swapping the "on duty" deck crew, save the current "duty log" data (from the "active" Dicts) back to both
+// the controller js-object and the backing C4DeviceExecutiveController Max js-Dict-object,
+// then update the "duty log" (the "active" Dicts) with "new" saved data from the controller (associated with the next
+// "on duty" deck crew).
+//
+// Note: The "Assignment group" Button associated with the buttonId input parameter data has already been updated
+// across all decks (because it's common data). Here, we are ONLY swapping data in and out of the "active" Dicts
+// to reflect the deck change.
+//
+// If Max Transport is selected, the running status of the sequencer might "automatically" change with the crew change
+function swapActiveCrewsOnDuty(buttonId) {
+    //c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+    buttonsDict.name = "c4Buttons";
+    encodersDict.name = "c4Encoders";
+    if (buttonId >= 5 && buttonId <= 8) {
+        // Reference Dict was already updated, see comments above
+        var nextDeckName = reqModule.getActiveControllerDeckName();
+        var deckChange = currentDeckName !== nextDeckName;
+        if (deckChange) {
+
+            var curBtnCrew = controller.getCrewNameForDeck(currentDeckName, "Buttons");
+            var curEncCrew = controller.getCrewNameForDeck(currentDeckName, "Encoders");
+            var curDeckButtons = controller[currentDeckName][curBtnCrew];
+            var curDeckEncoders = controller[currentDeckName][curEncCrew];
+
+            controller.refreshDeckForDuty(nextDeckName);
+            var nexBtnCrew = controller.getCrewNameForDeck(nextDeckName, "Buttons");
+            var nexEncCrew = controller.getCrewNameForDeck(nextDeckName, "Encoders");
+            var nexDeckButtons = controller[nextDeckName][nexBtnCrew];
+            var nexDeckEncoders = controller[nextDeckName][nexEncCrew];
+
+            for(var i = 0; i < TOTAL_BUTTONS; i++) {
+
+                // store the "on duty" data of the deck going "off duty" for the deck's next "on duty" shift
+                var curDeckCtrlBtn = curDeckButtons[i];
+                var activeBtnDict = buttonsDict.get(i);
+                var activeBtn = utilButton.newFromDict(activeBtnDict);
+                curDeckCtrlBtn.copyDataFrom(activeBtn);
+
+                var replaceKey = controller.getCrewReplaceKeyForDeck(currentDeckName, "Buttons");
+                curDeckCtrlBtn.updateNamedDict("C4DeviceExecutiveController", replaceKey);
+                curDeckButtons[i] = curDeckCtrlBtn;// reassignment because next time this crew is "on duty"
+                //post("c:",curDeckCtrlBtn.toJsonStr()); post();
+
+                // pull the previous "on duty" data of the deck going (back) "on duty" for this shift
+                // and refresh the active Dicts with the updated info
+                nexDeckButtons[i].updateActiveDicts();
+                //post("n:", nexDeckButtons[i].toJsonStr()); post();
+
+                // repeat for encoders
+                if (i < TOTAL_ENCODERS) {
+                    var curDeckCtrlEnc = curDeckEncoders[i];
+                    var activeEncDict =  encodersDict.get(i);
+                    var activeEnc = utilEncoder.newFromDict(activeEncDict);
+                    curDeckCtrlEnc.copyDataFrom(activeEnc);
+
+                    replaceKey = controller.getCrewReplaceKeyForDeck(currentDeckName, "Encoders");
+                    curDeckCtrlEnc.updateNamedDict("C4DeviceExecutiveController", replaceKey);
+                    curDeckEncoders[i] = curDeckCtrlEnc;
+
+                    nexDeckEncoders[i].updateActiveDicts();
+                }
+            }
+            currentDeckName = nextDeckName;
+            // post("swapActiveCrewsOnDuty: crew swap complete", currentDeckName, nextDeckName);post();
+        } else {
+            // changes to Assignment buttonId LEDs (5-8) only trigger "on duty" roster changes in hierarchical order
+            // Marker deck has the highest precedence, and Bridge deck has lowest.
+            // Marker deck is always "On Duty" when the Marker LED is ON
+            // Bridge deck is only "On Duty" when no Assignment LEDs are ON
+            // Functn deck is only "On Duty" when the Function LED is the ONLY Assignment LED ON.
+            // Execution passes through here when lower precedence Assignment button LEDs change state
+            // while a higher precedence Assignment button LED is ON (so no "deck on duty" change)
+        }
+    } else {
+        post("swapActiveCrewsOnDuty: assumption issue, function called for non-Assignment button",
+            buttonId, currentDeckName, nextDeckName); post();
     }
 }
 
@@ -191,7 +284,7 @@ function sendEncoderPageData(encoderPageDataCallback) {
         post("displayCurrentPage: unexpected display processing result", rtn.toString());post();
     } else {
         for (var i = 0; i < rtn.length; i++) {
-            if (i === 0) {
+            if (i === 0 || i === 5) {
                 outlet(0, rtn[i]);
             } else {
                 outlet(1, rtn[i]);
@@ -329,8 +422,8 @@ function transformEncoderData(encoderPageOffset, wrapBoundary, rotateBy) {
         var after = dataAfter[i];
         after[0].copyDataFrom(before[0]);
         after[1].copyDataFrom(before[1]);
-        after[0].updateMyDict();// encoders
-        after[1].updateMyDict();// encoder buttons
+        after[0].updateActiveDict();// encoders
+        after[1].updateActiveDict();// encoder buttons
     }
 }
 
@@ -444,7 +537,15 @@ function clearLastSequencerStep(signal) {
 }
 function generateWelcomePageMsgs() {
     encodersDict.name = "c4Encoders";
+    buttonsDict.name = "c4Buttons";
     var rtn0 = [];
+    for (var j = 0; j < 5; j++) {
+        // Always also send these five Note messages at welcome
+        var c4Btn = utilButton.newFromDict(buttonsDict.get(j));
+        rtn0.push(MIDI_NOTE_ON_ID);
+        rtn0.push(c4Btn.index);
+        rtn0.push(c4Btn.ledValue);
+    }
     var sysexTop00 = [];
     var sysexTop01 = [];
     var sysexTop02 = [];
@@ -492,8 +593,23 @@ function generateWelcomePageMsgs() {
 }
 function generateDisplayPageUpdateMsgs(seqStepId) {
     encodersDict.name = "c4Encoders";
+    buttonsDict.name = "c4Buttons";
     var encoderPageOffset = reqModule.getPageOffset();
     var rtn0 = [];
+    var rtnZ = [];
+    for (var j = 0; j < 5; j++) {
+        // Always also send these five Note messages when an encoder page displays.
+        // The (three buttons and) five LEDs in the "Function Group" on the C4 need to get "refreshed"
+        // when the "on duty" deck crews change because the "Function Group" button data is unique per deck
+        // If the sequencer is running though, don't mess with the "Lock LED pulse".
+        var skipForSequencerPulse = seqStepId !== undefined && j === 3;
+        if (!skipForSequencerPulse) {
+            var c4Btn = utilButton.newFromDict(buttonsDict.get(j));
+            rtnZ.push(MIDI_NOTE_ON_ID);
+            rtnZ.push(c4Btn.index);
+            rtnZ.push(c4Btn.ledValue);
+        }
+    }
     var sysexTop00 = [];
     var sysexTop01 = [];
     var sysexTop02 = [];
@@ -536,7 +652,7 @@ function generateDisplayPageUpdateMsgs(seqStepId) {
         sysexTop02.push(sysexBtm02[k]);
         sysexTop03.push(sysexBtm03[k]);
     }
-    return [rtn0, sysexTop00, sysexTop01, sysexTop02, sysexTop03];
+    return [rtn0, sysexTop00, sysexTop01, sysexTop02, sysexTop03, rtnZ];
 }
 
 var lastLcdSeq00 = [];
@@ -569,6 +685,9 @@ function processSequencerStep(encoderId) {
         lastLcdSeq03 = currentDisplayPage[4];
         outlet(1, currentDisplayPage[4]);
         sendUpdatedPageInfo(lastLcdSeq02, currentDisplayPage, encoderId);
+    }
+    if (currentDisplayPage.length > 5) {
+        outlet(0, currentDisplayPage[5]);
     }
 }
 

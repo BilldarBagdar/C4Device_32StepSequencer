@@ -64,6 +64,76 @@ function C4DeviceController(feedbackStyle) {
 C4DeviceController.prototype.toJsonStr = function() {
     return JSON.stringify(this);
 };
+C4DeviceController.prototype.getCrewNamePrefixForDeck = function(deckName) {
+    deckName = deckName !== undefined ? deckName : "bridgeDeck";
+    var startsWith = deckName.charAt(0);
+    var rtn = "brdg";
+    switch(startsWith) {
+        case "c": rtn = "chst"; break;
+        case "f": rtn = "fnct"; break;
+        case "m": rtn = "mrkr"; break;
+        case "t": rtn = "trck"; break;
+        case "b": break;
+        default: post("getCrewNamePrefixForDeck: unexpected start of deck key-name", deckName); post();
+    }
+    return rtn;
+};
+C4DeviceController.prototype.getCrewNameForDeck = function(deckName, crewName) {
+    deckName = deckName !== undefined ? deckName : "bridgeDeck";
+    crewName = crewName !== undefined ? crewName : "Buttons";
+    return this.getCrewNamePrefixForDeck(deckName) + crewName;
+};
+C4DeviceController.prototype.getCrewReplaceKeyForDeck = function(deckName, crewName) {
+    deckName = deckName !== undefined ? deckName : "bridgeDeck";
+    crewName = crewName !== undefined ? crewName : "Buttons";
+    return deckName + "::" + this.getCrewNameForDeck(deckName, crewName);
+};
+C4DeviceController.prototype.refreshDeckForDuty = function(deckName) {
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+    this.propagateActiveSpareSignalsAcrossDecks();
+    deckName = deckName !== undefined ? deckName : "bridgeDeck";
+    var crewName = this.getCrewNameForDeck(deckName, "Buttons");
+    var curDeckButtons = this[deckName][crewName];
+
+    // Need to pull updated "Assignment group" status from the backing data store
+    // (where C4Button.propagateOnDutyAssignmentChange() puts those updates)
+    for(var i = 5; i < 9; i++) {
+
+        var curDeckCtrlBtn = curDeckButtons[i];
+        var refreshKeyPrefix = this.getCrewReplaceKeyForDeck(deckName, "Buttons");
+        var deckAssignmentKey = "::" + curDeckCtrlBtn.index;
+        var key = refreshKeyPrefix + deckAssignmentKey;
+        //post("refreshDeckForDuty:", key);
+        var backingBtnDict = c4DeviceControllerDict.get(key);
+        var backingBtn = curDeckCtrlBtn.newFromDict(backingBtnDict);
+        curDeckCtrlBtn.copyDataFrom(backingBtn);
+
+        curDeckButtons[i] = curDeckCtrlBtn;
+    }
+};
+C4DeviceController.prototype.propagateActiveSpareSignalsAcrossDecks = function() {
+    buttonsDict.name = "c4Buttons";
+    // Buttons 21 - 31 don't exist on the c4, they are important spares though as "spacer" values in the
+    // data structures between the last regular c4 button 20 and the first c4 encoder-button 32.
+    // Button 21 is an example of how these spare buttons can be used to pass patch-specific information
+    // to javascript from Max via commonly named Dicts
+    // Buttons 21 represents this patch's External Transport Status where
+    // ledValue: ON == Using External Transport, OFF == Using Max Transport
+    // pressedValue: Pressed == External RTC Running, Released == External RTC Stopped
+    // No other "spare buttons" are used like this at this time
+    for (var i = 21; i < ENCODER_BTN_OFFSET; i++) {
+
+        var ctrlDeckBtn = this.bridgeDeck["brdgButtons"][i];
+        var btnDict = buttonsDict.get(i);
+        var c4ActiveBtn = ctrlDeckBtn.newFromDict(btnDict);
+
+        ctrlDeckBtn.copyDataFrom(c4ActiveBtn);
+        this.markerDeck["mrkrButtons"][i].copyDataFrom(c4ActiveBtn);
+        this.trackDeck["trckButtons"][i].copyDataFrom(c4ActiveBtn);
+        this.chanStDeck["chstEncoders"][i].copyDataFrom(c4ActiveBtn);
+        this.functnDeck["fnctButtons"][i].copyDataFrom(c4ActiveBtn);
+    }
+}
 C4DeviceController.prototype.deckToJsonStr = function(deck) {
     deck = deck !== undefined ? deck : "bridgeDeck";
     var startsWith = deck.charAt(0);
@@ -73,11 +143,11 @@ C4DeviceController.prototype.deckToJsonStr = function(deck) {
         case "f":
         case "m":
         case "t": break;
-        default: post("deckToJsonObj: unexpected start of deck key-name", deck); post();
+        default: post("deckToJsonStr: unexpected start of deck key-name", deck); post();
     }
     var objMap = this[deck];
     if (objMap === undefined) {
-        post("deckToJsonObj: unexpected deck key-name", deck); post();
+        post("deckToJsonStr: unexpected deck key-name", deck); post();
     }
     return JSON.stringify(objMap);
 };
@@ -91,11 +161,11 @@ C4DeviceController.prototype.deckCrewToJsonStr = function(crew) {
         case "f": deck = "functnDeck"; break;
         case "m": deck = "markerDeck"; break;
         case "t": deck = "trackDeck"; break;
-        default: post("deckCrewToJsonObj: unexpected start of crew key-name", crew); post();
+        default: post("deckCrewToJsonStr: unexpected start of crew key-name", crew); post();
     }
     var objMap = this[deck][crew];
     if (objMap === undefined) {
-        post("deckCrewToJsonObj: unexpected crew key-name", crew); post();
+        post("deckCrewToJsonStr: unexpected crew key-name", crew); post();
     }
     return JSON.stringify(objMap);
 };

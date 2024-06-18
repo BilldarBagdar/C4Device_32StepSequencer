@@ -49,31 +49,40 @@ C4Encoder.prototype.copyDataFrom = function(other) {
     this.altPressedValue = other.altPressedValue;
     this.lastIncrementValue = other.lastIncrementValue;
 };
-C4Encoder.prototype.updateMyDict = function() {
-    encodersDict.name = "c4Encoders";
+C4Encoder.prototype.updateActiveDicts = function() {
+
+    this.updateNamedDict("c4Encoders");
     encBtnReleasedStateDict.name = "encoderBtnReleasedData";
     encBtnPressedStateDict.name = "encoderBtnPressedData";
-    var replaceKey = this.index + "::pressedValue";
-    encodersDict.replace(replaceKey, this.pressedValue);
-    replaceKey = this.index + "::releasedValue";
-    encodersDict.replace(replaceKey, this.releasedValue);
-    replaceKey = this.index + "::ringLedFeedbackStyle";
-    encodersDict.replace(replaceKey, this.ringLedFeedbackStyle);
-    replaceKey = this.index + "::buttonLedValue";
-    encodersDict.replace(replaceKey, this.buttonLedValue);
-    replaceKey = this.index + "::shiftPressedValue";
-    encodersDict.replace(replaceKey, this.shiftPressedValue);
-    replaceKey = this.index + "::optionPressedValue";
-    encodersDict.replace(replaceKey, this.optionPressedValue);
-    replaceKey = this.index + "::controlPressedValue";
-    encodersDict.replace(replaceKey, this.controlPressedValue);
-    replaceKey = this.index + "::altPressedValue";
-    encodersDict.replace(replaceKey, this.altPressedValue);
-    replaceKey = this.index + "::lastIncrementValue";
-    encodersDict.replace(replaceKey, this.lastIncrementValue);
-
     encBtnReleasedStateDict.set(this.index, this.releasedValue);
     encBtnPressedStateDict.set(this.index, this.pressedValue);
+};
+
+C4Encoder.prototype.updateNamedDict = function(dictName, keyPrefix) {
+    var temp = new Dict();
+    temp.name = dictName;
+    if (keyPrefix !== undefined && keyPrefix.length < 5) {
+        post("C4Encoder.updateNamedDict: unexpected keyPrefix", dictName, keyPrefix);post();
+    }
+    var meKey = keyPrefix !== undefined ? keyPrefix + "::" + this.index : this.index;
+    var replaceKey = meKey + "::pressedValue";
+    encodersDict.replace(replaceKey, this.pressedValue);
+    replaceKey = meKey + "::releasedValue";
+    encodersDict.replace(replaceKey, this.releasedValue);
+    replaceKey = meKey + "::ringLedFeedbackStyle";
+    encodersDict.replace(replaceKey, this.ringLedFeedbackStyle);
+    replaceKey = meKey + "::buttonLedValue";
+    encodersDict.replace(replaceKey, this.buttonLedValue);
+    replaceKey = meKey + "::shiftPressedValue";
+    encodersDict.replace(replaceKey, this.shiftPressedValue);
+    replaceKey = meKey + "::optionPressedValue";
+    encodersDict.replace(replaceKey, this.optionPressedValue);
+    replaceKey = meKey + "::controlPressedValue";
+    encodersDict.replace(replaceKey, this.controlPressedValue);
+    replaceKey = meKey + "::altPressedValue";
+    encodersDict.replace(replaceKey, this.altPressedValue);
+    replaceKey = meKey + "::lastIncrementValue";
+    encodersDict.replace(replaceKey, this.lastIncrementValue);
 };
 // local js "pointer" Dict
 var pressedOrReleased = new Dict();
