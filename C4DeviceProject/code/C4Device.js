@@ -205,6 +205,10 @@ var currentDeckName = "bridgeDeck";
 // across all decks (because it's common data). Here, we are ONLY swapping data in and out of the "active" Dicts
 // to reflect the deck change.
 //
+// Note 2: "theCurrentSplitButtonLED" and "splitFeedbackAddressChangeCount" are declared in C4Button.js which
+// is included here in C4Device.js, so they are "visible" here too.
+// only other assignments to these "js-object instance" variables is in C4Button.processSplitEvent(v)
+//
 // If Max Transport is selected, the running status of the sequencer might "automatically" change with the crew change
 function swapActiveCrewsOnDuty(buttonId) {
     //c4DeviceControllerDict.name = "C4DeviceExecutiveController";
@@ -222,6 +226,10 @@ function swapActiveCrewsOnDuty(buttonId) {
             var curDeckEncoders = controller[currentDeckName][curEncCrew];
 
             controller.refreshDeckForDuty(nextDeckName);
+            var nexDeckSplitName = controller.getCrewNameForDeck(nextDeckName, "Split");
+            theCurrentSplitButtonLED = controller[nextDeckName][nexDeckSplitName];
+            splitFeedbackAddressChangeCount = theCurrentSplitButtonLED.ledChangeCount;
+
             var nexBtnCrew = controller.getCrewNameForDeck(nextDeckName, "Buttons");
             var nexEncCrew = controller.getCrewNameForDeck(nextDeckName, "Encoders");
             var nexDeckButtons = controller[nextDeckName][nexBtnCrew];
@@ -454,7 +462,7 @@ function generateLcdFeedback(encoderId) {
     var lcdScreenOffset = 0;
     if (encoderId > 0) {
         //24 / 8 === 3 && 31 / 8 === 3, so (0, 1, 2, 3)
-        // we don't yet have a "C4 Encoder" object to identify its LCD for us here, we just have the midi cc ID
+        // don't yet have a "C4 Encoder" object to identify its LCD here, just have the midi cc ID
         lcdScreenOffset = ~~(encoderId / ENCODERS_PER_LCD_SCREEN);
     }
     if (!(lcdScreenOffset < TOTAL_LCD_SCREENS)) {
@@ -540,7 +548,7 @@ function generateWelcomePageMsgs() {
     buttonsDict.name = "c4Buttons";
     var rtn0 = [];
     for (var j = 0; j < 5; j++) {
-        // Always also send these five Note messages at welcome
+        // Always also send these five Note messages at welcome (clears any "stuck ON" LEDs if reloading patch)
         var c4Btn = utilButton.newFromDict(buttonsDict.get(j));
         rtn0.push(MIDI_NOTE_ON_ID);
         rtn0.push(c4Btn.index);
@@ -598,12 +606,13 @@ function generateDisplayPageUpdateMsgs(seqStepId) {
     var rtn0 = [];
     var rtnZ = [];
     for (var j = 0; j < 5; j++) {
-        // Always also send these five Note messages when an encoder page displays.
+        // Also send these five Note messages when an encoder page displays.
         // The (three buttons and) five LEDs in the "Function Group" on the C4 need to get "refreshed"
         // when the "on duty" deck crews change because the "Function Group" button data is unique per deck
-        // If the sequencer is running though, don't mess with the "Lock LED pulse".
-        var skipForSequencerPulse = seqStepId !== undefined && j === 3;
-        if (!skipForSequencerPulse) {
+        // Don't mess with the "Lock LED pulse" though if the sequencer is running
+        var isRunning = seqStepId !== undefined;
+        var lockLedOverride = isRunning && j === 3;
+        if (!lockLedOverride) {
             var c4Btn = utilButton.newFromDict(buttonsDict.get(j));
             rtnZ.push(MIDI_NOTE_ON_ID);
             rtnZ.push(c4Btn.index);

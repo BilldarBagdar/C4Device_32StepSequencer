@@ -74,8 +74,13 @@ C4Button.prototype.newFromJSONStr = function(s) {
 // to Max in the Dict, so when you "get" that Dict-value data back, it's not a string, it's a js-Dict object
 // JSON.parse() isn't needed because each key-value pair in the js-Dict object can be queried directly
 C4Button.prototype.newFromDict = function(d) {
-    return new C4Button(d.get("index"), d.get("kname"), d.get("pressedValue"),
-        d.get("pressedCount"), d.get("releasedCount"), d.get("ledChangeCount"), d.get("ledValue"));
+    if (d !== undefined && d !== null) {
+        return new C4Button(d.get("index"), d.get("kname"), d.get("pressedValue"),
+            d.get("pressedCount"), d.get("releasedCount"), d.get("ledChangeCount"), d.get("ledValue"));
+    } else {
+        post("C4Button.newFromDict: function called for undefined input Dict"); post();
+        return d;
+    }
 };
 // You can "set" or "setparse" this stringified "JSON object" into a Dict.
 C4Button.prototype.toJsonStr = function() {
@@ -185,6 +190,7 @@ C4Button.prototype.processEvent = function (v) {
 
         var eventSource = this;// a "non-encoder button" but not Split
         var encoderRef = new C4Encoder();
+        var storedActiveDeckName = reqModule.getActiveControllerDeckName();// deck before any updates
         if (resetK) {
             eventSource = this.newFromDict(buttonJson);// a "virtual encoder" button
             encoderRef = encoderRef.newFromDict(encoderJson);
@@ -244,13 +250,13 @@ C4Button.prototype.processEvent = function (v) {
         }
         rtn2 = [eventSource.index, eventSource.ledValue, eventSource.pressedValue];
     }
-    if (k > 0 && eventSource.isAssignmentButton()) {
+    if (k > 0 && eventSource.isAssignmentButton() && (eventSource.pressedCount === eventSource.releasedCount)) {
         // "eventSource" above was an alias for "this" (an Assignment button)
         // reassigning the rtn2 value here is currently redundant
         if (!(eventSource.ledValue === this.ledValue && eventSource.pressedValue === this.pressedValue)) {
             post("C4Button.processEvent: object reference assumption issue");post();
         }
-        rtn2 = eventSource.propagateOnDutyAssignmentChange();
+        rtn2 = eventSource.propagateOnDutyAssignmentChange(storedActiveDeckName);
         // post("updated Assignment Button JSON after assignment change processing", eventSource.toJsonStr());
         // post();
     }
@@ -297,7 +303,7 @@ C4Button.prototype.processSplitEvent = function (v) {
         btnStateDict.set(c4SplitLed.index, newCount);
     }
 
-    if (c4SplitLed.pressedCount === c4SplitLed.releasedCount || pressedOrReleased === "RELEASED") {// could be &&
+    if (c4SplitLed.pressedCount === c4SplitLed.releasedCount || pressedOrReleased === "RELEASED") {
         // one press+release cycle has completed
         // only increment the LED change count after complete press+release cycles
         var oldLedStateChangeCount = ledStateDict.get(c4SplitLed.index);
@@ -334,9 +340,9 @@ C4Button.prototype.processSplitEvent = function (v) {
     return [c4SplitLed.index, c4SplitLed.ledValue, c4SplitLed.pressedValue];// [k, l, v]
 };
 
-C4Button.prototype.propagateOnDutyAssignmentChange = function() {
+C4Button.prototype.propagateOnDutyAssignmentChange = function(previouslyActiveDeckName) {
     // "this" is always a js-object from the "on duty" deck (the "c4Buttons" Dict) that has already been processed
-    // normally, but "Assignment" data is common to all decks, so propagate "this" feedback to all decks
+    // normally after release, but "Assignment" data is common to all decks, so propagate "this" feedback to all decks
     var allDecks = reqModule.getAllControllerDeckNames();
     var oneDeckCrew = "error";
     c4DeviceControllerDict.name = "C4DeviceExecutiveController";
@@ -349,15 +355,20 @@ C4Button.prototype.propagateOnDutyAssignmentChange = function() {
         // and their crew-mate "Encoder" js-objects on the same deck (when their deck is "on duty").
         // Not using C4DeviceController.getCrewNameForDeck() either (for the same reason).
         // An instance of C4DeviceController "contains" every button and encoder stored by the controller,
-        // don't want to reserve all that "memory" for a util-object here just to call a string-cat function 5 times
+        // don't want to reserve all that "memory" for a util-object here just to call string-cat functions 5 times
         // every time this method is called.
         var startsWith = deckName.charAt(0);
+        var bridgeConnector = "::brdg";
+        var chanStConnector = "::chst";
+        var functnConnector = "::fnct";
+        var markerConnector = "::mrkr";
+        var trackConnector = "::trck"
         switch(startsWith) {
-            case "b": oneDeckCrew = deckName + "::brdg" + crewName; break;
-            case "c": oneDeckCrew = deckName + "::chst" + crewName; break;
-            case "f": oneDeckCrew = deckName + "::fnct" + crewName; break;
-            case "m": oneDeckCrew = deckName + "::mrkr" + crewName; break;
-            case "t": oneDeckCrew = deckName + "::trck" + crewName; break;
+            case "b": oneDeckCrew = deckName + bridgeConnector + crewName; break;
+            case "c": oneDeckCrew = deckName + chanStConnector + crewName; break;
+            case "f": oneDeckCrew = deckName + functnConnector + crewName; break;
+            case "m": oneDeckCrew = deckName + markerConnector + crewName; break;
+            case "t": oneDeckCrew = deckName + trackConnector + crewName; break;
             default: post("propagateOnDutyAssignmentChange: unexpected start of deck key-name", deckName); post();
         }
         var meKey = "::" + this.index;
@@ -368,15 +379,46 @@ C4Button.prototype.propagateOnDutyAssignmentChange = function() {
 
         var cmdBtnDict = c4DeviceControllerDict.get(cmdKeyPrefix);
         var c4Btn = this.newFromDict(cmdBtnDict);
-        // post("propagateOnDutyAssignmentChange: assembled key for deck", deckName, cmdKeyPrefix); post();
-        // post("propagateOnDutyAssignmentChange: value for key", c4Btn.toJsonStr()); post();
-        // post("propagateOnDutyAssignmentChange: value to be copied", this.toJsonStr()); post();
         c4Btn.copyDataFrom(this);
         cmdKeyPrefix = oneDeckCrew;
         // post("propagateOnDutyAssignmentChange: propagating this data to", cmdKeyPrefix); post();
         // post(this.toJsonStr()); post();
         c4Btn.updateNamedDict("C4DeviceExecutiveController", cmdKeyPrefix);
     }
+
+    var currentDeckName = reqModule.getActiveControllerDeckName();
+    if (currentDeckName !== previouslyActiveDeckName) {
+
+        startsWith = previouslyActiveDeckName.charAt(0);
+        oneDeckCrew = "error";
+        crewName = "Split";
+        switch(startsWith) {
+            case "b": oneDeckCrew = previouslyActiveDeckName + bridgeConnector + crewName; break;
+            case "c": oneDeckCrew = previouslyActiveDeckName + chanStConnector + crewName; break;
+            case "f": oneDeckCrew = previouslyActiveDeckName + functnConnector + crewName; break;
+            case "m": oneDeckCrew = previouslyActiveDeckName + markerConnector + crewName; break;
+            case "t": oneDeckCrew = previouslyActiveDeckName + trackConnector + crewName; break;
+            default: post("propagateOnDutyAssignmentChange: unexpected start of previously active deck key-name",
+                previouslyActiveDeckName); post();
+        }
+        cmdKeyPrefix = oneDeckCrew;
+        //post("C4Button.propagateOnDutyAssignmentChange: getting Split button officer of deck from Dict with key"); post();
+        var deckSplitDict = c4DeviceControllerDict.get(cmdKeyPrefix);
+        var deckSplitBtn = this.newFromDict(deckSplitDict);
+        theCurrentSplitButtonLED.ledChangeCount = splitFeedbackAddressChangeCount;
+        deckSplitBtn.copyDataFrom(theCurrentSplitButtonLED);
+        //post(cmdKeyPrefix, "and storing Active Split data to officer Split button for later"); post();
+        deckSplitBtn.updateNamedDict("C4DeviceExecutiveController", cmdKeyPrefix);
+    } else {
+        // sometimes "Assignment button" LEDs change state but don't trigger a deck change
+        // because another "Assignment button" LED with a higher precedence is already "on duty"
+        // although it probably wouldn't hurt(?) to "copy-and-store data from" the "previously active"
+        // (and still active) deck even in this "not changing yet" case. (would get overwritten again when
+        // "previously active" really does differ)
+        // post("propagateOnDutyAssignmentChange: no current_split_button_led data propagated because");
+        // post(currentDeckName, "===", previouslyActiveDeckName, "correct?"); post();
+    }
+
     return [this.index, this.ledValue, this.pressedValue];
 }
 

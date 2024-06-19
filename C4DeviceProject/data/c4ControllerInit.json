@@ -3398,6 +3398,16 @@
 			}
 
 		}
+,
+		"brdgSplit" : 		{
+			"index" : 256,
+			"kname" : "SPLCNT",
+			"pressedValue" : 0,
+			"pressedCount" : 0,
+			"releasedCount" : 0,
+			"ledChangeCount" : 0,
+			"ledValue" : 0
+		}
 
 	}
 ,
@@ -6798,6 +6808,16 @@
 				"lastIncrementValue" : 0
 			}
 
+		}
+,
+		"mrkrSplit" : 		{
+			"index" : 257,
+			"kname" : "SPLCNT",
+			"pressedValue" : 0,
+			"pressedCount" : 0,
+			"releasedCount" : 0,
+			"ledChangeCount" : 0,
+			"ledValue" : 0
 		}
 
 	}
@@ -10200,6 +10220,16 @@
 			}
 
 		}
+,
+		"trckSplit" : 		{
+			"index" : 258,
+			"kname" : "SPLCNT",
+			"pressedValue" : 0,
+			"pressedCount" : 0,
+			"releasedCount" : 0,
+			"ledChangeCount" : 0,
+			"ledValue" : 0
+		}
 
 	}
 ,
@@ -13601,6 +13631,16 @@
 			}
 
 		}
+,
+		"chstSplit" : 		{
+			"index" : 259,
+			"kname" : "SPLCNT",
+			"pressedValue" : 0,
+			"pressedCount" : 0,
+			"releasedCount" : 0,
+			"ledChangeCount" : 0,
+			"ledValue" : 0
+		}
 
 	}
 ,
@@ -17001,6 +17041,16 @@
 				"lastIncrementValue" : 0
 			}
 
+		}
+,
+		"fnctSplit" : 		{
+			"index" : 260,
+			"kname" : "SPLCNT",
+			"pressedValue" : 0,
+			"pressedCount" : 0,
+			"releasedCount" : 0,
+			"ledChangeCount" : 0,
+			"ledValue" : 0
 		}
 
 	}
