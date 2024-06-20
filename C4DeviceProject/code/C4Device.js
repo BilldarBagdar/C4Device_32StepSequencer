@@ -1,7 +1,14 @@
 // this is the project's main "C4Device" javascript file
 // (the inlets and outlets are defined here)
 // This javascript implements a "C4 device midi data" server where the C4 itself is the
-// server's only "midi data client" connection.
+// server's only "midi data client" connection.  The only other client is "this Max patch"
+// which provides two main signals that influence what "feedback" appears on the C4 "display"
+// a repeating stream of "encoder ID" numbers (0 - 31) or a "stop sign".
+// "display" means every component on the C4 (4 LCD screens, 9 button LEDS, 32 encoder LED rings)
+// a "display-page" is like one frame of animation or a "screen frame" in graphics FPS terms.
+// "frame rate" is the rate at which "sequencer step" processing requests are handled.  The C4
+// can only physically handle so much data per millisecond, but that line is somewhere north of
+// about 10 "display-pages-per-second".
 //
 // The loadUp() function should be called before any midi messages get received and processed.
 // AND loadUp() should finish running before any of the associated Max Dict objects are "ready" (loaded)
@@ -13,10 +20,10 @@
 // plus maybe callback functions (after they work?)...
 //
 inlets = 1;
-outlets = 3;
+outlets = 3;// 0 for Note and CC messages, 1 for SYSEX messages, 2 not implemented
 //
 //
-//   ---- C4Device GLOBAL function definitions -----
+//   ---- C4Device js-object definitions -----
 //
 //
 
@@ -74,8 +81,6 @@ function initButtons(){
     ledStateDict.name = "ledStateChangeCount";
     var bridgeButtons = controller["bridgeDeck"].brdgButtons;
     for(var i = 0; i < TOTAL_BUTTONS; i++) {
-        // only 51 actual buttons 19 + 32
-        // only 38ish actual leds [1-3] + 6 + 32
         var button = bridgeButtons[i];
         buttonsDict.setparse(button.index, button.toJsonStr());
         var buttonJson = buttonsDict.get(i);
@@ -115,8 +120,6 @@ function midievent(midiMsgIn) {
                 feedbackMsg = processButtonMessage(midiMsg);
                 if (!(feedbackMsg[1] < ENCODER_BTN_OFFSET)) {
                     // encoder button feedback
-                    // The C4 drops (ignores) midi messages for Note message numbers > 31
-                    // (and only has 9 physical button LEDs for Note message numbers < 9)
                     feedbackMsg[0] = MIDI_CC_ID;
                     var encoderId = (feedbackMsg[1] - ENCODER_BTN_OFFSET) + reqModule.getPageOffset();
                     var encDict = encodersDict.get(encoderId);
@@ -138,15 +141,11 @@ function midievent(midiMsgIn) {
                     // Reassign which "controller deck crew" is "on duty"
                     swapActiveCrewsOnDuty(feedbackMsg[1]);
                     // and set the stage the way they left it
-                    encoderPageOffset = reqModule.getPageOffset();
-                    if (lastEncoderPageOffset !== encoderPageOffset) {
-                        lastEncoderPageOffset = encoderPageOffset;
-                    }
+                    lastEncoderPageOffset = reqModule.getPageOffset();
                     pageChangeSignal = 1;
                 } else if (feedbackMsg[1] >= 9 && feedbackMsg[1] <= 12 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
                     // (Parameter) Bank Left, Bank Right; Single Left or Single Right Button "released" feedback
                     // Transform "encoder book" dict data by rotation
-                    // +/- 32 for Bank Right, Left and +/- 8 for Single Right, Left
                     // wrapping % 128 so 00 - 08 == 120
                     transformEncoderBookData(feedbackMsg[1]);
                     pageChangeSignal = 1;
@@ -154,7 +153,6 @@ function midievent(midiMsgIn) {
                     // && feedbackMsg[1] < ENCODER_BTN_OFFSET
                     // (Session) Slot Up, or Down; Track Left or Right Button "released" feedback
                     // Transform "encoder page" dict data by rotation
-                    // +/- 1 for Right, Left and +/- 8 for Down, Up
                     // wrapping % 32 so 00 - 08 == 24
                     transformEncoderPageData(feedbackMsg[1]);
                     pageChangeSignal = 1;
@@ -209,7 +207,7 @@ var currentDeckName = "bridgeDeck";
 // is included here in C4Device.js, so they are "visible" here too.
 // only other assignments to these "js-object instance" variables is in C4Button.processSplitEvent(v)
 //
-// If Max Transport is selected, the running status of the sequencer might "automatically" change with the crew change
+// If Max Transport is selected, the running status of the sequencer might "automatically" change with any crew change
 function swapActiveCrewsOnDuty(buttonId) {
     //c4DeviceControllerDict.name = "C4DeviceExecutiveController";
     buttonsDict.name = "c4Buttons";
@@ -268,7 +266,6 @@ function swapActiveCrewsOnDuty(buttonId) {
                 }
             }
             currentDeckName = nextDeckName;
-            // post("swapActiveCrewsOnDuty: crew swap complete", currentDeckName, nextDeckName);post();
         } else {
             // changes to Assignment buttonId LEDs (5-8) only trigger "on duty" roster changes in hierarchical order
             // Marker deck has the highest precedence, and Bridge deck has lowest.
@@ -453,16 +450,14 @@ function generateLcdFeedback(encoderId) {
     encIndexesByLcdRowDict.name = "lcdScreenRowIndexRef";
     var encoderPageOffset = reqModule.getPageOffset();
 
-    var encoderDisplayRefRow = 0;// ~~0/8 === 0.00?
+    var encoderDisplayRefRow = 0;// because ~~0/8 === 0.00?
     if (encoderPageOffset > 0) {
         // 32/8 == RowIndex 4, 64/8 == RowIndex 8, 96/8 == RowIndex 12
-        // encoderDisplayRefRow points to first lcdScreenRowIndexRef Dict key of encoderPageOffset data
         encoderDisplayRefRow = ~~(encoderPageOffset / ENCODERS_PER_LCD_SCREEN);
     }
     var lcdScreenOffset = 0;
     if (encoderId > 0) {
         //24 / 8 === 3 && 31 / 8 === 3, so (0, 1, 2, 3)
-        // don't yet have a "C4 Encoder" object to identify its LCD here, just have the midi cc ID
         lcdScreenOffset = ~~(encoderId / ENCODERS_PER_LCD_SCREEN);
     }
     if (!(lcdScreenOffset < TOTAL_LCD_SCREENS)) {
@@ -491,7 +486,8 @@ function generateLcdFeedback(encoderId) {
     var lcdRowId = topLine[5];
     if (lastTopSysex.length === topLine.length) {
         if (arraysMatch(lastTopSysex, topLine)) {
-            // even if aborted, still need to signal to sequencer which lcd row message got aborted
+            // even when not sent to the C4, this feedback message still needs to signal to the sequencer which
+            // lcd row the feedback message would be going to
             rtn[0] = [ABORT_FEEDBACK_SIGNAL, ENCODER_BTN_OFFSET, 0, 0, 0, lcdRowId];
         } else {
             lastTopSysex = topLine;
@@ -504,7 +500,7 @@ function generateLcdFeedback(encoderId) {
     // and the encoder continues turning in the clockwise direction...
     if (lastBtmSysex.length === btmLine.length) {
         if (arraysMatch(lastBtmSysex, btmLine)) {
-            // even if aborted, still need to signal to sequencer which lcd row message got aborted
+            // even when not sent to the C4... see above
             rtn[1] = [ABORT_FEEDBACK_SIGNAL, ENCODER_BTN_OFFSET, 0, 0, 0, 0, lcdRowId];
         } else {
             lastBtmSysex = btmLine;
@@ -609,7 +605,7 @@ function generateDisplayPageUpdateMsgs(seqStepId) {
         // Also send these five Note messages when an encoder page displays.
         // The (three buttons and) five LEDs in the "Function Group" on the C4 need to get "refreshed"
         // when the "on duty" deck crews change because the "Function Group" button data is unique per deck
-        // Don't mess with the "Lock LED pulse" though if the sequencer is running
+        // Don't mess with the "Lock LED pulse" (j === 3) if the sequencer is running
         var isRunning = seqStepId !== undefined;
         var lockLedOverride = isRunning && j === 3;
         if (!lockLedOverride) {
@@ -653,7 +649,7 @@ function generateDisplayPageUpdateMsgs(seqStepId) {
             default:
                 post("generateDisplayPageUpdateMsgs: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonStr());
         }
-    }// end for (var i = encoderPageOffset; i < (encoderPageOffset + NBR_PHYSICAL_ENCODERS); i++)
+    }
 
     for (var k = 0; k < sysexBtm00.length; k++) {
         sysexTop00.push(sysexBtm00[k]);
@@ -696,6 +692,7 @@ function processSequencerStep(encoderId) {
         sendUpdatedPageInfo(lastLcdSeq02, currentDisplayPage, encoderId);
     }
     if (currentDisplayPage.length > 5) {
+        // Note messages refreshing the five "Function group" button LEDs
         outlet(0, currentDisplayPage[5]);
     }
 }

@@ -1,7 +1,7 @@
 
 //
 //
-//   ---- C4Button function object definitions -----
+//   ---- C4Button js-object definitions -----
 //
 //
 
@@ -62,17 +62,17 @@ C4Button.prototype.setMyName = function() {
 var splitFeedbackAddressChangeCount = 0;
 var theCurrentSplitButtonLED = new C4Button(0);
 
-// If Dictionary content that "is JSON" is "set" as some key's value, that value is "just a string"
-// to Max in the Dict, so when you "get" that string-value data back, it's still a string and JSON.parse()
-// is needed to "objectify" the string content again.
+// If string content that "is JSON" is "set" as some Dictionary key's value, that value is
+// "just a string" to Max in the Dict, so when you "get" that string-value data back,
+// it's still a string and JSON.parse() is needed to "objectify" the string content again.
 C4Button.prototype.newFromJSONStr = function(s) {
     var btn = JSON.parse(s);
     return new C4Button(btn.index, btn.kname, btn.pressedValue,
         btn.pressedCount, btn.releasedCount, btn.ledChangeCount, btn.ledValue);
 };
-// But, if Dictionary content that "is JSON" is "setparse" as some key's value, that value is "another nested Dict"
-// to Max in the Dict, so when you "get" that Dict-value data back, it's not a string, it's a js-Dict object
-// JSON.parse() isn't needed because each key-value pair in the js-Dict object can be queried directly
+// But, if string content that "is JSON" is "setparse" as some Dictionary key's value, that value is
+// "another nested Dict" to Max in the Dict, so when you "get" that Dict-value data back,
+// it's not a string, it's a js-Dict object, each key-value pair can already be queried directly.
 C4Button.prototype.newFromDict = function(d) {
     if (d !== undefined && d !== null) {
         return new C4Button(d.get("index"), d.get("kname"), d.get("pressedValue"),
@@ -82,7 +82,6 @@ C4Button.prototype.newFromDict = function(d) {
         return d;
     }
 };
-// You can "set" or "setparse" this stringified "JSON object" into a Dict.
 C4Button.prototype.toJsonStr = function() {
     return JSON.stringify(this);
 };
@@ -104,13 +103,12 @@ C4Button.prototype.updateActiveDicts = function() {
 C4Button.prototype.updateNamedDict = function(dictName, keyPrefix) {
     var temp = new Dict();
     temp.name = dictName;
-    // "trackDeck::trckButtons" is shortest expected "defined" prefix length at 22 including ::
     if (keyPrefix !== undefined && keyPrefix.length < 20) {
+        // "trackDeck::trckButtons" is shortest expected "defined" prefix length at 22 including ::
         post("C4Button.updateNamedDict: unexpected keyPrefix", dictName, keyPrefix);post();
     }
     var meKey = keyPrefix !== undefined ? keyPrefix + "::" + this.index : this.index;
     var replaceKey = meKey + "::pressedValue";
-    //post("C4Button.updateNamedDict: replace key for deck and value", dictName, replaceKey, this.pressedValue); post();
     temp.replace(replaceKey, this.pressedValue);
     replaceKey = meKey + "::pressedCount";
     temp.replace(replaceKey, this.pressedCount);
@@ -257,8 +255,6 @@ C4Button.prototype.processEvent = function (v) {
             post("C4Button.processEvent: object reference assumption issue");post();
         }
         rtn2 = eventSource.propagateOnDutyAssignmentChange(storedActiveDeckName);
-        // post("updated Assignment Button JSON after assignment change processing", eventSource.toJsonStr());
-        // post();
     }
     return rtn2;
 };
@@ -324,10 +320,11 @@ C4Button.prototype.processSplitEvent = function (v) {
             buttonsDict.replace(replaceKey, c4SplitLed.ledValue);
             if (!changeToON) {
                 // incrementing the splitFeedbackAddressChangeCount only when the Split LED changes to OFF here,
-                // means this current release event can turn off the current Split LED, and THEN
+                // means (feedback from) this current release event can turn off the current Split LED, and THEN
                 // the next Split button press should still feedback to the next Split LED address [0, 1, 2]
                 if (this.isReverseSplitLedCycle()) {
-                    splitFeedbackAddressChangeCount += SPLIT_FEEDBACK_IDS.length - 1;// + 2 === - 1 in modulo 3.
+                    var mod3minusOne = SPLIT_FEEDBACK_IDS.length - 1;
+                    splitFeedbackAddressChangeCount += mod3minusOne;
                 } else {
                     splitFeedbackAddressChangeCount += 1;
                 }
@@ -351,7 +348,7 @@ C4Button.prototype.propagateOnDutyAssignmentChange = function(previouslyActiveDe
         var deckName = allDecks[i];
         var crewName = "Buttons";
         // Not using C4DeviceController.getCrewReplaceKeyForDeck() functionality here
-        // because (so far) C4Button js-objects only couple with the underlying Max Dict-js-objects
+        // because (so far) C4Button js-objects only couple with the underlying Max js-Dict-objects
         // and their crew-mate "Encoder" js-objects on the same deck (when their deck is "on duty").
         // Not using C4DeviceController.getCrewNameForDeck() either (for the same reason).
         // An instance of C4DeviceController "contains" every button and encoder stored by the controller,

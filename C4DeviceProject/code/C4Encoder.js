@@ -1,7 +1,7 @@
 
 //
 //
-//   ---- C4Encoder function object definitions -----
+//   ---- C4Encoder js-object definitions -----
 //
 //
 
@@ -84,7 +84,7 @@ C4Encoder.prototype.updateNamedDict = function(dictName, keyPrefix) {
     replaceKey = meKey + "::lastIncrementValue";
     encodersDict.replace(replaceKey, this.lastIncrementValue);
 };
-// local js "pointer" Dict
+// "local" js "pointer" Dict
 var pressedOrReleased = new Dict();
 
 C4Encoder.prototype.processIncrement = function(ccVal) {
@@ -357,8 +357,6 @@ C4Encoder.prototype.getLcdDisplayBottomText = function() {
     return this.formatLcdDisplaySegmentText(this.getFeedbackValueRaw());
 };
 C4Encoder.prototype.getFeedbackValueRaw = function() {
-    // this method should always be called on "fresh new" objects from the dictionary
-    // these local property values grow stale
     var rtn = this.releasedValue;
     if (this.isShiftButtonPressed()) {
         rtn = this.shiftPressedValue;

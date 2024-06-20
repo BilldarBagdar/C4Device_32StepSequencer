@@ -1,12 +1,12 @@
 
 //
 //
-//   ---- C4DeviceController function object definitions -----
+//   ---- C4DeviceController js-object definitions -----
 //
 //
 
-// each "deck" consists of one "officer" and 288 "crew", 160 buttons, and 128 encoders.
-// for all 5 "decks": 805 total buttons, 640 total encoders
+// each "deck" consists of one "officer" and 288 "crew"; 160 buttons, and 128 encoders.
+// for all 5 "decks": 1445 total crew and officers; 805 total buttons, 640 total encoders
 // The deck crew, the buttons and encoders on each deck, are independent of every other deck crew
 // EXCEPT - The state of the "Assignment Group" Buttons (Marker, Track, Chan Strip, Function, and "all group off")
 // is common to all decks. (The decks are hierarchically selected. (Precedence: Marker, Track, ChanStrip, Function,
@@ -14,14 +14,14 @@
 // wins over "Function".  "Function" LED ON only wins over "all (Assignment group) LEDs OFF".
 //  (Similar to how the Split button LED On states are (1/2, 2/3, 3/3, and "all off"), except the "Assignment LEDs"
 //  operate independently of the "deck hierarchy".  "Marker" wins when ON, but when "Marker" turns OFF, the next winner
-//  could be any other ON "Assignment LED", "all (group) OFF" comes in last every time.)
+//  could be any other ON "Assignment LED", "all (group) OFF" comes in last every time.) see commonRequire.js
 function C4DeviceController(feedbackStyle) {
     this.name = "C4DeviceExecutiveController";
     this.bridgeDeck = {};
     this.bridgeDeck.brdgButtons = {};
     this.bridgeDeck.brdgEncoders = {};
     this.bridgeDeck.brdgSplit = {};
-    this.bridgeDeck.brdgSplit = new C4Button(
+    this.bridgeDeck.brdgSplit = new C4Button(// officer-of-the-deck
         256, "SPLCNT", BUTTON_RELEASED_VALUE, 0, 0,0, BUTTON_LED_OFF_VALUE);
     this.markerDeck = {};
     this.markerDeck.mrkrButtons = {};
@@ -49,8 +49,6 @@ function C4DeviceController(feedbackStyle) {
         260, "SPLCNT", BUTTON_RELEASED_VALUE,0, 0,0, BUTTON_LED_OFF_VALUE);
 
     for (var i = 0; i < TOTAL_BUTTONS; i++) {
-        // only 51 actual buttons 19 + 32
-        // only 38ish actual leds [1-3] + 6 + 32
         this.bridgeDeck["brdgButtons"][i] =
             new C4Button(i, i.toString(), BUTTON_RELEASED_VALUE,0, 0,0, BUTTON_LED_OFF_VALUE);
         this.markerDeck["mrkrButtons"][i] =
@@ -118,7 +116,7 @@ C4DeviceController.prototype.getCrewReplaceKeyForDeck = function(deckName, crewN
     return deckName + "::" + this.getCrewNameForDeck(deckName, crewName);
 };
 C4DeviceController.prototype.refreshDeckForDuty = function(deckName) {
-    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";// this.name
 
     this.propagateActiveSpareSignalsAcrossDecks();
     deckName = deckName !== undefined ? deckName : "bridgeDeck";
@@ -133,7 +131,6 @@ C4DeviceController.prototype.refreshDeckForDuty = function(deckName) {
         var refreshKeyPrefix = this.getCrewReplaceKeyForDeck(deckName, "Buttons");
         var deckAssignmentKey = "::" + curDeckCtrlBtn.index;
         var key = refreshKeyPrefix + deckAssignmentKey;
-        //post("refreshDeckForDuty:", key);
         var backingBtnDict = c4DeviceControllerDict.get(key);
         var backingBtn = curDeckCtrlBtn.newFromDict(backingBtnDict);
         curDeckCtrlBtn.copyDataFrom(backingBtn);
@@ -154,15 +151,15 @@ C4DeviceController.prototype.refreshDeckForDuty = function(deckName) {
 };
 C4DeviceController.prototype.propagateActiveSpareSignalsAcrossDecks = function() {
     buttonsDict.name = "c4Buttons";
-    // Buttons 21 - 31 don't exist on the c4, they are important spares though as "spacer" values in the
+    // Buttons 21 - 31 don't exist on the c4, but they are important spares as "spacer" values in the
     // data structures between the last  c4 regular-button 20 and the first c4 encoder-button 32.
     // Button 21 is an example of how js-objects like these spare buttons can be addressed as Dict values in Max
     // passing patch-specific information to javascript, just by updating the Dict in Max.
     // Here
-    // Buttons 21 represents this patch's (user selected in 'umenu') External Transport Status where
+    // Button 21 represents this patch's (user selected in 'umenu') External Transport Status where
     // ledValue: ON == Using External Transport, OFF == Using Max Transport
     // pressedValue: Pressed == External RTC Running, Released == External RTC Stopped
-    // No other "spare buttons" are used like this at this time
+    // No other "spare buttons" are used like this at this time, propagating all spares anyway.
     for (var i = 21; i < ENCODER_BTN_OFFSET; i++) {
 
         var ctrlDeckBtn = this.bridgeDeck["brdgButtons"][i];
