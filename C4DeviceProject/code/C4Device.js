@@ -427,8 +427,8 @@ function transformEncoderData(encoderPageOffset, wrapBoundary, rotateBy) {
         var after = dataAfter[i];
         after[0].copyDataFrom(before[0]);
         after[1].copyDataFrom(before[1]);
-        after[0].updateActiveDict();// encoders
-        after[1].updateActiveDict();// encoder buttons
+        after[0].updateActiveDicts();// encoders
+        after[1].updateActiveDicts();// encoder buttons
     }
 }
 
