@@ -35,10 +35,10 @@ only on the "midi controller" hardware itself.
 </p>
 <p>
 Unlike the "Livid Code" original, this patch handles processing for 128 virtual encoders (across four "32 encoder" 
-display pages), and every encoder can store and recall seven unique values (EncoderBtnReleased, EncoderBtnPressed, 
-ShiftBtnPressed, OptBtnPressed, CtrlBtnPressed, AltBtnPressed, and LastIncrement).  This sequencer patch can also follow 
-external midi RTC signals in addition to Max internal clocking.  The sequencer can generate "pure" (full length) 16th 
-notes or dotted 32nd notes (0.75 length 16ths).
+display pages over five "books" of pages), and every encoder can store+recall seven unique values (EncoderBtnReleased, 
+EncoderBtnPressed, ShiftBtnPressed, OptBtnPressed, CtrlBtnPressed, AltBtnPressed, and LastIncrement).  This sequencer 
+patch can also follow external midi RTC signals in addition to Max internal clocking.  The sequencer can generate full 
+length 16th notes (kinda-legato) or 0.75 length 16th notes (dotted 32nd notes).
 </p>
 <h3> Sequencer Operations</h3>
 <p>
@@ -50,16 +50,20 @@ the buttons labeled (on the Commander overlay sticker) "Parameter Layout" (Left,
 "(Session) Slot" (Up, Down) on the case.  Since the area around the four buttons grouped around the diamond shape on the 
 right in the image above is not grouped by name above nor physically on the C4 case, a useful shorthand name is the "Session" 
 group. (The shape "inside the buttons" painted on the case is bigger and rounder much more oval-shaped (ovular?), no sharp 
-diamond-pointy corners.) The "Select" button in the "Split" group (on the "Commander overlay") above is labeled the "Split" 
-button in the "Function" group on the case.  The "Function" group above is named the "Assignment" group on the case.  All 
-the sequencer operational descriptions below are based on the labels painted on the C4 case itself, not on any overlay 
-labels (shown above or otherwise).
+pointy diamond corners.) The "Select" button in the "Split" group (on the "Commander overlay") above is labeled the "Split" 
+button in the "Function" group on the case.  The "Function" group above is named the "Assignment" group on the case.  
 </p>
 <p>
-Activate sequencer steps by pressing encoder buttons, turning leds ON, deactivate steps by turning encoder button leds OFF; 
+All the sequencer operational descriptions below are based on the labels painted on the C4 case itself, not on any overlay 
+labels (shown above or otherwise).
+</p>
+<h5> Basic operations</h5>
+<p>
+Activate sequencer steps by turning encoder leds ON (pressing encoder buttons), deactivate steps by turning encoder 
+button leds OFF; 
 and adjust active step (playback) pitches by turning active encoders left or right.  The sequencer only outputs about 
-15 unique pitches (pentatonic scale, three octaves) and the encoders store 128 possible values, so you will experience 
-roughly 10 nothing-happened "encoder clicks" between audible playback pitch changes.
+15 unique pitches (pentatonic scale, three octaves) and the encoders store 128 possible values, so when you turn slowly
+you will experience roughly 10 clicks where nothing happens for every click where the audible playback pitch changes.
 </p>
 <h5> Function group Buttons</h5>
 <p>
@@ -146,9 +150,13 @@ for a sequence's active, playing steps.
 </p>
 <h5> Assignment group Buttons</h5>
 <p>
-The four "Assignment" buttons (Marker, Track, Chan Strip, and Function) are not mapped to any sequencer behavior.  Midi 
-data produced by these buttons is stored by the server and fed back to the C4, but has no impact on the sequencer.
-(The "Assignment" LEDs turn on and off, but serve no purpose)
+The four "Assignment" buttons (Marker, Track, Chan Strip, and Function) represent four more layers of the functionality
+described above, meaning the sequencer actually handles five "4-page books" of sequences instead of only the 
+one "default book". (so 80 total "32-step sequences" are accessible counting all the "modified" sequences)
+The "Assignment" button Precedence cascade follows the order: Marker, Track, Chan Strip, Function, 
+and finally "all group off".  So the "Marker book layer" is always "on duty" when the Marker LED is ON, the "default book 
+layer" is only "on duty" when no "Assignment group" LEDs are ON, and the "Function layer" is only "on duty" when no other 
+"Assignment group" LEDs are ON.
 </p>
 <h5>Links</h5>
 
