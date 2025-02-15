@@ -1,3 +1,6 @@
+// v 2.0
+// This patch can now provide the USER mode functionality in cooperation with Markus's C4 Remote Script for Live 12.
+// v1.0
 // this is the project's main "C4Device" javascript file
 // (the inlets and outlets are defined here)
 // This javascript implements a "C4 device midi data" server where the C4 itself is the
@@ -15,6 +18,7 @@
 //
 // Otherwise, the "public" functions are designed to be:
 // function midievent(midiMsgIn) {
+// function midiSysexEvent(byte) {
 // function processSequencerStep(encoderId) {
 // function clearLastSequencerStep(signal) {
 // plus maybe callback functions (after they work?)...
@@ -82,10 +86,18 @@ function initButtons(){
     var bridgeButtons = controller["bridgeDeck"].brdgButtons;
     for(var i = 0; i < TOTAL_BUTTONS; i++) {
         var button = bridgeButtons[i];
-        buttonsDict.setparse(button.index, button.toJsonStr());
+        if (button.index === PROCESSING_BYPASS_SIGNAL_ID) {
+            // initialize in "processing mode"
+            button.pressedCount += 1;
+            button.releasedCount += 1;
+            button.ledChangeCount += 1;
+            button.ledValue = 127; // ON === processing events by default
+        }
+        controller["bridgeDeck"].brdgButtons[button.index] = button;// save any updates back to "global" controller
+        buttonsDict.setparse(button.index, button.toJsonStr());// save initial state to dicts
         var buttonJson = buttonsDict.get(i);
         button = utilButton.newFromDict(buttonJson);
-        btnStateDict.set(i, button.pressedCount);
+        btnStateDict.set(i, button.pressedCount + button.releasedCount);
         ledStateDict.set(i, button.ledChangeCount);
     }
 }
@@ -108,6 +120,7 @@ function initEncoders() {
 
 function midievent(midiMsgIn) {
     encodersDict.name = "c4Encoders";
+    buttonsDict.name = "c4Buttons";
 
     var MIDI_MSG_SIZE = 3;
     var midiMsg = arrayfromargs(arguments);
@@ -115,80 +128,139 @@ function midievent(midiMsgIn) {
     if (size > MIDI_MSG_SIZE - 1) {
         var feedbackMsg = [midiMsg[0], midiMsg[1], midiMsg[2], 0];
         var pageChangeSignal = 0;
+        var btnDict = buttonsDict.get(PROCESSING_BYPASS_SIGNAL_ID);
+        var bypassBtn = utilButton.newFromDict(btnDict);
         if (size === MIDI_MSG_SIZE) {
-            if (midiMsg[0] === MIDI_NOTE_ON_ID) {
-                feedbackMsg = processButtonMessage(midiMsg);
-                if (!(feedbackMsg[1] < ENCODER_BTN_OFFSET)) {
-                    // encoder button feedback
-                    feedbackMsg[0] = MIDI_CC_ID;
-                    var encoderId = (feedbackMsg[1] - ENCODER_BTN_OFFSET) + reqModule.getPageOffset();
-                    var encDict = encodersDict.get(encoderId);
-                    var encoder = utilEncoder.newFromDict(encDict);
-                    feedbackMsg[2] = encoder.getFeedbackValueForRingStyle();
-                } else if (feedbackMsg[1] < 3 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
-                    // Split button "released" feedback.
-                    var encoderPageOffset = reqModule.getPageOffset();
-                    // post("midievent: did the encoder-feedback-display page change?");
-                    if (lastEncoderPageOffset !== encoderPageOffset) {
-                        // post("YES, offset", lastEncoderPageOffset, "going to", encoderPageOffset);post();
-                        lastEncoderPageOffset = encoderPageOffset;
+            //post("midievent: Processing is: ");
+            if (!bypassBtn.isBypassed()) {
+                //post("enabled", midiMsg);post();
+                if (midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) {
+                    feedbackMsg = processButtonMessage(midiMsg);
+                    if (!(feedbackMsg[1] < ENCODER_BTN_OFFSET)) {
+                        // encoder button feedback
+                        feedbackMsg[0] = MIDI_CC_ID;
+                        var encoderId = (feedbackMsg[1] - ENCODER_BTN_OFFSET) + reqModule.getPageOffset();
+                        var encDict = encodersDict.get(encoderId);
+                        var encoder = utilEncoder.newFromDict(encDict);
+                        feedbackMsg[2] = encoder.getFeedbackValueForRingStyle();
+                    } else if (feedbackMsg[1] < 3 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
+                        // Split button "released" feedback.
+                        var encoderPageOffset = reqModule.getPageOffset();
+                        // post("midievent: did the encoder-feedback-display page change?");
+                        if (lastEncoderPageOffset !== encoderPageOffset) {
+                            // post("YES, offset", lastEncoderPageOffset, "going to", encoderPageOffset);post();
+                            lastEncoderPageOffset = encoderPageOffset;
+                            pageChangeSignal = 1;
+                        } else {
+                            // post("NO, offset", lastEncoderPageOffset, "remaining", encoderPageOffset);post();
+                        }
+                    } else if (feedbackMsg[1] >= 5 && feedbackMsg[1] <= 8 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
+                        // (Assignment) Button "released" feedback
+                        // Reassign which "controller deck crew" is "on duty"
+                        swapActiveCrewsOnDuty(feedbackMsg[1]);
+                        // and set the stage the way they left it
+                        lastEncoderPageOffset = reqModule.getPageOffset();
                         pageChangeSignal = 1;
-                    } else {
-                        // post("NO, offset", lastEncoderPageOffset, "remaining", encoderPageOffset);post();
+                    } else if (feedbackMsg[1] >= 9 && feedbackMsg[1] <= 12 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
+                        // (Parameter) Bank Left, Bank Right; Single Left or Single Right Button "released" feedback
+                        // Transform "encoder book" dict data by rotation
+                        // wrapping % 128 so 00 - 08 == 120
+                        transformEncoderBookData(feedbackMsg[1]);
+                        pageChangeSignal = 1;
+                        var lstBtnIdx = EXTERNAL_TRANSPORT_STATUS_SIGNAL_ID;// actually "one past" so < works properly
+                    } else if (feedbackMsg[1] > 16 && feedbackMsg[1] < lstBtnIdx && midiMsg[2] === BUTTON_RELEASED_VALUE) {
+                        // (Session) Slot Up, or Down; Track Left or Right Button "released" feedback
+                        // Transform "encoder page" dict data by rotation
+                        // wrapping % 32 so 00 - 08 == 24
+                        transformEncoderPageData(feedbackMsg[1]);
+                        pageChangeSignal = 1;
                     }
-                } else if (feedbackMsg[1] >= 5 && feedbackMsg[1] <= 8 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
-                    // (Assignment) Button "released" feedback
-                    // Reassign which "controller deck crew" is "on duty"
-                    swapActiveCrewsOnDuty(feedbackMsg[1]);
-                    // and set the stage the way they left it
-                    lastEncoderPageOffset = reqModule.getPageOffset();
-                    pageChangeSignal = 1;
-                } else if (feedbackMsg[1] >= 9 && feedbackMsg[1] <= 12 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
-                    // (Parameter) Bank Left, Bank Right; Single Left or Single Right Button "released" feedback
-                    // Transform "encoder book" dict data by rotation
-                    // wrapping % 128 so 00 - 08 == 120
-                    transformEncoderBookData(feedbackMsg[1]);
-                    pageChangeSignal = 1;
-                } else if (feedbackMsg[1] > 16 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
-                    // && feedbackMsg[1] < ENCODER_BTN_OFFSET
-                    // (Session) Slot Up, or Down; Track Left or Right Button "released" feedback
-                    // Transform "encoder page" dict data by rotation
-                    // wrapping % 32 so 00 - 08 == 24
-                    transformEncoderPageData(feedbackMsg[1]);
-                    pageChangeSignal = 1;
+                    // pass all other button feedback messages
+                } else if (midiMsg[0] === MIDI_CC_ID && midiMsg[1] < NBR_PHYSICAL_ENCODERS) {
+                    feedbackMsg = processEncoderMessage(midiMsg);
+                } else {
+                    // true here: (midiMsg[0] === MIDI_CC_ID && midiMsg[1] >= NBR_PHYSICAL_ENCODERS)
+                    // this is a spurious CC feedback message directly from Live (not the remote script)
+                    // post("netted:",midiMsg.toString());
+                    return;
                 }
-                // pass all other button feedback messages
-            } else if (midiMsg[0] === MIDI_CC_ID) {
-                feedbackMsg = processEncoderMessage(midiMsg);
+            } else { // bypassBtn.isBypassed()
+                //post("bypassed");post();
+                // check for Stop bypassing signal
+                // "Bypass Signal" button messages will always come in pressed/released pairs
+                // from the remote script which toggles the LED value
+                if (midiMsg[1] === bypassBtn.index) {
+                    post("Processing Status change event received ", midiMsg);post();
+                    feedbackMsg = processButtonMessage(midiMsg);
+                } else {
+                    // Note or CC message from remote script passing thru
+                    //post(midiMsg.toString());
+                    outlet(0, midiMsg);
+                }
             }
-        } else {
-            post("midievent: too big for a 3 byte midi message", arguments);post();
+        } else { // size > MIDI_MSG_SIZE is a SYSEX
+            // (NEVER HAPPENS, Max midiin object doesn't pass sysex, need sysexin object)
+            post("midievent: Processing is bypassed: <", bypassBtn.isBypassed(), ">");post();
+            post(midiMsg.toString()[0]);
+            outlet(1, midiMsg);
         }
 
-        // if the output matches the input as expected, return the midi feedback msg to Max (to the C4)
-        if (feedbackMsg[3] === midiMsg[2] || feedbackMsg[3] === (ENCODER_RING_BTN_LED_ON_OFFSET - midiMsg[2])) {
+        if (!bypassBtn.isBypassed()) {
+            // if the output matches the input as expected, return the midi feedback msg to Max (to the C4)
+            if (feedbackMsg[3] === midiMsg[2] || feedbackMsg[3] === (ENCODER_RING_BTN_LED_ON_OFFSET - midiMsg[2])) {
 
-            outlet(0, [feedbackMsg[0], feedbackMsg[1], feedbackMsg[2]]);
-            // if there are any more feedback messages, return them next
-            // if the sequencer is running and the page changes, defer sysex feedback to sequencer control
-            // only send this "display page update" if the sequencer is not running when the page changes
-            if (pageChangeSignal > 0 && !isSequencerRunning()) {
-                sendEncoderPageData(generateDisplayPageChangeMsgs);
-            } else if (midiMsg[0] === MIDI_CC_ID && !isSequencerRunning()) {
-                var lcdFdbkMsg = generateLcdFeedback(midiMsg[1]);
-                // only send if content changed
-                if (lcdFdbkMsg[0][0] !== ABORT_FEEDBACK_SIGNAL) {
-                    outlet(1, lcdFdbkMsg[0]);//top line
+                outlet(0, [feedbackMsg[0], feedbackMsg[1], feedbackMsg[2]]);
+                // if there are any more feedback messages, return them next
+                // if the sequencer is running and the page changes, defer sysex feedback to sequencer control
+                // only send this "display page update" if the sequencer is not running when the page changes
+                if (pageChangeSignal > 0 && !isSequencerRunning()) {
+                    sendEncoderPageData(generateDisplayPageChangeMsgs);
+                } else if (midiMsg[0] === MIDI_CC_ID && !isSequencerRunning()) {
+                    var lcdFdbkMsg = generateLcdFeedback(midiMsg[1]);
+                    // only send if content changed
+                    if (lcdFdbkMsg[0][0] !== ABORT_FEEDBACK_SIGNAL) {
+                        outlet(1, lcdFdbkMsg[0]);//top line
+                    }
+                    if (lcdFdbkMsg[1][0] !== ABORT_FEEDBACK_SIGNAL) {
+                        outlet(1, lcdFdbkMsg[1]);//bottom line
+                    }
                 }
-                if (lcdFdbkMsg[1][0] !== ABORT_FEEDBACK_SIGNAL) {
-                    outlet(1, lcdFdbkMsg[1]);//bottom line
-                }
+            } else {
+                post("midievent: unexpected event processing result", feedbackMsg.toString());
+                post();
             }
         } else {
-            post("midievent: unexpected event processing result", feedbackMsg.toString());post();
+            // local event processing is bypassed, no feedback to send
         }
     } else {
-        post("midievent: too small for a 3 byte midi message", arguments);post();
+        post("midievent: too small for a 3 byte midi message", arguments);
+        post();
+    }
+}
+
+var sysexMsg = [];
+function midiSysexEvent(byteVal) {
+    buttonsDict.name = "c4Buttons";
+    var ledVal = buttonsDict.get(PROCESSING_BYPASS_SIGNAL_ID + "::ledValue");
+    if (ledVal === 0) {
+        if (byteVal === 240) {
+            sysexMsg = [byteVal];// resets the array to size 1
+        } else if (byteVal === 247) {
+            sysexMsg.push(byteVal);
+            // sysex messages only originate on the C4 in specific circumstances like power up and as responses to sysex requests like version info
+            // and would only end up here if they passed thru the remote script first (when the script is in USER mode**) or came from Live directly
+            // but the remote script isn't coded in a way that allows Live to send sysex "display updates" directly.  The script still uses the old
+            // school on_display_update_timer() event to write sysex which is disabled in USER mode
+            // TLDR: this patch is not processing sysex (ledVal === 0), only forwarding here
+            outlet(1, sysexMsg);
+        }  else {
+            sysexMsg.push(byteVal);
+        }
+    } else {
+        // ** remote script is in USER mode when this patch is processing midi events (ledValue === 127)
+        // this is where any sysex this patch might want to handle gets dropped/ignored
+        // normally this patch ignores/drops all incoming sysex messages
+        sysexMsg = [];
     }
 }
 
@@ -283,10 +355,16 @@ function swapActiveCrewsOnDuty(buttonId) {
 
 
 function sendEncoderPageData(encoderPageDataCallback) {
-    var MILLIS_OF_LATENCY_BETWEEN_SYSEX = 5;
+
     var rtn = encoderPageDataCallback();
+    if (!isPatchProcessingEnabled()) {
+        post("sendEncoderPageData: processing bypassed");post();
+        return;
+    }
+
+    var MILLIS_OF_LATENCY_BETWEEN_SYSEX = 5;
     if (rtn.length < 5) {
-        post("displayCurrentPage: unexpected display processing result", rtn.toString());post();
+        post("sendEncoderPageData: unexpected display processing result", rtn.toString());post();
     } else {
         for (var i = 0; i < rtn.length; i++) {
             if (i === 0 || i === 5) {
@@ -317,7 +395,7 @@ function sendEncoderPageData(encoderPageDataCallback) {
 function processButtonMessage(midiNoteMsg) {
     buttonsDict.name = "c4Buttons";
     if (midiNoteMsg.length === 3) {
-        var feedbackRtn = [midiNoteMsg[0],midiNoteMsg[1],midiNoteMsg[2], 0];
+        var feedbackRtn = [MIDI_NOTE_ON_ID, midiNoteMsg[1],midiNoteMsg[2], 0];
         var btnDict = buttonsDict.get(midiNoteMsg[1]);
         var c4Button = utilButton.newFromDict(btnDict);
         var rtn = c4Button.processEvent(midiNoteMsg[2]);
@@ -380,7 +458,8 @@ function transformEncoderPageData(buttonId) {
         case 20: rotateBy = 1; break;// Track Right button
     }
     if (rotateBy === 0) {
-        post("transformEncoderPageData: unexpected buttonId input", buttonId); post();
+        post("transformEncoderPageData: unexpected buttonId input", buttonId, "no data transformation"); post();
+        return;
     }
     transformEncoderData(encoderPageOffset, NBR_PHYSICAL_ENCODERS, rotateBy);
 }
@@ -398,6 +477,7 @@ function transformEncoderBookData(buttonId) {
     }
     if (rotateBy === 0) {
         post("transformEncoderBookData: unexpected buttonId input", buttonId);post();
+        return;
     }
     transformEncoderData(encoderPageOffset, TOTAL_ENCODERS, rotateBy);
 }
@@ -443,8 +523,20 @@ function isSequencerRunning() {
     }
     return 0 !== buttonsDict.get("4::ledValue");// Note ID 4 === Spot Erase button === Sequencer Start/Stop
 }
+function isPatchProcessingEnabled() {
+    buttonsDict.name = "c4Buttons";
+    var signalKey = PROCESSING_BYPASS_SIGNAL_ID + "::ledValue";
+    var signalValue = buttonsDict.get(signalKey);
+    // ledValue: ON == Processing events (feedback mode), OFF == Bypassing Event Processing (passthru mode)
+    return 0 !== signalValue; //signalValue === BUTTON_LED_ON_VALUE;
+}
 
 function generateLcdFeedback(encoderId) {
+
+    if (!isPatchProcessingEnabled()) {
+        return;
+    }
+
     // encoderId should be "raw midi CC" sender (00 - 31)
     encodersDict.name = "c4Encoders";
     encIndexesByLcdRowDict.name = "lcdScreenRowIndexRef";
@@ -543,8 +635,8 @@ function generateWelcomePageMsgs() {
     encodersDict.name = "c4Encoders";
     buttonsDict.name = "c4Buttons";
     var rtn0 = [];
-    for (var j = 0; j < 5; j++) {
-        // Always also send these five Note messages at welcome (clears any "stuck ON" LEDs if reloading patch)
+    for (var j = 0; j < 9; j++) {
+        // Always also send nine panel LED feedback Note messages at welcome (clears any "stuck ON" panel LEDs when reloading project patch)
         var c4Btn = utilButton.newFromDict(buttonsDict.get(j));
         rtn0.push(MIDI_NOTE_ON_ID);
         rtn0.push(c4Btn.index);
@@ -596,16 +688,19 @@ function generateWelcomePageMsgs() {
     return [rtn0, sysexTop00, sysexTop01, sysexTop02, sysexTop03];
 }
 function generateDisplayPageUpdateMsgs(seqStepId) {
+
     encodersDict.name = "c4Encoders";
     buttonsDict.name = "c4Buttons";
     var encoderPageOffset = reqModule.getPageOffset();
     var rtn0 = [];
     var rtnZ = [];
-    for (var j = 0; j < 5; j++) {
-        // Also send these five Note messages when an encoder page displays.
+    for (var j = 0; j < 9; j++) {
+        // Also send these nine Note messages when an encoder page displays. (The 9 physical LEDs below the encoders
         // The (three buttons and) five LEDs in the "Function Group" on the C4 need to get "refreshed"
-        // when the "on duty" deck crews change because the "Function Group" button data is unique per deck
-        // Don't mess with the "Lock LED pulse" (j === 3) if the sequencer is running
+        // when "processing events" here  and the "on duty" deck crews change because the "Function Group" button data is unique per deck
+        // and the assignment group LEDs need refreshing when returning to duty after bypassing "event processing"
+        // (when the remote script goes into USER mode and bypasses processing in deference to this patch's processing, the sequencer)
+        //* Don't mess with the "Lock LED pulse" (j === 3) if the sequencer is running
         var isRunning = seqStepId !== undefined;
         var lockLedOverride = isRunning && j === 3;
         if (!lockLedOverride) {
@@ -665,6 +760,10 @@ var lastLcdSeq01 = [];
 var lastLcdSeq02 = [];
 var lastLcdSeq03 = [];
 function processSequencerStep(encoderId) {
+
+    if (!isPatchProcessingEnabled()) {
+        return;
+    }
 
     var currentDisplayPage = generateDisplayPageUpdateMsgs(encoderId);
     if (currentDisplayPage[0].length < 96) {

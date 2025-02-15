@@ -50,8 +50,11 @@ C4Button.prototype.setMyName = function() {
                 // ledValue: ON == Using External Transport, OFF == Using Max Transport
                 // pressedValue: Pressed == External RTC Running, Released == External RTC Stopped
                 this.kname = "EXTRSP"; break;
+            case 22: // External Bypass signal
+                // ledValue: ON == Processing events (feedback mode), OFF == Bypassing Event Processing (passthru mode)
+                this.kname = "GATEON"; break;
             default:
-                // inactive placeholders > 21 && < 32
+                // inactive placeholders > 22 && < 32
                 this.kname = "SPR" + this.index.toString();
         }
     } else {// encoder buttons
@@ -126,6 +129,16 @@ C4Button.prototype.isEncoderButton = function() {
 C4Button.prototype.isAssignmentButton = function() {
     return this.index >= 5 && this.index <= 8;
 };
+C4Button.prototype.isVirtualButton = function() {
+    return this.index > 20 && this.index < ENCODER_BTN_OFFSET;
+};
+C4Button.prototype.isBypassed = function() {
+    buttonsDict.name = "c4Buttons";
+    var signalKey = PROCESSING_BYPASS_SIGNAL_ID + "::ledValue";
+    var signalValue = buttonsDict.get(signalKey);
+    // ledValue: ON == Processing events (feedback mode), OFF == Bypassing Event Processing (passthru mode)
+    return signalValue === 0;
+};
 C4Button.prototype.isPressed = function() {
     btnStateDict.name = "buttonStateChangeCount";
     return btnStateDict.get(this.index) % 2;
@@ -172,7 +185,12 @@ C4Button.prototype.processEvent = function (v) {
     var resetK = false;
     var buttonJson = this.toJsonStr();
     var encoderJson = " ";
-    if (this.isEncoderButton()) {// fetch encoder references
+    if (this.isVirtualButton()) {
+        if (this.kname === "GATEON")  {
+            post("C4Button.processEvent: bypass processing toggle received from C4 remote script");post();
+        }
+    }
+    else if (this.isEncoderButton()) {// fetch encoder references
         offset = reqModule.getPageOffset();
         k = k + offset;
         buttonJson = buttonsDict.get(k);

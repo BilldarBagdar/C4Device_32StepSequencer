@@ -2,42 +2,17 @@
 	"patcher" : 	{
 		"fileversion" : 1,
 		"appversion" : 		{
-			"major" : 8,
-			"minor" : 6,
-			"revision" : 2,
+			"major" : 9,
+			"minor" : 0,
+			"revision" : 4,
 			"architecture" : "x64",
 			"modernui" : 1
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 2022.0, 397.0, 327.0, 140.0 ],
-		"bglocked" : 0,
+		"rect" : [ 2022.0, 397.0, 333.0, 157.0 ],
 		"openinpresentation" : 1,
-		"default_fontsize" : 12.0,
-		"default_fontface" : 0,
-		"default_fontname" : "Arial",
-		"gridonopen" : 1,
 		"gridsize" : [ 15.0, 15.0 ],
-		"gridsnaponopen" : 1,
-		"objectsnaponopen" : 1,
-		"statusbarvisible" : 2,
-		"toolbarvisible" : 1,
-		"lefttoolbarpinned" : 0,
-		"toptoolbarpinned" : 0,
-		"righttoolbarpinned" : 0,
-		"bottomtoolbarpinned" : 0,
-		"toolbars_unpinned_last_save" : 0,
-		"tallnewobj" : 0,
-		"boxanimatetime" : 200,
-		"enablehscroll" : 1,
-		"enablevscroll" : 1,
-		"devicewidth" : 0.0,
-		"description" : "",
-		"digest" : "",
-		"tags" : "",
-		"style" : "",
-		"subpatcher_template" : "",
-		"assistshowspatchername" : 0,
 		"boxes" : [ 			{
 				"box" : 				{
 					"id" : "obj-18",
@@ -94,7 +69,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 844.5, 286.0, 129.0, 22.0 ],
-					"text" : "LMPort_3toLive"
+					"text" : "c4Live"
 				}
 
 			}
@@ -107,8 +82,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 846.0, 119.0, 81.0, 23.0 ],
-					"text" : "loadmess 11"
+					"patching_rect" : [ 846.0, 119.0, 82.0, 23.0 ],
+					"text" : "loadmess 13"
 				}
 
 			}
@@ -132,7 +107,7 @@
 					"fontname" : "Arial",
 					"fontsize" : 13.0,
 					"id" : "obj-37",
-					"items" : [ "Microsoft GS Wavetable Synth", ",", "Akai MAX49", ",", "MIDIOUT2 (Akai MAX49)", ",", "MIDIOUT3 (Akai MAX49)", ",", "MIDIOUT4 (Akai MAX49)", ",", "MIDIOUT5 (Akai MAX49)", ",", "LMPort_8_MOx2Aw", ",", "billy-A", ",", "billy-B", ",", "c4Live", ",", "LMPort_1toLive", ",", "LMPort_3toLive", ",", "LMPort_2fromLive", ",", "LMPort_4fromLive", ",", "LMPort_5_Live2Mox", ",", "LMPort_6_Mox2Live", ",", "LMPort_7_Aw2MOx", ",", "Yamaha UX256-1", ",", "Yamaha UX256-2", ",", "Yamaha UX256-3", ",", "Yamaha UX256-4", ",", "Yamaha UX256-5", ",", "Yamaha UX256-6", ",", "Yamaha UX256-7", ",", "Yamaha UX256-8", ",", "Yamaha UX256-9", ",", "Yamaha UX256-10", ",", "Yamaha UX256-11", ",", "Yamaha UX256-12", ",", "Yamaha UX256-13", ",", "Yamaha UX256-14", ",", "Yamaha UX256-15", ",", "Yamaha UX256-16", ",", "RedNet Control" ],
+					"items" : [ "Microsoft GS Wavetable Synth", ",", "Akai MAX49", ",", "MIDIOUT2 (Akai MAX49)", ",", "MIDIOUT3 (Akai MAX49)", ",", "MIDIOUT4 (Akai MAX49)", ",", "MIDIOUT5 (Akai MAX49)", ",", "Ableton Push 2", ",", "MIDIOUT2 (Ableton Push 2)", ",", "LMPort_8_MOx2Aw", ",", "LMPort_9_Max2Mox", ",", "LMPort_10_Mox2Max", ",", "billy-A", ",", "billy-B", ",", "c4Live", ",", "LMPort_1toLive", ",", "LMPort_3toLive", ",", "LMPort_2fromLive", ",", "LMPort_4fromLive", ",", "LMPort_5_Live2Mox", ",", "LMPort_6_Mox2Live", ",", "LMPort_7_Aw2MOx", ",", "Yamaha UX256-1", ",", "Yamaha UX256-2", ",", "Yamaha UX256-3", ",", "Yamaha UX256-4", ",", "Yamaha UX256-5", ",", "Yamaha UX256-6", ",", "Yamaha UX256-7", ",", "Yamaha UX256-8", ",", "Yamaha UX256-9", ",", "Yamaha UX256-10", ",", "Yamaha UX256-11", ",", "Yamaha UX256-12", ",", "Yamaha UX256-13", ",", "Yamaha UX256-14", ",", "Yamaha UX256-15", ",", "Yamaha UX256-16", ",", "RedNet Control" ],
 					"labelclick" : 1,
 					"maxclass" : "umenu",
 					"numinlets" : 1,
@@ -215,7 +190,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 533.0, 268.5, 131.0, 22.0 ],
-					"text" : "LMPort_4fromLive"
+					"text" : "LMPort_2fromLive"
 				}
 
 			}
@@ -229,7 +204,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 565.0, 119.5, 82.0, 23.0 ],
-					"text" : "loadmess 12"
+					"text" : "loadmess 15"
 				}
 
 			}
@@ -253,7 +228,7 @@
 					"fontname" : "Arial",
 					"fontsize" : 13.0,
 					"id" : "obj-16",
-					"items" : [ "Akai MAX49", ",", "MIDIIN2 (Akai MAX49)", ",", "MIDIIN3 (Akai MAX49)", ",", "MIDIIN4 (Akai MAX49)", ",", "MIDIIN5 (Akai MAX49)", ",", "LMPort_8_MOx2Aw", ",", "billy-A", ",", "billy-B", ",", "c4Live", ",", "LMPort_1toLive", ",", "LMPort_3toLive", ",", "LMPort_2fromLive", ",", "LMPort_4fromLive", ",", "LMPort_5_Live2Mox", ",", "LMPort_6_Mox2Live", ",", "LMPort_7_Aw2MOx", ",", "Yamaha UX256-1", ",", "Yamaha UX256-2", ",", "Yamaha UX256-3", ",", "Yamaha UX256-4", ",", "Yamaha UX256-5", ",", "Yamaha UX256-6", ",", "Yamaha UX256-7", ",", "Yamaha UX256-8", ",", "RedNet Control" ],
+					"items" : [ "Akai MAX49", ",", "MIDIIN2 (Akai MAX49)", ",", "MIDIIN3 (Akai MAX49)", ",", "MIDIIN4 (Akai MAX49)", ",", "MIDIIN5 (Akai MAX49)", ",", "Ableton Push 2", ",", "MIDIIN2 (Ableton Push 2)", ",", "LMPort_8_MOx2Aw", ",", "LMPort_9_Max2Mox", ",", "LMPort_10_Mox2Max", ",", "billy-A", ",", "billy-B", ",", "c4Live", ",", "LMPort_1toLive", ",", "LMPort_3toLive", ",", "LMPort_2fromLive", ",", "LMPort_4fromLive", ",", "LMPort_5_Live2Mox", ",", "LMPort_6_Mox2Live", ",", "LMPort_7_Aw2MOx", ",", "Yamaha UX256-1", ",", "Yamaha UX256-2", ",", "Yamaha UX256-3", ",", "Yamaha UX256-4", ",", "Yamaha UX256-5", ",", "Yamaha UX256-6", ",", "Yamaha UX256-7", ",", "Yamaha UX256-8", ",", "RedNet Control" ],
 					"labelclick" : 1,
 					"maxclass" : "umenu",
 					"numinlets" : 1,
@@ -348,7 +323,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 277.0, 268.0, 129.0, 22.0 ],
-					"text" : "LMPort_5_Live2Mox"
+					"text" : "LMPort_9_Max2Mox"
 				}
 
 			}
@@ -361,8 +336,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 278.0, 100.0, 82.0, 23.0 ],
-					"text" : "loadmess 14"
+					"patching_rect" : [ 278.0, 100.0, 75.0, 23.0 ],
+					"text" : "loadmess 9"
 				}
 
 			}
@@ -386,7 +361,7 @@
 					"fontname" : "Arial",
 					"fontsize" : 13.0,
 					"id" : "obj-33",
-					"items" : [ "Microsoft GS Wavetable Synth", ",", "Akai MAX49", ",", "MIDIOUT2 (Akai MAX49)", ",", "MIDIOUT3 (Akai MAX49)", ",", "MIDIOUT4 (Akai MAX49)", ",", "MIDIOUT5 (Akai MAX49)", ",", "LMPort_8_MOx2Aw", ",", "billy-A", ",", "billy-B", ",", "c4Live", ",", "LMPort_1toLive", ",", "LMPort_3toLive", ",", "LMPort_2fromLive", ",", "LMPort_4fromLive", ",", "LMPort_5_Live2Mox", ",", "LMPort_6_Mox2Live", ",", "LMPort_7_Aw2MOx", ",", "Yamaha UX256-1", ",", "Yamaha UX256-2", ",", "Yamaha UX256-3", ",", "Yamaha UX256-4", ",", "Yamaha UX256-5", ",", "Yamaha UX256-6", ",", "Yamaha UX256-7", ",", "Yamaha UX256-8", ",", "Yamaha UX256-9", ",", "Yamaha UX256-10", ",", "Yamaha UX256-11", ",", "Yamaha UX256-12", ",", "Yamaha UX256-13", ",", "Yamaha UX256-14", ",", "Yamaha UX256-15", ",", "Yamaha UX256-16", ",", "RedNet Control" ],
+					"items" : [ "Microsoft GS Wavetable Synth", ",", "Akai MAX49", ",", "MIDIOUT2 (Akai MAX49)", ",", "MIDIOUT3 (Akai MAX49)", ",", "MIDIOUT4 (Akai MAX49)", ",", "MIDIOUT5 (Akai MAX49)", ",", "Ableton Push 2", ",", "MIDIOUT2 (Ableton Push 2)", ",", "LMPort_8_MOx2Aw", ",", "LMPort_9_Max2Mox", ",", "LMPort_10_Mox2Max", ",", "billy-A", ",", "billy-B", ",", "c4Live", ",", "LMPort_1toLive", ",", "LMPort_3toLive", ",", "LMPort_2fromLive", ",", "LMPort_4fromLive", ",", "LMPort_5_Live2Mox", ",", "LMPort_6_Mox2Live", ",", "LMPort_7_Aw2MOx", ",", "Yamaha UX256-1", ",", "Yamaha UX256-2", ",", "Yamaha UX256-3", ",", "Yamaha UX256-4", ",", "Yamaha UX256-5", ",", "Yamaha UX256-6", ",", "Yamaha UX256-7", ",", "Yamaha UX256-8", ",", "Yamaha UX256-9", ",", "Yamaha UX256-10", ",", "Yamaha UX256-11", ",", "Yamaha UX256-12", ",", "Yamaha UX256-13", ",", "Yamaha UX256-14", ",", "Yamaha UX256-15", ",", "Yamaha UX256-16", ",", "RedNet Control" ],
 					"labelclick" : 1,
 					"maxclass" : "umenu",
 					"numinlets" : 1,
@@ -469,7 +444,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 54.0, 248.5, 131.0, 22.0 ],
-					"text" : "LMPort_6_Mox2Live"
+					"text" : "LMPort_10_Mox2Max"
 				}
 
 			}
@@ -482,8 +457,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 86.0, 100.0, 82.0, 23.0 ],
-					"text" : "loadmess 14"
+					"patching_rect" : [ 86.0, 100.0, 75.0, 23.0 ],
+					"text" : "loadmess 9"
 				}
 
 			}
@@ -507,7 +482,7 @@
 					"fontname" : "Arial",
 					"fontsize" : 13.0,
 					"id" : "obj-29",
-					"items" : [ "Akai MAX49", ",", "MIDIIN2 (Akai MAX49)", ",", "MIDIIN3 (Akai MAX49)", ",", "MIDIIN4 (Akai MAX49)", ",", "MIDIIN5 (Akai MAX49)", ",", "LMPort_8_MOx2Aw", ",", "billy-A", ",", "billy-B", ",", "c4Live", ",", "LMPort_1toLive", ",", "LMPort_3toLive", ",", "LMPort_2fromLive", ",", "LMPort_4fromLive", ",", "LMPort_5_Live2Mox", ",", "LMPort_6_Mox2Live", ",", "LMPort_7_Aw2MOx", ",", "Yamaha UX256-1", ",", "Yamaha UX256-2", ",", "Yamaha UX256-3", ",", "Yamaha UX256-4", ",", "Yamaha UX256-5", ",", "Yamaha UX256-6", ",", "Yamaha UX256-7", ",", "Yamaha UX256-8", ",", "RedNet Control" ],
+					"items" : [ "Akai MAX49", ",", "MIDIIN2 (Akai MAX49)", ",", "MIDIIN3 (Akai MAX49)", ",", "MIDIIN4 (Akai MAX49)", ",", "MIDIIN5 (Akai MAX49)", ",", "Ableton Push 2", ",", "MIDIIN2 (Ableton Push 2)", ",", "LMPort_8_MOx2Aw", ",", "LMPort_9_Max2Mox", ",", "LMPort_10_Mox2Max", ",", "billy-A", ",", "billy-B", ",", "c4Live", ",", "LMPort_1toLive", ",", "LMPort_3toLive", ",", "LMPort_2fromLive", ",", "LMPort_4fromLive", ",", "LMPort_5_Live2Mox", ",", "LMPort_6_Mox2Live", ",", "LMPort_7_Aw2MOx", ",", "Yamaha UX256-1", ",", "Yamaha UX256-2", ",", "Yamaha UX256-3", ",", "Yamaha UX256-4", ",", "Yamaha UX256-5", ",", "Yamaha UX256-6", ",", "Yamaha UX256-7", ",", "Yamaha UX256-8", ",", "RedNet Control" ],
 					"labelclick" : 1,
 					"maxclass" : "umenu",
 					"numinlets" : 1,
@@ -760,8 +735,7 @@
 
 			}
  ],
-		"dependency_cache" : [  ],
-		"autosave" : 0
+		"originid" : "pat-16"
 	}
 
 }

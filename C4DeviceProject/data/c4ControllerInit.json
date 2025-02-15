@@ -224,7 +224,7 @@
 ,
 			"22" : 			{
 				"index" : 22,
-				"kname" : "SPR22",
+				"kname" : "GATEON",
 				"pressedValue" : 0,
 				"pressedCount" : 0,
 				"releasedCount" : 0,
@@ -3635,7 +3635,7 @@
 ,
 			"22" : 			{
 				"index" : 22,
-				"kname" : "SPR22",
+				"kname" : "GATEON",
 				"pressedValue" : 0,
 				"pressedCount" : 0,
 				"releasedCount" : 0,
@@ -7046,7 +7046,7 @@
 ,
 			"22" : 			{
 				"index" : 22,
-				"kname" : "SPR22",
+				"kname" : "GATEON",
 				"pressedValue" : 0,
 				"pressedCount" : 0,
 				"releasedCount" : 0,
@@ -10457,7 +10457,7 @@
 ,
 			"22" : 			{
 				"index" : 22,
-				"kname" : "SPR22",
+				"kname" : "GATEON",
 				"pressedValue" : 0,
 				"pressedCount" : 0,
 				"releasedCount" : 0,
@@ -13868,7 +13868,7 @@
 ,
 			"22" : 			{
 				"index" : 22,
-				"kname" : "SPR22",
+				"kname" : "GATEON",
 				"pressedValue" : 0,
 				"pressedCount" : 0,
 				"releasedCount" : 0,

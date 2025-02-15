@@ -66,23 +66,23 @@ C4Encoder.prototype.updateNamedDict = function(dictName, keyPrefix) {
     }
     var meKey = keyPrefix !== undefined ? keyPrefix + "::" + this.index : this.index;
     var replaceKey = meKey + "::pressedValue";
-    encodersDict.replace(replaceKey, this.pressedValue);
+    temp.replace(replaceKey, this.pressedValue);
     replaceKey = meKey + "::releasedValue";
-    encodersDict.replace(replaceKey, this.releasedValue);
+    temp.replace(replaceKey, this.releasedValue);
     replaceKey = meKey + "::ringLedFeedbackStyle";
-    encodersDict.replace(replaceKey, this.ringLedFeedbackStyle);
+    temp.replace(replaceKey, this.ringLedFeedbackStyle);
     replaceKey = meKey + "::buttonLedValue";
-    encodersDict.replace(replaceKey, this.buttonLedValue);
+    temp.replace(replaceKey, this.buttonLedValue);
     replaceKey = meKey + "::shiftPressedValue";
-    encodersDict.replace(replaceKey, this.shiftPressedValue);
+    temp.replace(replaceKey, this.shiftPressedValue);
     replaceKey = meKey + "::optionPressedValue";
-    encodersDict.replace(replaceKey, this.optionPressedValue);
+    temp.replace(replaceKey, this.optionPressedValue);
     replaceKey = meKey + "::controlPressedValue";
-    encodersDict.replace(replaceKey, this.controlPressedValue);
+    temp.replace(replaceKey, this.controlPressedValue);
     replaceKey = meKey + "::altPressedValue";
-    encodersDict.replace(replaceKey, this.altPressedValue);
+    temp.replace(replaceKey, this.altPressedValue);
     replaceKey = meKey + "::lastIncrementValue";
-    encodersDict.replace(replaceKey, this.lastIncrementValue);
+    temp.replace(replaceKey, this.lastIncrementValue);
 };
 // "local" js "pointer" Dict
 var pressedOrReleased = new Dict();
@@ -396,8 +396,14 @@ C4Encoder.prototype.getFeedbackValueForRingStyle = function(hotStepId, isWelcome
         var sourceRangeMin = BUCKET_EMPTY_VALUE;
         var sourceRangeMax = BUCKET_FULL_VALUE;
         var destRangeRef = encLedRingFeedbackStyleDict.get(this.ringLedFeedbackStyle);
-        var destRangeMin = destRangeRef[0];
-        var destRangeMax = destRangeRef[1];
+        var destRangeMin = 0;
+        var destRangeMax = 15;// default single dot range
+        if (destRangeRef === null) {
+            post(this.toJsonStr());post();
+        } else {
+            destRangeMin = destRangeRef[0];
+            destRangeMax = destRangeRef[1];
+        }
         var valueToScale = this.getFeedbackValueRaw();
         var sourceScale = sourceRangeMax - sourceRangeMin;
         var destScale = destRangeMax - destRangeMin;

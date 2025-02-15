@@ -15,7 +15,7 @@ var reqModule = require("commonRequire");
 var THE_BOOK = reqModule.getAllOffsets();
 // The current BOOK length is 4 pages (but could easily go to 8 because we have 3 LEDs to count with)
 var NBR_DISPLAY_PAGES = THE_BOOK.length;
-// THE_BOOK[0] page indexes the c4's 19  "normal" buttons (starting at 0 === THE_BOOK[0])(including spare slots)
+// THE_BOOK[0] page indexes the c4's 19  "normal" buttons (starting at 0 === THE_BOOK[0])(including spare slots goes to 31)
 // THE_BOOK[1] page indexes the c4's 32 encoders with "encoder" buttons (starting at 32 === THE_BOOK[1])
 // THE_BOOK[2] and beyond index pages of "virtual encoders" (and associated "virtual encoder" buttons)
 var NBR_PHYSICAL_ENCODERS = THE_BOOK[1];
@@ -45,6 +45,8 @@ var ENCODER_RING_BTN_LED_ON_OFFSET = 64;
 //  TOTAL_BUTTONS is the "keyset size" of the "buttons" Dict, the largest data store.
 var TOTAL_BUTTONS = ENCODER_BTN_OFFSET + TOTAL_ENCODERS;// 32 + 128 = 160
 var ABORT_FEEDBACK_SIGNAL = MIDI_NOTE_OFF_ID;// LEDs 1/3, 2/3, and 3/3
+var EXTERNAL_TRANSPORT_STATUS_SIGNAL_ID = 21; // c4bUTTON.kname = "EXTRSP"
+var PROCESSING_BYPASS_SIGNAL_ID = 22; // c4bUTTON.kname = "GATEON"
 var SPLIT_FEEDBACK_IDS = [0, 1, 2];
 //                          55 === maximum visible text length per LCD line
 //                         0--------1---------2---------3---------4---------5---------6
