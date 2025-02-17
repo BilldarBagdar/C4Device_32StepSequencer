@@ -185,12 +185,16 @@ C4Button.prototype.processEvent = function (v) {
     var resetK = false;
     var buttonJson = this.toJsonStr();
     var encoderJson = " ";
-    if (this.isVirtualButton()) {
-        if (this.kname === "GATEON")  {
-            post("C4Button.processEvent: bypass processing toggle received from C4 remote script");post();
-        }
-    }
-    else if (this.isEncoderButton()) {// fetch encoder references
+    var rtn2 = [this.index, this.ledValue, this.pressedValue];
+    var storedActiveDeckName = reqModule.getActiveControllerDeckName();// deck before any updates
+    var alreadyDone = false;
+
+    var eventSource = this;// any C4 button
+    if (this.isVirtualButton() && this.kname === "GATEON")  {
+        post("C4Button.processEvent: bypass processing signal received from C4 remote script");post();
+        rtn2 = this.processGateEvent(v);// priority processing
+        alreadyDone = true;
+    } else if (this.isEncoderButton()) {// fetch encoder references
         offset = reqModule.getPageOffset();
         k = k + offset;
         buttonJson = buttonsDict.get(k);
@@ -199,17 +203,16 @@ C4Button.prototype.processEvent = function (v) {
         resetK = true;
     }
 
-    var rtn2 = [this.index, this.ledValue, this.pressedValue];
     if (k === 0) {
         rtn2 = this.processSplitEvent(v);
-    } else {
+    } else if (!alreadyDone) {
 
-        var eventSource = this;// a "non-encoder button" but not Split
         var encoderRef = new C4Encoder();
-        var storedActiveDeckName = reqModule.getActiveControllerDeckName();// deck before any updates
         if (resetK) {
             eventSource = this.newFromDict(buttonJson);// a "virtual encoder" button
             encoderRef = encoderRef.newFromDict(encoderJson);
+        } else {
+            eventSource = this;// a "non-encoder button" but not Split or GATEON
         }
         var oldBtnStateChangeCount = btnStateDict.get(eventSource.index)
         if (v === BUTTON_PRESSED_VALUE) {
@@ -260,22 +263,109 @@ C4Button.prototype.processEvent = function (v) {
             }
         }
         if (resetK) {
-
             k = k - offset;// without the page-offset, k holds the sending encoder button number again
             eventSource.index = k;// eventSource is never an alias for "this" here (never a "Note feedback" button)
         }
         rtn2 = [eventSource.index, eventSource.ledValue, eventSource.pressedValue];
-    }
+    }// end else if (!alreadyDone)
+    // else {// alreadyDone, check the "button 22" feedback
+    //     post("C4Button.processEvent:", rtn2);post();
+    // }
     if (k > 0 && eventSource.isAssignmentButton() && (eventSource.pressedCount === eventSource.releasedCount)) {
-        // "eventSource" above was an alias for "this" (an Assignment button)
-        // reassigning the rtn2 value here is currently redundant
+        // "eventSource" above is still an alias for "this" (an Assignment button)
+        // reassigning the rtn2 value here is unnecessary unless we start logging "assumption issues"
         if (!(eventSource.ledValue === this.ledValue && eventSource.pressedValue === this.pressedValue)) {
-            post("C4Button.processEvent: object reference assumption issue");post();
+            post("C4Button.processEvent: this versus eventSource object reference assumption issue");post();
         }
         rtn2 = eventSource.propagateOnDutyAssignmentChange(storedActiveDeckName);
     }
     return rtn2;
 };
+
+
+C4Button.prototype.processGateEvent = function (velocity) {
+    buttonsDict.name = "c4Buttons";
+    btnStateDict.name = "buttonStateChangeCount";
+    ledStateDict.name = "ledStateChangeCount";
+    if (this.index === PROCESSING_BYPASS_SIGNAL_ID) {
+        // since the remote script changes in and out of USER mode on "button press" events
+        // -MARKER press enters USER mode (associated MARKER release event should not come here for processing)
+        // -LOCK press [while MARKER pressed] leaves USER mode (associated LOCK press event should not come here for processing)
+        // these events are always handled here as press+release pairs which toggle the LED state
+        // the remote script sends PROCESSING_BYPASS_SIGNAL button messages using these signals
+        // - velocity 127 for processing ON here
+        // - velocity 0 for processing OFF here
+        var doTheToggle = false;
+        var signalBtn = this;// the PROCESSING_BYPASS_SIGNAL button
+        var oldBtnStateChangeCount = btnStateDict.get(signalBtn.index)
+
+        var ledValueKey = signalBtn.index + "::ledValue";
+        var ledValue = buttonsDict.get(ledValueKey);
+        if (velocity === BUTTON_PRESSED_VALUE) {
+            if (!(ledValue === BUTTON_LED_ON_VALUE)) {
+                doTheToggle = true;
+            } else {
+                post("C4Button.processGateEvent: START Processing signal received while already processing"); post();
+            }
+        }
+        else if (velocity === BUTTON_RELEASED_VALUE) {
+            if (!(ledValue === BUTTON_LED_OFF_VALUE)) {
+                doTheToggle = true;
+            } else {
+                post("C4Button.processGateEvent: STOP Processing signal received while already bypassing"); post();
+            }
+        } else {
+            post("C4Button.processGateEvent: button 22 message received with undefined signal value", velocity); post();
+        }
+
+        if (doTheToggle) {
+            signalBtn.pressedCount += 1;
+            var replaceKey = signalBtn.index + "::pressedCount";
+            buttonsDict.replace(replaceKey, signalBtn.pressedCount);
+            signalBtn.releasedCount += 1;
+            replaceKey = signalBtn.index + "::releasedCount";
+            buttonsDict.replace(replaceKey, signalBtn.releasedCount);
+            signalBtn.pressedValue = velocity; // actual press value
+            signalBtn.pressedValue = 0; // "release" the press to toggle the LED
+            replaceKey = signalBtn.index + "::pressedValue";
+            buttonsDict.replace(replaceKey, signalBtn.pressedValue);
+            //increment the "state change count"
+            var newCount = oldBtnStateChangeCount + 1;
+            var eventCount = signalBtn.pressedCount + signalBtn.releasedCount;
+            btnStateDict.set(signalBtn.index, newCount);
+
+            // increment the LED change count
+            var oldLedStateChangeCount = ledStateDict.get(signalBtn.index);
+            if (oldLedStateChangeCount !== signalBtn.ledChangeCount) {// safety check redundant here?
+                post("C4Button.processGateEvent: button LED change count mismatch",
+                    oldLedStateChangeCount, signalBtn.ledChangeCount);
+                post();
+            } else {
+                signalBtn.ledChangeCount += 1;
+                replaceKey = signalBtn.index + "::ledChangeCount";
+                buttonsDict.replace(replaceKey, signalBtn.ledChangeCount);
+                ledStateDict.set(signalBtn.index, signalBtn.ledChangeCount);
+                if (signalBtn.ledChangeCount % 2 !== signalBtn.isLedON()) {
+                    post("C4Button.processGateEvent: button LED change count mismatch, Dict update issue?");
+                    post();
+                }
+                signalBtn.ledValue = signalBtn.isLedON() * BUTTON_LED_ON_VALUE;
+                replaceKey = signalBtn.index + "::ledValue";
+                buttonsDict.replace(replaceKey, signalBtn.ledValue);
+                // the dict is updated, send "bang" to patch "modeChange" receive objects
+                messnamed("modeChange", "bang");
+            }
+            // this is the updated feedback data but NOT the actual feedback message to the C4 display yet
+            return [signalBtn.index, signalBtn.ledValue, signalBtn.pressedValue];
+        } else {
+            // no toggle, no Dict updates, feed back the correct, unchanged, state data
+            return [signalBtn.index, ledValue, velocity]
+        }
+    } else {
+        post("C4Button.processGateEvent: (this.index !== PROCESSING_BYPASS_SIGNAL_ID) method called on wrong object")
+    }
+    return [0, 0, 0]
+}
 
 C4Button.prototype.processSplitEvent = function (v) {
     buttonsDict.name = "c4Buttons";

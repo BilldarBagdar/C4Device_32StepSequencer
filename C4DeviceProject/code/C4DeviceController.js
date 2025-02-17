@@ -159,6 +159,11 @@ C4DeviceController.prototype.propagateActiveSpareSignalsAcrossDecks = function()
     // Button 21 represents this patch's (user selected in 'umenu') External Transport Status where
     // ledValue: ON == Using External Transport, OFF == Using Max Transport
     // pressedValue: Pressed == External RTC Running, Released == External RTC Stopped
+    // Button 22 represents a signal between this patch and Markus's C4 remote script for Live
+    // when the script is in USER mode this patch should take over processing midi
+    // incoming velocity 127 == START processing midi events here because script is in USER mode
+    // incoming velocity   0 == STOP processing midi events here because script is leaving USER mode (forward all events)
+    // "button 22" LED ON == Processing here, OFF == bypassing here (just forwarding)
     // No other "spare buttons" are used like this at this time, propagating all spares anyway.
     for (var i = 21; i < ENCODER_BTN_OFFSET; i++) {
 
@@ -169,7 +174,7 @@ C4DeviceController.prototype.propagateActiveSpareSignalsAcrossDecks = function()
         ctrlDeckBtn.copyDataFrom(c4ActiveBtn);
         this.markerDeck["mrkrButtons"][i].copyDataFrom(c4ActiveBtn);
         this.trackDeck["trckButtons"][i].copyDataFrom(c4ActiveBtn);
-        this.chanStDeck["chstEncoders"][i].copyDataFrom(c4ActiveBtn);
+        this.chanStDeck["chstButtons"][i].copyDataFrom(c4ActiveBtn);
         this.functnDeck["fnctButtons"][i].copyDataFrom(c4ActiveBtn);
     }
 }
