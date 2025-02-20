@@ -2,8 +2,8 @@
 	"name" : "C4DeviceProject",
 	"version" : 1,
 	"creationdate" : 3800031733,
-	"modificationdate" : 3800699939,
-	"viewrect" : [ 1387.0, 472.0, 300.0, 500.0 ],
+	"modificationdate" : 3822939525,
+	"viewrect" : [ 1330.0, 308.0, 300.0, 500.0 ],
 	"autoorganize" : 1,
 	"hideprojectwindow" : 0,
 	"showdependencies" : 1,
@@ -17,8 +17,17 @@
 ,
 			"C4Device_32StepSequencer.maxpat" : 			{
 				"kind" : "patcher",
-				"local" : 1,
-				"toplevel" : 1
+				"local" : 1
+			}
+,
+			"openSequencerBypassing.maxpat" : 			{
+				"kind" : "patcher",
+				"local" : 1
+			}
+,
+			"openSequencerProcessing.maxpat" : 			{
+				"kind" : "patcher",
+				"local" : 1
 			}
 
 		}

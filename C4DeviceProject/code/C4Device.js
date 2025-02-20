@@ -44,18 +44,22 @@ var utilEncoder = new C4Encoder();
 var utilButton = new C4Button();
 var controller = new C4DeviceController("single");
 
-function loadUp() {
+function loadUp(modeSelect) {
     if (!isInitialized) {
         // Run garbage collection to clear out any old objects.
         gc();
-
+        if (!(modeSelect === 0 || modeSelect === 127)) {
+            modeSelect = 127;
+        }
         initControllerDict();
-        initButtons();
+        initButtons(modeSelect);
         initEncoders();
         encLedRingFeedbackStyleDict.import_json("ledRingFeedbackStyleReference.json");
         encIndexesByLcdRowDict.import_json("rowMap16RowsOf8Keys.json");
         saveInitControllerDictToFile();
-        sendEncoderPageData(generateWelcomePageMsgs);
+        if (modeSelect === 127) {
+            sendEncoderPageData(generateWelcomePageMsgs);
+        }
         isInitialized = true;
     }
 }
@@ -79,14 +83,14 @@ function saveInitControllerDictToFile() {
     c4DeviceControllerDict.export_json(saveFile);
 }
 
-function initButtons(){
+function initButtons(modeSelect){
     buttonsDict.name = "c4Buttons";
     btnStateDict.name = "buttonStateChangeCount";
     ledStateDict.name = "ledStateChangeCount";
     var bridgeButtons = controller["bridgeDeck"].brdgButtons;
     for(var i = 0; i < TOTAL_BUTTONS; i++) {
         var button = bridgeButtons[i];
-        if (button.index === PROCESSING_BYPASS_SIGNAL_ID) {
+        if (button.index === PROCESSING_BYPASS_SIGNAL_ID && modeSelect === 127) {
             // initialize in "processing mode"
             button.pressedCount += 1;
             button.releasedCount += 1;
@@ -182,10 +186,14 @@ function midievent(midiMsgIn) {
                     feedbackMsg = processEncoderMessage(midiMsg);
                 } else {
                     // true here: Processing enabled and (midiMsg[0] === MIDI_CC_ID && midiMsg[1] >= NBR_PHYSICAL_ENCODERS)
-                    // this seems to hit after the remote script leaves USER mode, the script is already sending these CCs
-                    //post("midievent186: CC feedback netted while processing:", midiMsg.toString());post();
-                    feedbackMsg = [0, 0, 0, 0]
-                    //outlet(0, midiMsg); // also hits any time Live sends updates to mapped parameters directly
+                    // Live directly updates mapped parameter objects in the remote script when for example, the selected track changes,
+                    // those updates include sending CC feedback messages to update the C4 display
+                    // (directly from Live, not via any accessible remote script "send midi" methods?)
+                    // This patch is dropping that feedback here because the script is in USER mode and this patch is charge of the C4 display right now.
+                    //post("midievent: CC feedback netted while processing:", midiMsg.toString());post();
+                    feedbackMsg = [0, 0, 0, 0];
+                    return;
+                    //outlet(0, midiMsg);
                 }
             } else { // bypassBtn.isBypassed()
                 //post("bypassed");post();
@@ -235,13 +243,13 @@ function midievent(midiMsgIn) {
                 // post("midievent235: feedback netted:",feedbackMsg.toString());
             } else if (feedbackMsg[0] === MIDI_CC_ID && feedbackMsg[1] >= NBR_PHYSICAL_ENCODERS) {
                 // this seems to hit after the remote script leaves USER mode, the script is already sending these CCs
-                post("midievent238: feedback netted:",feedbackMsg.toString());post();
+                post("midievent: feedback netted:",feedbackMsg.toString());post();
                 // outlet(0, [midiMsg[0], midiMsg[1], midiMsg[2]]);
             } else if (feedbackMsg[0] === 0 && feedbackMsg[1] === 0 && feedbackMsg[2] === 0 && feedbackMsg[3] === 0) {
-                // post("midievent241: dropping unprocessed feedback msg result", feedbackMsg.toString());
-                // post();
+                post("midievent: dropping unprocessed feedback msg result", feedbackMsg.toString());
+                post();
             } else {
-                post("midievent244: unexpected event processing result", feedbackMsg.toString());
+                post("midievent: unexpected event processing result", feedbackMsg.toString());
                 post();
             }
         }
@@ -249,22 +257,22 @@ function midievent(midiMsgIn) {
         else if (feedbackMsg[1] === bypassBtn.index) {
             // local event processing is bypassed
             // dropping virtual button, no physical LED, no feedback
-            // post("midievent245: 'button 22' feedback netted", feedbackMsg.toString());
+            // post("midievent: 'button 22' feedback netted", feedbackMsg.toString());
             // post();
         } else if (midiMsg[1] >= NBR_PHYSICAL_ENCODERS) {
             // local event processing is bypassed
-            post("midievent256: CC feedback netted, forwarding:", midiMsg.toString(), feedbackMsg.toString());post();
+            post("midievent: CC feedback netted, forwarding:", midiMsg.toString(), feedbackMsg.toString());post();
             outlet(0, [midiMsg[0], midiMsg[1], midiMsg[2]]);
         } else if (midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) {
             // local event processing is bypassed
-            post("midievent260: Note feedback netted, forwarding:", midiMsg.toString(), feedbackMsg.toString());post();
+            post("midievent: Note feedback netted, forwarding:", midiMsg.toString(), feedbackMsg.toString());post();
             outlet(0, [midiMsg[0], midiMsg[1], midiMsg[2]]);
         } else {
-            post("midievent263: processing bypassed, dropping event:", midiMsg.toString(), feedbackMsg.toString());
+            post("midievent: processing bypassed, dropping event:", midiMsg.toString(), feedbackMsg.toString());
             post();
         }
     } else {
-        post("midievent267: too small for a 3 byte midi message", arguments);
+        post("midievent: too small for a 3 byte midi message", arguments);
         post();
     }
 }

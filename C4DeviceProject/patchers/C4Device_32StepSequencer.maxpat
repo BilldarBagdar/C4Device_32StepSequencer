@@ -10,10 +10,23 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 485.0, 122.0, 1278.0, 871.0 ],
+		"rect" : [ 632.0, 129.0, 1135.0, 914.0 ],
 		"openinpresentation" : 1,
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
+				"box" : 				{
+					"comment" : "",
+					"id" : "obj-30",
+					"index" : 0,
+					"maxclass" : "inlet",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 30.5, 144.0, 30.0, 30.0 ]
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"id" : "obj-38",
 					"maxclass" : "message",
@@ -32,7 +45,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 59.5, 7.0, 29.5, 22.0 ],
+					"patching_rect" : [ 767.0, -50.0, 29.5, 22.0 ],
 					"text" : "0"
 				}
 
@@ -44,7 +57,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 28.0, 7.0, 29.5, 22.0 ],
+					"patching_rect" : [ 735.0, -50.0, 29.5, 22.0 ],
 					"text" : "127"
 				}
 
@@ -56,7 +69,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 28.0, -29.0, 150.0, 34.0 ],
+					"patching_rect" : [ 735.0, -86.0, 150.0, 34.0 ],
 					"text" : "Failsafe switch, send if js bypass out of sync"
 				}
 
@@ -70,7 +83,7 @@
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 420.0, 41.0, 147.0, 37.0 ]
+					"patching_rect" : [ 320.0, 39.0, 147.0, 37.0 ]
 				}
 
 			}
@@ -93,7 +106,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 14.0, 106.0, 127.0, 34.0 ],
+					"patching_rect" : [ 721.0, 49.0, 127.0, 34.0 ],
 					"text" : "simulated Split button press+release"
 				}
 
@@ -106,7 +119,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 21.0, 145.0, 77.0, 50.0 ],
+					"patching_rect" : [ 728.0, 88.0, 77.0, 50.0 ],
 					"text" : "144, 0, 127, 144, 0, 0, bang"
 				}
 
@@ -118,7 +131,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 28.0, 41.0, 102.0, 22.0 ],
+					"patching_rect" : [ 735.0, -16.0, 102.0, 22.0 ],
 					"text" : "144, 22, $1, bang"
 				}
 
@@ -130,7 +143,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "int", "int" ],
-					"patching_rect" : [ 221.0, -23.0, 29.5, 22.0 ],
+					"patching_rect" : [ 121.0, -25.0, 29.5, 22.0 ],
 					"text" : "t i i"
 				}
 
@@ -142,10 +155,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 238.0, -67.0, 188.0, 34.0 ],
-					"presentation" : 1,
-					"presentation_linecount" : 2,
-					"presentation_rect" : [ 24.0, 189.0, 188.0, 34.0 ],
+					"patching_rect" : [ 138.0, -69.0, 188.0, 34.0 ],
 					"text" : "bypass patch midi processing\nprocess midi events with patch"
 				}
 
@@ -157,7 +167,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 221.0, -104.0, 121.0, 22.0 ],
+					"patching_rect" : [ 121.0, -106.0, 121.0, 22.0 ],
 					"text" : "loadmess selection 1"
 				}
 
@@ -172,9 +182,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 221.0, -67.0, 214.0, 34.0 ],
-					"presentation" : 1,
-					"presentation_rect" : [ 7.0, 189.0, 214.0, 34.0 ],
+					"patching_rect" : [ 121.0, -69.0, 214.0, 34.0 ],
 					"size" : 2,
 					"value" : 1
 				}
@@ -183,24 +191,24 @@
 , 			{
 				"box" : 				{
 					"id" : "obj-64",
-					"linecount" : 16,
+					"linecount" : 4,
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 8.0, -260.0, 211.0, 227.0 ],
-					"text" : "\"button 22\" doesn't exist on the C4, it is a \"spacer object\" between normal buttons and encoder buttons, \"button 22\" midi messages are a signal from the remote script to the patch telling the patch to process or forward incoming midi messages (the script is either sending \"feedback\" messages the patch should ignore and simply forward, or the script is forwarding C4 midi messages to the patch for sequencer operation processing)\n\nThis \"manual\" processing bypass switch is independent from the programmatic bypassing in javascript "
+					"patching_rect" : [ 122.5, -170.0, 211.0, 62.0 ],
+					"text" : "This \"manual\" processing bypass switch is independent from the programmatic bypassing in Javascript \nThis is the \"I'll show you\" bypass"
 				}
 
 			}
 , 			{
 				"box" : 				{
 					"id" : "obj-50",
-					"linecount" : 24,
+					"linecount" : 15,
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 221.0, -446.0, 1031.0, 338.0 ],
-					"text" : "NOTE: Live remote scripts start sending midi messages as soon as each component asynchronously initializes.  It doesn't seem possible to control the whole message flow from the custom parts of the remote script that are under customizing programmer control.  Even completely disabling the main C4 Component's \"send_midi\" method can't stop all the vomit.  \n\nOnce the full \"remote script\" object is ready, it observes the designed mode selection \"rules\" to process or forward incoming midi messages.  (i.e. the remote script eventually sends the first \"button 22\" signal to tell this patch to Stop processing events, but all the (spurious?) initialization feedback messages sent to the C4 before that point break this patch if it tries to process the feedback normally.)  This manual bypass  switch allows the USER to manually decide when to start and stop listening to the remote script's midi message stream.\n\nHOWTO integrate this C4 sequencer patch with the C4 remote script: \n0. Open this patch first. \nFor normal \"stand alone\" patch sequencer operation:\n   -assign \"C4 midi in\" here directly to the actual C4out midi port \n   -assign \"C4 midi out\" here directly to the actual C4in midi port  (this connection to C4in never changes)\nFor integrated \"remote script USER mode\" sequencer operation\n   -assign  the actual C4out midi port to the \"remote script\" input in Live Midi Options\n   -assign Live's \"remote script\" output to a Loopback-in midi port in Live Midi Opitons\n   -assign \"C4 midi in\" port here to that Live loopback-out midi port \n1. click the \"bypass...\" radio button to switch this patch to bypass processing (selection 0)\n2. Open Live and let the Mackie C4 remote script load completely\n3. Put the remote script in USER mode (press the Marker button in the Assignment group on the C4)\n4. click the \"process...\" radio buttion to switch this patch back to event processing (selection 1)\n(Double click the c4Buttons dict object below to verify \"button 22\" LED is ON so javascript will take over)\n\nTheoretically, you should only need to do this manual work-around process once each time Live starts after the remote script is loaded and in USER mode.  Once \"connected\", the remote script should send appropriate \"button 22\" signals so the C4Device javascript code here can control \"patch processing bypass\" in programmatic coordination with the remote script."
+					"patching_rect" : [ 160.0, -416.0, 896.0, 213.0 ],
+					"text" : "NOTE: Live remote scripts start sending midi messages as soon as each component asynchronously initializes. and when tevents occur in Live like changing the selected track, clip, or device.  This script will ignore any of those feedback updates received (from Live) while it is processing and generating its own feedback for display on the C4 (LEDs and LCDs)\n\n\nHOWTO integrate this C4 sequencer patch with the C4 remote script: \nFor normal \"stand alone\" patch sequencer operation:\n   -assign \"C4 midi in\" here directly to the actual C4out midi port  (DIN out of C4)\n   -assign \"C4 midi out\" here directly to the actual C4in midi port  (DIN in to C4, this connection to C4in never changes)\nFor integrated \"remote script USER mode\" sequencer operation\n   -assign  the actual C4out midi port to the \"remote script\" input in Live Midi Options  (DIN out of C4)\n   -assign Live's \"remote script\" output to a Loopback-in midi port in Live Midi Opitons\n   -assign \"C4 midi in\" port here to that Live loopback-out midi port \n1. Open Live and let the Mackie C4 remote script load completely\n2. Put the remote script in USER mode (press the Marker button in the Assignment group on the C4)"
 				}
 
 			}
@@ -210,7 +218,7 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 152.0, 112.0, 126.0, 22.0 ],
+					"patching_rect" : [ 52.0, 110.0, 126.0, 22.0 ],
 					"text" : "midiout @matchport 1"
 				}
 
@@ -224,7 +232,7 @@
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 221.0, 41.0, 147.0, 37.0 ]
+					"patching_rect" : [ 121.0, 39.0, 147.0, 37.0 ]
 				}
 
 			}
@@ -266,7 +274,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "int" ],
-					"patching_rect" : [ 539.0, -23.0, 127.0, 22.0 ],
+					"patching_rect" : [ 439.0, -25.0, 127.0, 22.0 ],
 					"text" : "sysexin @matchport 1"
 				}
 
@@ -286,12 +294,13 @@
 , 			{
 				"box" : 				{
 					"id" : "obj-39",
+					"linecount" : 41,
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 107.0, 451.0, 71.0, 22.0 ],
-					"text" : "144 4 0"
+					"patching_rect" : [ 107.0, 451.0, 71.0, 574.0 ],
+					"text" : "144 0 0 144 1 0 144 2 0 144 3 0 144 4 0 144 5 0 144 6 0 144 7 0 144 8 0 176 32 92 176 33 17 176 34 92 176 35 17 176 36 92 176 37 17 176 38 92 176 39 17 176 40 92 176 41 17 176 42 92 176 43 17 176 44 92 176 45 17 176 46 92 176 47 17 176 48 92 176 49 17 176 50 92 176 51 17 176 52 92 176 53 17 176 54 92 176 55 17 176 56 92 176 57 17 176 58 92 176 59 17 176 60 92 176 61 17 176 62 92 176 63 17"
 				}
 
 			}
@@ -480,7 +489,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 398.0, 177.0, 163.0, 34.0 ],
+					"patching_rect" : [ 398.0, 171.0, 163.0, 34.0 ],
 					"presentation" : 1,
 					"presentation_linecount" : 2,
 					"presentation_rect" : [ 317.0, 2.0, 163.0, 34.0 ],
@@ -615,7 +624,7 @@
 					"patching_rect" : [ 308.0, 466.0, 174.0, 34.0 ],
 					"presentation" : 1,
 					"presentation_linecount" : 2,
-					"presentation_rect" : [ 76.0, 235.0, 174.0, 34.0 ],
+					"presentation_rect" : [ 74.0, 194.0, 174.0, 34.0 ],
 					"text" : "Red == sequencer stopped\nGreen == sequencer running"
 				}
 
@@ -648,7 +657,7 @@
 					"parameter_enable" : 0,
 					"patching_rect" : [ 484.0, 471.0, 24.0, 24.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 226.0, 199.0, 24.0, 24.0 ],
+					"presentation_rect" : [ 145.0, 160.0, 24.0, 24.0 ],
 					"svg" : "",
 					"uncheckedcolor" : [ 0.925490196078431, 0.027450980392157, 0.027450980392157, 1.0 ]
 				}
@@ -1259,7 +1268,7 @@
 
 											}
  ],
-										"originid" : "pat-20"
+										"originid" : "pat-113"
 									}
 ,
 									"patching_rect" : [ 353.0, 284.0, 123.0, 22.0 ],
@@ -2449,7 +2458,7 @@
 
 															}
  ],
-														"originid" : "pat-28"
+														"originid" : "pat-121"
 													}
 ,
 													"patching_rect" : [ 38.0, 705.0, 81.0, 22.0 ],
@@ -3028,7 +3037,7 @@
 
 											}
  ],
-										"originid" : "pat-22"
+										"originid" : "pat-115"
 									}
 ,
 									"patching_rect" : [ 498.0, 284.0, 98.0, 22.0 ],
@@ -5365,7 +5374,7 @@
 
 															}
  ],
-														"originid" : "pat-32"
+														"originid" : "pat-125"
 													}
 ,
 													"patching_rect" : [ 816.666679322719574, 767.460329353809357, 183.0, 22.0 ],
@@ -6602,7 +6611,7 @@
 
 											}
  ],
-										"originid" : "pat-30"
+										"originid" : "pat-123"
 									}
 ,
 									"patching_rect" : [ 167.0, 201.0, 179.5, 22.0 ],
@@ -7029,7 +7038,7 @@
 
 							}
  ],
-						"originid" : "pat-18"
+						"originid" : "pat-111"
 					}
 ,
 					"patching_rect" : [ 294.0, 430.0, 331.0, 22.0 ],
@@ -7048,7 +7057,7 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 123.0, 73.0, 55.0, 22.0 ],
+					"patching_rect" : [ 23.0, 71.0, 55.0, 22.0 ],
 					"text" : "r c4mout"
 				}
 
@@ -7060,7 +7069,7 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 497.0, -67.0, 48.0, 22.0 ],
+					"patching_rect" : [ 416.5, -69.0, 48.0, 22.0 ],
 					"text" : "r c4min"
 				}
 
@@ -7126,7 +7135,7 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 294.0, 685.0, 126.0, 22.0 ],
+					"patching_rect" : [ 294.0, 571.0, 126.0, 22.0 ],
 					"text" : "midiout @matchport 1"
 				}
 
@@ -7138,7 +7147,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 65.0, 228.0, 58.0, 22.0 ],
+					"patching_rect" : [ 68.0, 148.0, 58.0, 22.0 ],
 					"text" : "loadbang"
 				}
 
@@ -7150,8 +7159,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 65.0, 255.0, 47.0, 22.0 ],
-					"text" : "loadUp"
+					"patching_rect" : [ 30.5, 215.0, 63.0, 22.0 ],
+					"text" : "loadUp $1"
 				}
 
 			}
@@ -7191,7 +7200,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "int" ],
-					"patching_rect" : [ 412.0, -23.0, 119.0, 22.0 ],
+					"patching_rect" : [ 312.0, -25.0, 119.0, 22.0 ],
 					"text" : "midiin @matchport 1"
 				}
 
@@ -7294,6 +7303,13 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-4", 0 ],
+					"source" : [ "obj-30", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-9", 0 ],
 					"source" : [ "obj-31", 0 ]
 				}
@@ -7381,7 +7397,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-2", 0 ],
-					"midpoints" : [ 37.5, 93.0, 9.0, 93.0, 9.0, 219.0, 147.5, 219.0 ],
+					"midpoints" : [ 744.5, 27.0, 620.0, 27.0, 620.0, 213.0, 147.5, 213.0 ],
 					"source" : [ "obj-42", 0 ]
 				}
 
@@ -7396,7 +7412,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-2", 0 ],
-					"midpoints" : [ 30.5, 212.0, 147.5, 212.0 ],
+					"midpoints" : [ 737.5, 156.0, 147.5, 156.0 ],
 					"source" : [ "obj-44", 0 ]
 				}
 
@@ -7482,13 +7498,6 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-4", 0 ],
-					"source" : [ "obj-6", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
 					"destination" : [ "obj-11", 0 ],
 					"source" : [ "obj-60", 0 ]
 				}
@@ -7551,7 +7560,7 @@
 
 			}
  ],
-		"originid" : "pat-14",
+		"originid" : "pat-107",
 		"dependency_cache" : [ 			{
 				"name" : "C4Button.js",
 				"bootpath" : "D:/music/maxStuff/C4Projects/C4Device_32StepSequencer/C4DeviceProject/code",
