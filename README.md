@@ -4,8 +4,8 @@
 </p>
 <p>
 The integration is still in alpha or beta development, not necessarily ready for full release.  But the changes seem stable enough to
-push to origin here.  The integration requires one more midi loopback port between Live's "C4 remote script" midi out and
-this patch's "C4 Midi In" port.  Connections should flow like this
+push to origin here.  The integration requires one more midi loopback port (on top of the two required for standalone sequencer operation) 
+between Live's "C4 remote script" midi out and this patch's "C4 Midi In" port.  Connections should flow like this
 </p>
 
     C4o--->>---iLiveo--->L1>---iMaxo--->>---iC4     // Remote script and Sequencer patch Control comms ports
@@ -14,7 +14,9 @@ this patch's "C4 Midi In" port.  Connections should flow like this
 
 <p>
 You should be able to use this patch with the remote script as long as you hold a Max4Live license, meaning you have a 
-Live Standard + M4L or Live Suite license active. The 2.0 update here (and remote script updates) were entirely coded in 2025 using Max 9.0.4 and Live 12.1.5
+Live Standard + M4L or Live Suite license active. The 2.0 update here (and associated remote script updates) were entirely coded in 2025 using Max 9.0.4 and Live 12.1.5.  
+The remote script should be backward compatible with both Live 10 and 11 and the sequencer patch is compatible with Max 8, but these combinations haven't been tested.  
+Except Live 12.1.5 still runs "Max 8" as the default M4L engine, and this is the setup used for M4L-license-only testing.
 </p>
 <h5>Getting started</h5>
 <p>
@@ -23,50 +25,81 @@ folder and its contents.  Paste the folder and contents into your "MIDI Remote S
 `C:\ProgramData\Ableton\Live 12 Suite\Resources\MIDI Remote Scripts` by default.  Then start Live and add the (new) MackieC4 "remote script" to 
 an open script slot (Live Options midi tab) including selecting both C4 midi DIN ports.  If the remote script doesn't start working 
 (processing button clicks and showing feedback, for example) as soon as you close Options, restart Live.  If it still doesn't work, check all your
-port assignments and or Markus's<a href="https://github.com/markusschloesser/MackieC4_P3/wiki"> wiki </a>
+port assignments and or Markus's<a href="https://github.com/markusschloesser/MackieC4_P3/wiki"> wiki</a>.  Test going into and coming out of USER mode.  
+If you don't see USER mode text on the LCDs telling you how to exit USER mode, (press+hold) Marker + (press) LOCK, then you don't have the correct (latest?) remote 
+script version installed into Live.
 </p>
 <p>
-Once you've confirmed the remote script is working, remove the "remote script midi output" port assignment (leave the script input port assignment) 
+Once you've confirmed the (Sequencer compatible) remote script is working, remove the "remote script midi output" port assignment (leave the script input port assignment) 
 and replace the output assignment with a midi Loopback port (L1 above).  Further down the Options Midi tab uncheck (disconnect from) the Live Midi Output
 that goes to the physical C4 DIN input port (disconnect Live from the same port you just disconnected from the remote script), and check (connect to) the other two 
-loopback ports. L1 and L2 are "Live Midi Output" ports and L3 is a "Live Midi Input" port.  Now close and restart Live.  When Live is ready again, 
-the remote script will only be half connected on the front side.  You can move Live's selected track Left and Right using the C4 Track L and Track R 
-buttons, for example, but you won't see any LEDs or LCDs reacting to "midi feedback" because the backside isn't connected yet. Now, press (and release)
-the TRACK button in the Assignment group on the C4 "control panel" to put the script in "Devices (on selected Track)" mode.  Both FUNCTION and CHAN
-STRIP modes "spam" CC feedback messages to the C4 that could interfere with starting the sequencer patch.  TRACK (device) mode is quiet by default after the 
-"mode change" updates.  Now the remote script is ready and waiting for the Sequencer.  Browse to your local copy of this project's C4DeviceProject 
-folder (main branch of the repository) and...
+loopback ports. L1 and L2 are "Live Midi Output" ports and L3 is a "Live Midi Input" port.  You should have 4 associated midi ports open in Live, the 3 loopback ports 
+and the input port coming from the physical C4 DIN. (plus any other midi ports you want)  Now close and restart Live.  When Live is ready again, 
+the remote script will only be connected on the front side (C4 to Live).  You can move Live's selected track Left and Right using the C4 Track L and Track R 
+buttons, for example, but you won't see any LEDs or LCDs reacting to "midi feedback" because the feedback-side isn't connected yet. Now, click
+the TRACK button in the Assignment group on the C4 "control panel" to put the script in "Device(s on selected Track)" mode.  Both FUNCTION and CHAN
+STRIP button modes "spam" CC feedback messages to the C4 that could interfere with starting the sequencer patch.  TRACK button (device) mode is quiet by default after the 
+"mode change" updates.  Now the remote script is ready and waiting for the Sequencer.  
+</p>
+<p>
+Open Max.  Drag a default m4l device onto a Track in your session and click the <=> icon upper right corner of the device window to open the m4l device Patcher.
+In a Max window like the Patcher that just opened click File>Open... navigate to your local copy of this project's C4DeviceProject folder in the Open-File dialog
+(main branch of the repository) and...
 </p>
 <h5><b>Open the project file C4DeviceProject.maxproj</b></h5>
 <p>
 It is important to open the project file first because the project establishes a Max-project-relative search path for 
 all the other files in their project-relative folders like /code, /data, /patchers, etc. 
-("path finding" in Max is otherwise a PITA, patches have no idea what folder they started in, Max doesn't understand a simple relative path like, "../code/foo.js" 
-(up one level from where this patch file is located and down into /code, look for a file named foo.js)) /rant
+("path finding" in Max is otherwise a PITA, patches have no idea what folder they started in, Max doesn't interpret a simple relative path like, "../code/foo.js" 
+(up one level from where this patch file is located and down into /code, look for a file named foo.js)) the way you would normally expect. A '.' is generally 
+interpreted as the folder where max.exe is located.  Inside a project, the "search path" starts in the project folder and recurses.  You just write "foo.js" and the file is found.
 </p>
 <p>
-From the "Project menu", open the patch file named `openSequencerBypassing.maxpat`.  
+From the "Project menu" window, open the patch file named `openSequencerBypassing.maxpat`.  
 After the Sequencer patch loads, ensure the patch's 4 midi port connections are set for your local system.
 
     "C4 Midi In" port should connect to the L1 loopback (coming from Live remote script midi out)
     "C4 Midi Out" port should connect to the C4 DIN input port (going to the physical C4 unit)
     "RTC Midi In" port should connect to the L2 loopback (coming from a Live Midi Out port with "Sync" checked)
-    "Seq Notes Out" port should connect to the L3 loopback (going to a Live Midi In port with "Notes" checked)
+    "Sound Module Midi Out" port should connect to the L3 loopback (going to a Live Midi In port with "Track" checked)
 
-Since the Sequencer patch opened in "processing bypass" mode, and the remote script is still in DEVICES mode (Track button), you should start to see all the
+Since the Sequencer patch opened in "bypassing" mode, and the remote script is still in DEVICES mode (Track button), you should start to see all the
 normal remote script feedback appear on the C4 "display" (the LEDs and LCDs) in response to button presses and encoder turns on the C4 and other actions 
 in Live that trigger feedback (like a mouse click changing the selected track).  
 </p>
 <p>
+If you don't see "feedback display updates" on the C4 display (the LEDs and LCDs), double-check your midi port connections.  Also try running the sequencer patch in standalone mode.  
+Disconnect the remote script in Live and connect both Sequencer "C4 Midi" (in and out) ports to the C4 DIN ports. Close the "start in bypassing mode" patch and 
+open the "start in processing mode" patch.  This standalone configuration should work (without the remote script involved).  If both the remote script and the sequencer work independently 
+but not when chained, double-check that L1 loopback connection.  Otherwise, start an "Issues" thread here.
+</p>
+<p>
 Now click the C4 MARKER button to initiate two changes. To switch the script from DEVICES mode (Track button) to USER mode (Marker button), and to switch the Sequencer patch to PROCESSING mode.
 (Alternatively, if the remote script was already in USER mode (because you pressed the MARKER button first), you would just
-open the patch file named `openSequencerProcessing.maxpat`)  The C4 "display" might be blank at first after USER mode starts, but press the SPLIT button and you should see 
+open the Project>patch file named `openSequencerProcessing.maxpat`)  The C4 "display" might be blank at first after USER mode starts, but press the SPLIT button and you should see 
 "page 1" (of the "bridge deck" data) display on the C4.  Click SPLIT again and the "Page 0" data is displayed (properly this time).
 </p>
 <p>
 To Exit USER mode, Press and Hold the MARKER button then Press the LOCK button (try to release both MARKER and LOCK asap after pressing LOCK).  The
 remote script goes back to whatever other mode was active before going into USER mode and the sequencer patch goes back into "bypassing" mode.  
-Keep reading (below) for sequencer operation details, and Markus's wiki for remote script operation details.  Enjoy.
+Keep reading (below) for sequencer operation details, and Markus's wiki for remote script operation details.  Enjoy. Have fun.
+</p>
+<p>
+It is best practice to exit USER mode before you load or reload another session in Live because the "new set" won't open with the remote script in USER mode
+and the sequencer patch could get out-of-sync with the remote script in that case.
+</p>
+<p>
+A similarly important practice for your local system is calibrating the "midi loopback sync delay" subtracted from the RTC Midi Out port in Live Midi Options (Options>Midi tab)
+Every different session could impart subtly different amounts of latency.  -2.5 to -5.0 milliseconds or more (negative).  You can also use this setting creatively, like a midi delay.
+</p>
+<h4>Updates since v1.0</h4>
+<ul>
+<li>The Sequencer no longer does any pitch coercion (to C minor pentatonic), except to scale the Note values output between 12 and 120 (i.e. a normal piano's 10 octave range)</li>
+<li>When the sequencer is in "External Transport" mode, the "Spot/Erase" button controls whether the sequencer "follows" the RTC signals.  When the Spot/Erase LED is ON, 
+the sequencer is "disengaged" from the "External Transport" so the sequencer doesn't run.  This Spot/Erase LED behavior is opposite to its behavior when in "Internal Transport" mode 
+where LED ON means internal transport is driving the sequencer pulses.</li>
+</ul>
+<p>
 </p>
 
 <h3>Version 1.0</h3> <p>of this Max 8.6.2 project implements a midi data server (in javascript) and leverages the server 
@@ -95,8 +128,7 @@ Sending RTC signals from Ableton Live is as easy as checking the Sync checkbox o
 <p>
 The "midi data server" (javascript) part of this patch is meant to be reusable in other projects and or patches. (Turning 
 the C4 hardware into a synth patch ui or a GLSL-jitter patch ui, for example)
-The sequencer part of the patch is based on the "Livid Code" tutorial example under the "Interfacing Max with 
-Hardware" section of 
+The sequencer part of the patch is based on the "Livid Code" tutorial example under the "Interfacing Max with Hardware" section of 
 <a href="https://cycling74.com/articles/working-with-hardware-livid-instruments%E2%80%99-code">the Cycling74 
 documentation and support website</a>. Like the example, this patch implements a very simple 
 32-step sequencer that runs at 120 bpm (by default, when Max Transport is selected) and produces 16th note steps at C 
@@ -112,8 +144,8 @@ length 16th notes (kinda-legato) or 0.75 length 16th notes (dotted 32nd notes).
 </p>
 <h3> Sequencer Operations</h3>
 <p>
-<b>NOTE:</b> The Control Button labels screenprinted on the C4 case are a little different from the "Commander 
-overlay" labels in the image above-top.  The image (of the C4 device front panel layout) above shows a screenshot of the 
+<b>NOTE:</b> The Control Button labels screenprinted on the C4 case are a little different from the "Commander overlay" labels in the image above-top.  
+The image (of the C4 device front panel layout) above shows a screenshot of the 
 left side of the "C4 Commander" app window (in Edit mode, and the only view of the app in Performance mode).  Specifically, 
 the buttons labeled (on the Commander overlay sticker) "Parameter Layout" (Left, Right) in the image above are labeled 
 "Parameter Bank" (Left, Right) on the C4 case itself; and the buttons labeled "(Session) Bank" (Up, Down) above are labeled 
@@ -129,11 +161,11 @@ labels (shown above or otherwise).
 </p>
 <h5> Basic operations</h5>
 <p>
-Activate sequencer steps by turning encoder leds ON (pressing encoder buttons), deactivate steps by turning encoder 
+Activate sequencer steps by turning encoder leds ON (clicking encoder buttons), deactivate steps by turning encoder 
 button leds OFF; 
 and adjust active step (playback) pitches by turning active encoders left or right.  The sequencer only outputs about 
 15 unique pitches (pentatonic scale, three octaves) and the encoders store 128 possible values, so when you turn slowly
-you will experience roughly 10 clicks where nothing happens for every click where the audible playback pitch changes.
+you will experience roughly 10 turning-clicks where nothing happens for every click where the audible playback pitch changes.
 </p>
 <h5> Function group Buttons</h5>
 <p>
