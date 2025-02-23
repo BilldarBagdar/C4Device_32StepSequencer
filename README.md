@@ -98,6 +98,9 @@ Every different session could impart subtly different amounts of latency.  -2.5 
 <li>When the sequencer is in "External Transport" mode, the "Spot/Erase" button controls whether the sequencer "follows" the RTC signals.  When the Spot/Erase LED is ON, 
 the sequencer is "disengaged" from the "External Transport" so the sequencer doesn't run.  This Spot/Erase LED behavior is opposite to its behavior when in "Internal Transport" mode 
 where LED ON means internal transport is driving the sequencer pulses.</li>
+<li>An encoder's stored "pressedValue" now supplements the sequencer's randomly generated (scaled between 50 and 120) velocity for that sequence step. (If the Pressed value is 78 or higher, 
+every note output will have the maximum 128 velocity) If the sequencer is running, and
+the encoder button "isPressed" when the "hot step" hits, the encoder's "pressedValue" is still used for that step's Note value too (v1 behavior)</li>
 </ul>
 <p>
 </p>
