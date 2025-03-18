@@ -20,6 +20,12 @@ exports.getPageOffset = function gpo() {
 exports.getActiveControllerDeckName = function gacdn() {
 	return getControllerActiveDeckKey();
 }
+exports.compareSaveData = function csd(dictA, dictB) {
+	return deepCompare(dictA, dictB);
+}
+exports.compareLoadData = function cld(dictA, dictB) {
+	return deepCompare(dictA, dictB);
+}
 
 function getEncoderPageOffset() {
 	ledStateDict.name = "ledStateChangeCount";
@@ -63,4 +69,22 @@ function getControllerActiveDeckKey() {
 	}
 	// post("getControllerActiveDeckKey: returning", rtn);post();
 	return rtn;
+}
+
+// scraped from: https://stackoverflow.com/questions/26049303/how-to-compare-two-json-have-the-same-properties-without-order
+// but order in arrays does matter in this implementation - and we want that behavior in the JSON comparison before saving a data file.
+// For example, the array of "button objects" in every "deck" dictionary should always be in the same numerical order.
+function deepCompare(arg1, arg2) {
+	if (Object.prototype.toString.call(arg1) === Object.prototype.toString.call(arg2)){
+		if (Object.prototype.toString.call(arg1) === '[object Object]' || Object.prototype.toString.call(arg1) === '[object Array]' ){
+			if (Object.keys(arg1).length !== Object.keys(arg2).length ){
+				return false;
+			}
+			return (Object.keys(arg1).every(function(key){
+				return deepCompare(arg1[key],arg2[key]);
+			}));
+		}
+		return (arg1===arg2);
+	}
+	return false;
 }

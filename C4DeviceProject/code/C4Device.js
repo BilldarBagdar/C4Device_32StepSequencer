@@ -21,7 +21,9 @@
 // function midiSysexEvent(byte) {
 // function processSequencerStep(encoderId) {
 // function clearLastSequencerStep(signal) {
-// plus maybe callback functions (after they work?)...
+// function saveCurrentControllerDictToFile(filename) {
+// function loadCurrentControllerDictFromFile(filename) {
+//
 //
 inlets = 1;
 outlets = 3;// 0 for Note and CC messages, 1 for SYSEX messages, 2 not implemented
@@ -83,6 +85,43 @@ function saveInitControllerDictToFile() {
     c4DeviceControllerDict.export_json(saveFile);
 }
 
+function saveCurrentControllerDictToFile(filename) {
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+    //post("pathname for save file is", filename); post();
+    var controllerDictStr = controller.toJsonStr();
+    var maxDictStr = JSON.stringify(JSON.parse(c4DeviceControllerDict.stringify()));
+    if (!reqModule.compareSaveData(controllerDictStr, maxDictStr)) {
+        post("C4Device.saveCurrentControllerDictToFile(): assumption issue, js controller object and Max js Dict object don't have the same JSON data to save"); post();
+        post("controller JSON:");post(); post(controllerDictStr);post();
+        post("max Dict JSON:");post(); post(maxDictStr);post();
+    } else {
+        c4DeviceControllerDict.export_json(filename);
+    }
+}
+
+function loadCurrentControllerDictFromFile(filename) {
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+    //post("pathname for import data is", filename); post();
+    c4DeviceControllerDict.import_json(filename);
+    var fileController = controller.newFromDict(c4DeviceControllerDict);
+    var controllerDictStr = fileController.toJsonStr();
+    var maxDictStr = JSON.stringify(JSON.parse(c4DeviceControllerDict.stringify()));
+    if (!reqModule.compareLoadData(controllerDictStr, maxDictStr)) {
+        post("C4Device.loadCurrentControllerDictFromFile(): assumption issue, js controller object and Max js Dict object don't have the same JSON data after load"); post();
+        post("controller JSON:");post(); post(controllerDictStr);post();
+        post("max Dict JSON:");post(); post(maxDictStr);post();
+    } else {
+
+        fileController.copyActiveSignals();
+        controller = fileController;
+        currentDeckName = reqModule.getActiveControllerDeckName();
+        controller.refreshDeckForDuty(currentDeckName);
+        setActiveCrewOnDuty(currentDeckName);
+        // "clearing the last step" here is a euphemism for updating the C4 display with data just loaded from disk
+        clearLastSequencerStep(1);
+    }
+}
+
 function initButtons(modeSelect){
     buttonsDict.name = "c4Buttons";
     btnStateDict.name = "buttonStateChangeCount";
@@ -141,6 +180,9 @@ function midievent(midiMsgIn) {
             if (!bypassBtn.isBypassed()) {
                 //post("enabled", midiMsg);post();
                 if (midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) {
+                    if (midiMsg[1] === bypassBtn.index) {
+                        //post("C4Device.midievent: Processing Status change event received while processing", midiMsg);post();
+                    }
                     feedbackMsg = processButtonMessage(midiMsg);
                     var lstBtnIdx = EXTERNAL_TRANSPORT_STATUS_SIGNAL_ID;// actually "one past" so < works properly
                     if (!(feedbackMsg[1] < ENCODER_BTN_OFFSET)) {
@@ -344,59 +386,10 @@ function swapActiveCrewsOnDuty(buttonId) {
     buttonsDict.name = "c4Buttons";
     encodersDict.name = "c4Encoders";
     if (buttonId >= 5 && buttonId <= 8) {
-        // Reference Dict was already updated, see comments above
         var nextDeckName = reqModule.getActiveControllerDeckName();
         var deckChange = currentDeckName !== nextDeckName;
         if (deckChange) {
-
-            var curBtnCrew = controller.getCrewNameForDeck(currentDeckName, "Buttons");
-            var curEncCrew = controller.getCrewNameForDeck(currentDeckName, "Encoders");
-            var curDeckButtons = controller[currentDeckName][curBtnCrew];
-            var curDeckEncoders = controller[currentDeckName][curEncCrew];
-
-            controller.refreshDeckForDuty(nextDeckName);
-            var nexDeckSplitName = controller.getCrewNameForDeck(nextDeckName, "Split");
-            theCurrentSplitButtonLED = controller[nextDeckName][nexDeckSplitName];
-            splitFeedbackAddressChangeCount = theCurrentSplitButtonLED.ledChangeCount;
-
-            var nexBtnCrew = controller.getCrewNameForDeck(nextDeckName, "Buttons");
-            var nexEncCrew = controller.getCrewNameForDeck(nextDeckName, "Encoders");
-            var nexDeckButtons = controller[nextDeckName][nexBtnCrew];
-            var nexDeckEncoders = controller[nextDeckName][nexEncCrew];
-
-            for(var i = 0; i < TOTAL_BUTTONS; i++) {
-
-                // store the "on duty" data of the deck going "off duty" for the deck's next "on duty" shift
-                var curDeckCtrlBtn = curDeckButtons[i];
-                var activeBtnDict = buttonsDict.get(i);
-                var activeBtn = utilButton.newFromDict(activeBtnDict);
-                curDeckCtrlBtn.copyDataFrom(activeBtn);
-
-                var replaceKey = controller.getCrewReplaceKeyForDeck(currentDeckName, "Buttons");
-                curDeckCtrlBtn.updateNamedDict("C4DeviceExecutiveController", replaceKey);
-                curDeckButtons[i] = curDeckCtrlBtn;// reassignment because next time this crew is "on duty"
-                //post("c:",curDeckCtrlBtn.toJsonStr()); post();
-
-                // pull the previous "on duty" data of the deck going (back) "on duty" for this shift
-                // and refresh the active Dicts with the updated info
-                nexDeckButtons[i].updateActiveDicts();
-                //post("n:", nexDeckButtons[i].toJsonStr()); post();
-
-                // repeat for encoders
-                if (i < TOTAL_ENCODERS) {
-                    var curDeckCtrlEnc = curDeckEncoders[i];
-                    var activeEncDict =  encodersDict.get(i);
-                    var activeEnc = utilEncoder.newFromDict(activeEncDict);
-                    curDeckCtrlEnc.copyDataFrom(activeEnc);
-
-                    replaceKey = controller.getCrewReplaceKeyForDeck(currentDeckName, "Encoders");
-                    curDeckCtrlEnc.updateNamedDict("C4DeviceExecutiveController", replaceKey);
-                    curDeckEncoders[i] = curDeckCtrlEnc;
-
-                    nexDeckEncoders[i].updateActiveDicts();
-                }
-            }
-            currentDeckName = nextDeckName;
+            setActiveCrewOnDuty(nextDeckName);
         } else {
             // changes to Assignment buttonId LEDs (5-8) only trigger "on duty" roster changes in hierarchical order
             // Marker deck has the highest precedence, and Bridge deck has lowest.
@@ -410,6 +403,64 @@ function swapActiveCrewsOnDuty(buttonId) {
         post("C4Device.swapActiveCrewsOnDuty: assumption issue, function called for non-Assignment button",
             buttonId, currentDeckName, nextDeckName); post();
     }
+}
+
+function setActiveCrewOnDuty(nextDeckName) {
+    // For normal button events, the Reference Dict was already updated, see comments above swapActiveCrewsOnDuty(buttonId)
+    // For loading a saved file, the Reference Dict was already updated with the imported data
+    var reqName = reqModule.getActiveControllerDeckName();
+    if (nextDeckName !== reqName) {
+        post("C4Device.setActiveCrewOnDuty: assumption issue, sources don't agree on next deck name", nextDeckName, reqName); post();
+    }
+
+    var curBtnCrew = controller.getCrewNameForDeck(currentDeckName, "Buttons");
+    var curEncCrew = controller.getCrewNameForDeck(currentDeckName, "Encoders");
+    var curDeckButtons = controller[currentDeckName][curBtnCrew];
+    var curDeckEncoders = controller[currentDeckName][curEncCrew];
+
+    controller.refreshDeckForDuty(nextDeckName);
+    var nexDeckSplitName = controller.getCrewNameForDeck(nextDeckName, "Split");
+    theCurrentSplitButtonLED = controller[nextDeckName][nexDeckSplitName];
+    splitFeedbackAddressChangeCount = theCurrentSplitButtonLED.ledChangeCount;
+
+    var nexBtnCrew = controller.getCrewNameForDeck(nextDeckName, "Buttons");
+    var nexEncCrew = controller.getCrewNameForDeck(nextDeckName, "Encoders");
+    var nexDeckButtons = controller[nextDeckName][nexBtnCrew];
+    var nexDeckEncoders = controller[nextDeckName][nexEncCrew];
+
+    for(var i = 0; i < TOTAL_BUTTONS; i++) {
+
+        // store the "on duty" data of the deck going "off duty" for the deck's next "on duty" shift
+        var curDeckCtrlBtn = curDeckButtons[i];
+        var activeBtnDict = buttonsDict.get(i);
+        var activeBtn = utilButton.newFromDict(activeBtnDict);
+        curDeckCtrlBtn.copyDataFrom(activeBtn);
+
+        var replaceKey = controller.getCrewReplaceKeyForDeck(currentDeckName, "Buttons");
+        curDeckCtrlBtn.updateNamedDict("C4DeviceExecutiveController", replaceKey);
+        curDeckButtons[i] = curDeckCtrlBtn;// reassignment because next time this crew is "on duty"
+        //post("c:",curDeckCtrlBtn.toJsonStr()); post();
+
+        // pull the previous "on duty" data of the deck going (back) "on duty" for this shift
+        // and refresh the active Dicts with the updated info
+        nexDeckButtons[i].updateActiveDicts();
+        //post("n:", nexDeckButtons[i].toJsonStr()); post();
+
+        // repeat for encoders
+        if (i < TOTAL_ENCODERS) {
+            var curDeckCtrlEnc = curDeckEncoders[i];
+            var activeEncDict =  encodersDict.get(i);
+            var activeEnc = utilEncoder.newFromDict(activeEncDict);
+            curDeckCtrlEnc.copyDataFrom(activeEnc);
+
+            replaceKey = controller.getCrewReplaceKeyForDeck(currentDeckName, "Encoders");
+            curDeckCtrlEnc.updateNamedDict("C4DeviceExecutiveController", replaceKey);
+            curDeckEncoders[i] = curDeckCtrlEnc;
+
+            nexDeckEncoders[i].updateActiveDicts();
+        }
+    }
+    currentDeckName = nextDeckName;
 }
 
 
@@ -588,6 +639,15 @@ function isSequencerRunning() {
     // Note ID 4 === Spot Erase button === Internal Sequencer Start/Stop  LED ON === Internal Transport Running (opposite above)
     var isInternalTransportRunning = buttonsDict.get("4::ledValue");
     return isInternalTransportRunning;
+}
+function isSequencerVerbose() {
+    buttonsDict.name = "c4Buttons";
+    var isProcessingMode = isPatchProcessingEnabled()
+    // Note ID 23 is a logically spare button element (doesn't physically exist on the C4) being used
+    // to globally signal (from Max to javascript via dict data) the state of the patch's "verbose override"
+    var btnDict = buttonsDict.get("23");
+    var isVerboseModeSelected = btnDict.get("pressedValue") === BUTTON_PRESSED_VALUE;
+    return isProcessingMode || isVerboseModeSelected;
 }
 function isPatchProcessingEnabled() {
     buttonsDict.name = "c4Buttons";

@@ -74,6 +74,50 @@ function C4DeviceController(feedbackStyle) {
     }
 }
 
+C4DeviceController.prototype.newFromDict = function(d) {
+    
+    if (d !== undefined && d !== null) {
+        var rtn = new C4DeviceController("single");
+        var utilBtn = new C4Button(0);
+        var utilEnc = new C4Encoder(0);
+        rtn.bridgeDeck.brdgSplit = utilBtn.newFromDict(d.get("bridgeDeck::brdgSplit"));
+        rtn.markerDeck.mrkrSplit = utilBtn.newFromDict(d.get("markerDeck::mrkrSplit"));
+        rtn.trackDeck.trckSplit = utilBtn.newFromDict(d.get("trackDeck::trckSplit"));
+        rtn.chanStDeck.chstSplit = utilBtn.newFromDict(d.get("chanStDeck::chstSplit"));
+        rtn.functnDeck.fnctSplit =  utilBtn.newFromDict(d.get("functnDeck::fnctSplit"));
+
+        for (var i = 0; i < TOTAL_BUTTONS; i++) {
+            var path = "bridgeDeck::brdgButtons::" + i.toString();
+            rtn.bridgeDeck["brdgButtons"][i] = utilBtn.newFromDict(d.get(path));
+            path = "markerDeck::mrkrButtons::" + i.toString();
+            rtn.markerDeck["mrkrButtons"][i] = utilBtn.newFromDict(d.get(path));
+            path = "trackDeck::trckButtons::" + i.toString();
+            rtn.trackDeck["trckButtons"][i] = utilBtn.newFromDict(d.get(path));
+            path = "chanStDeck::chstButtons::" + i.toString();
+            rtn.chanStDeck["chstButtons"][i] = utilBtn.newFromDict(d.get(path));
+            path = "functnDeck::fnctButtons::" + i.toString();
+            rtn.functnDeck["fnctButtons"][i] = utilBtn.newFromDict(d.get(path));
+            if (i < TOTAL_ENCODERS) {
+                path = "bridgeDeck::brdgEncoders::" + i.toString();
+                rtn.bridgeDeck["brdgEncoders"][i] = utilEnc.newFromDict(d.get(path));
+                path = "markerDeck::mrkrEncoders::" + i.toString();
+                rtn.markerDeck["mrkrEncoders"][i] = utilEnc.newFromDict(d.get(path));
+                path = "trackDeck::trckEncoders::" + i.toString();
+                rtn.trackDeck["trckEncoders"][i] = utilEnc.newFromDict(d.get(path));
+                path = "chanStDeck::chstEncoders::" + i.toString();
+                rtn.chanStDeck["chstEncoders"][i] = utilEnc.newFromDict(d.get(path));
+                path = "functnDeck::fnctEncoders::" + i.toString();
+                rtn.functnDeck["fnctEncoders"][i] = utilEnc.newFromDict(d.get(path));
+            }
+        }
+        
+        return rtn;
+    } else {
+        post("C4DeviceController.newFromDict: function called for undefined input Dict"); post();
+        return d;
+    }
+};
+
 C4DeviceController.prototype.toJsonStr = function() {
     return JSON.stringify(this);
 };
@@ -149,29 +193,47 @@ C4DeviceController.prototype.refreshDeckForDuty = function(deckName) {
     //post("and restoring officer Split button to active Split data for now"); post();
     curDeckSplit.copyDataFrom(backingSplitBtn);
 };
+
+// When loading a saved sequencer dataset from file, don't also load the saved "spare signal button" data
+// Keep the currently active signals configuration (selected by the current user)
+// overwrite "this" controller object's signals data from the active buttons Dict
+// see: propagateActiveSpareSignalsAcrossDecks() below
+C4DeviceController.prototype.copyActiveSignals = function() {
+    this.propagateActiveSpareSignalsAcrossDecks();
+};
+
 C4DeviceController.prototype.propagateActiveSpareSignalsAcrossDecks = function() {
     buttonsDict.name = "c4Buttons";
     // Buttons 21 - 31 don't exist on the c4, but they are important spares as "spacer" values in the
     // data structures between the last  c4 regular-button 20 and the first c4 encoder-button 32.
     // Button 21 is an example of how js-objects like these spare buttons can be addressed as Dict values in Max
     // passing patch-specific information to javascript, just by updating the Dict in Max.
-    // Here
-    // Button 21 represents this patch's (user selected in 'umenu') External Transport Status where
+    //
+    // 21: Button 21 represents this patch's (user selected in 'umenu') External Transport Status where
     // ledValue: ON == Using External Transport, OFF == Using Max Transport
     // pressedValue: Pressed == External RTC Running, Released == External RTC Stopped
-    // Button 22 represents a signal between this patch and Markus's C4 remote script for Live
+    // 22: Button 22 represents a signal between this patch and Markus's C4 remote script for Live
     // when the script is in USER mode this patch should take over processing midi
     // incoming velocity 127 == START processing midi events here because script is in USER mode
     // incoming velocity   0 == STOP processing midi events here because script is leaving USER mode (forward all events)
     // "button 22" LED ON == Processing here, OFF == bypassing here (just forwarding)
+    // 23: Button 23 represents this patch's user selected Verbose Sequencer status
+    // pressedValue: Pressed == VERBOSE, Released == QUIET
+    // A "verbose sequencer" only matters in conjunction with Markus's C4 remote script for Live
+    // If the remote script is in USER mode,
+    // - The sequencer always outputs midi Note messages when the selected transport is running
+    // If the remote script is NOT in USER mode,
+    // - a VERBOSE setting means the sequencer continues outputting midi Note messages when the transport is running,
+    // - (NOT updating the C4 display (no CC or SYSEX), just outputting sequenced midi Note messages)
+    // - a QUIET setting means the sequencer stops
     // No other "spare buttons" are used like this at this time, propagating all spares anyway.
+    var utilBtn = new C4Button(0);
     for (var i = 21; i < ENCODER_BTN_OFFSET; i++) {
 
-        var ctrlDeckBtn = this.bridgeDeck["brdgButtons"][i];
         var btnDict = buttonsDict.get(i);
-        var c4ActiveBtn = ctrlDeckBtn.newFromDict(btnDict);
+        var c4ActiveBtn = utilBtn.newFromDict(btnDict);
 
-        ctrlDeckBtn.copyDataFrom(c4ActiveBtn);
+        this.bridgeDeck["brdgButtons"][i].copyDataFrom(c4ActiveBtn);
         this.markerDeck["mrkrButtons"][i].copyDataFrom(c4ActiveBtn);
         this.trackDeck["trckButtons"][i].copyDataFrom(c4ActiveBtn);
         this.chanStDeck["chstButtons"][i].copyDataFrom(c4ActiveBtn);

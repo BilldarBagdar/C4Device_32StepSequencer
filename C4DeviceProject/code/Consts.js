@@ -47,6 +47,7 @@ var TOTAL_BUTTONS = ENCODER_BTN_OFFSET + TOTAL_ENCODERS;// 32 + 128 = 160
 var ABORT_FEEDBACK_SIGNAL = MIDI_NOTE_OFF_ID;// LEDs 1/3, 2/3, and 3/3
 var EXTERNAL_TRANSPORT_STATUS_SIGNAL_ID = 21; // c4bUTTON.kname = "EXTRSP"
 var PROCESSING_BYPASS_SIGNAL_ID = 22; // c4bUTTON.kname = "GATEON"
+var VERBOSE_SEQUENCER_SIGNAL_ID = 23; // c4bUTTON.kname = "VERBOS"
 var SPLIT_FEEDBACK_IDS = [0, 1, 2];
 //                          55 === maximum visible text length per LCD line
 //                         0--------1---------2---------3---------4---------5---------6

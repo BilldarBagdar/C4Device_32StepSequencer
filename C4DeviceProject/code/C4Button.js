@@ -47,12 +47,16 @@ C4Button.prototype.setMyName = function() {
             // end of physical C4 buttons
             // begin of logical patch specific buttons
             case 21: // External Transport Status
+                this.kname = "EXTRSP"; break;
                 // ledValue: ON == Using External Transport, OFF == Using Max Transport
                 // pressedValue: Pressed == External RTC Running, Released == External RTC Stopped
-                this.kname = "EXTRSP"; break;
             case 22: // External Bypass signal
-                // ledValue: ON == Processing events (feedback mode), OFF == Bypassing Event Processing (passthru mode)
                 this.kname = "GATEON"; break;
+                // ledValue: ON == Processing events (feedback mode), OFF == Bypassing Event Processing (passthru mode)
+            case 23: // Sequencer Output Verbose signal
+                this.kname = "VERBOS"; break;
+                // ledValue: ON == Always follow External RTC status, allow sequencer output even when bypassing, not-Processing, events (but no display updates, just sequencer Notes)
+                //           OFF == Only follow External RTC status when Processing Events, no Sequencer output when not Processing events
             default:
                 // inactive placeholders > 22 && < 32
                 this.kname = "SPR" + this.index.toString();
@@ -139,6 +143,20 @@ C4Button.prototype.isBypassed = function() {
     // ledValue: ON == Processing events (feedback mode), OFF == Bypassing Event Processing (passthru mode)
     return signalValue === 0;
 };
+C4Button.prototype.isVerbose = function() {
+    buttonsDict.name = "c4Buttons";
+    var signalKey = VERBOSE_SEQUENCER_SIGNAL_ID + "::ledValue";
+    // ledValue: 127 == VERBOSE mode, 0 == QUIET mode
+    var signalValue = buttonsDict.get(signalKey);
+    var processing = !this.isBypassed();
+    if (!processing) {
+        // sometimes VERBOSE anyway, when not "processing midi"
+        return signalValue === BUTTON_LED_ON_VALUE;
+    } else {
+        // always VERBOSE when "processing midi"
+        return processing;
+    }
+};
 C4Button.prototype.isPressed = function() {
     btnStateDict.name = "buttonStateChangeCount";
     return btnStateDict.get(this.index) % 2;
@@ -191,7 +209,7 @@ C4Button.prototype.processEvent = function (v) {
 
     var eventSource = this;// any C4 button
     if (this.isVirtualButton() && this.kname === "GATEON")  {
-        post("C4Button.processEvent: bypass processing signal received from C4 remote script");post();
+        //post("C4Button.processEvent: bypass processing signal received from C4 remote script");post();
         rtn2 = this.processGateEvent(v);// priority processing
         alreadyDone = true;
     } else if (this.isEncoderButton()) {// fetch encoder references
@@ -240,9 +258,9 @@ C4Button.prototype.processEvent = function (v) {
             // one press+release cycle has completed
             // only increment the LED change count after complete press+release cycles
             var oldLedStateChangeCount = ledStateDict.get(eventSource.index);
-            if (oldLedStateChangeCount !== eventSource.ledChangeCount) {
-                post("C4Button.processEvent: button LED change count mismatch",
-                    oldLedStateChangeCount, eventSource.ledChangeCount);post();
+            if (eventSource.kname !== "MARKER" && oldLedStateChangeCount !== eventSource.ledChangeCount) {
+                // expecting MARKER mismatches when USER mode changes, need to process led state anyway
+                post("C4Button.processEvent: button LED change count mismatch", oldLedStateChangeCount, eventSource.ledChangeCount);post();
             } else {
                 eventSource.ledChangeCount += 1;
                 replaceKey = eventSource.index + "::ledChangeCount";
@@ -295,6 +313,7 @@ C4Button.prototype.processGateEvent = function (velocity) {
         // the remote script sends PROCESSING_BYPASS_SIGNAL button messages using these signals
         // - velocity 127 for processing ON here
         // - velocity 0 for processing OFF here
+        var bypassedBefore = this.isBypassed();
         var doTheToggle = false;
         var signalBtn = this;// the PROCESSING_BYPASS_SIGNAL button
         var oldBtnStateChangeCount = btnStateDict.get(signalBtn.index)
@@ -365,7 +384,7 @@ C4Button.prototype.processGateEvent = function (velocity) {
         post("C4Button.processGateEvent: (this.index !== PROCESSING_BYPASS_SIGNAL_ID) method called on wrong object")
     }
     return [0, 0, 0]
-}
+};
 
 C4Button.prototype.processSplitEvent = function (v) {
     buttonsDict.name = "c4Buttons";
