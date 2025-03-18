@@ -75,7 +75,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"offset" : [ 0.0, 0.0 ],
-					"patching_rect" : [ 20.0, 378.0, 533.0, 280.0 ],
+					"patching_rect" : [ 20.0, 372.0, 650.0, 286.0 ],
 					"presentation" : 1,
 					"presentation_rect" : [ 25.0, 339.0, 533.0, 280.0 ],
 					"viewvisibility" : 1
@@ -98,7 +98,7 @@
 
 			}
  ],
-		"originid" : "pat-14",
+		"originid" : "pat-358",
 		"dependency_cache" : [ 			{
 				"name" : "C4Button.js",
 				"bootpath" : "D:/music/maxStuff/C4Projects/C4Device_32StepSequencer/C4DeviceProject/code",

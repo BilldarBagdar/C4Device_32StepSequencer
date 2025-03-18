@@ -2,9 +2,9 @@
 	"name" : "C4DeviceProject",
 	"version" : 1,
 	"creationdate" : 3800031733,
-	"modificationdate" : 3822939525,
-	"viewrect" : [ 1330.0, 308.0, 300.0, 500.0 ],
-	"autoorganize" : 1,
+	"modificationdate" : 3825010238,
+	"viewrect" : [ 1511.0, 349.0, 300.0, 500.0 ],
+	"autoorganize" : 0,
 	"hideprojectwindow" : 0,
 	"showdependencies" : 1,
 	"autolocalize" : 0,
@@ -16,6 +16,11 @@
 			}
 ,
 			"C4Device_32StepSequencer.maxpat" : 			{
+				"kind" : "patcher",
+				"local" : 1
+			}
+,
+			"GetVerboseOverride.maxpat" : 			{
 				"kind" : "patcher",
 				"local" : 1
 			}
