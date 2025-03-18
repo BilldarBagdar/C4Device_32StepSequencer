@@ -1,2 +1,4 @@
 .idea/
 *.zip
+C4DeviceProject/data/c4Controllers/
+C4DeviceProject/data/c4ControllerInit.json
