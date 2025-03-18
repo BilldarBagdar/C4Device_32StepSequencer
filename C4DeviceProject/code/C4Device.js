@@ -137,7 +137,7 @@ function midievent(midiMsgIn) {
         var btnDict = buttonsDict.get(PROCESSING_BYPASS_SIGNAL_ID);
         var bypassBtn = utilButton.newFromDict(btnDict);
         if (size === MIDI_MSG_SIZE) {
-            //post("midievent: Processing is: ");
+            //post("C4Device.midievent: Processing is: ");
             if (!bypassBtn.isBypassed()) {
                 //post("enabled", midiMsg);post();
                 if (midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) {
@@ -153,7 +153,7 @@ function midievent(midiMsgIn) {
                     } else if (feedbackMsg[1] < 3 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
                         // Split button "released" feedback.
                         var encoderPageOffset = reqModule.getPageOffset();
-                        // post("midievent: did the encoder-feedback-display page change?");
+                        // post("C4Device.midievent: did the encoder-feedback-display page change?");
                         if (lastEncoderPageOffset !== encoderPageOffset) {
                             // post("YES, offset", lastEncoderPageOffset, "going to", encoderPageOffset);post();
                             lastEncoderPageOffset = encoderPageOffset;
@@ -190,7 +190,7 @@ function midievent(midiMsgIn) {
                     // those updates include sending CC feedback messages to update the C4 display
                     // (directly from Live, not via any accessible remote script "send midi" methods?)
                     // This patch is dropping that feedback here because the script is in USER mode and this patch is charge of the C4 display right now.
-                    //post("midievent: CC feedback netted while processing:", midiMsg.toString());post();
+                    //post("C4Device.midievent: CC feedback netted while processing:", midiMsg.toString());post();
                     feedbackMsg = [0, 0, 0, 0];
                     return;
                     //outlet(0, midiMsg);
@@ -199,19 +199,18 @@ function midievent(midiMsgIn) {
                 //post("bypassed");post();
                 // check for Stop bypassing signal
                 if (midiMsg[1] === bypassBtn.index) {
-                    post("midievent: Processing Status change event received", midiMsg);
-                    post();
+                    //post("C4Device.midievent: Processing Status change event received while bypassed", midiMsg);post();
                     feedbackMsg = processButtonMessage(midiMsg);
                 } else {
                     // Note or CC feedback message from remote script passing thru
-                    //post("midievent:", midiMsg.toString());
+                    //post("C4Device.midievent:", midiMsg.toString());
                     outlet(0, midiMsg);
                     return;
                 }
             }
         } else { // size > MIDI_MSG_SIZE is a SYSEX
             // (NEVER HAPPENS, Max midiin object doesn't pass sysex, need sysexin object)
-            post("midievent: Processing is bypassed: <", bypassBtn.isBypassed(), ">");
+            post("C4Device.midievent: Processing is bypassed: <", bypassBtn.isBypassed(), ">");
             post();
             post(midiMsg.toString()[0]);
             outlet(1, midiMsg);
@@ -240,16 +239,16 @@ function midievent(midiMsgIn) {
             }
             else if (feedbackMsg[1] === bypassBtn.index) {
                 // dropping because "button 22" is virtual, no physical LED.  Dictionary data is already updated
-                // post("midievent235: feedback netted:",feedbackMsg.toString());
+                // post("C4Device.midievent: 'mode change' signal feedback netted while actively processing:",feedbackMsg.toString());
             } else if (feedbackMsg[0] === MIDI_CC_ID && feedbackMsg[1] >= NBR_PHYSICAL_ENCODERS) {
                 // this seems to hit after the remote script leaves USER mode, the script is already sending these CCs
-                post("midievent: feedback netted:",feedbackMsg.toString());post();
+                // post("C4Device.midievent: feedback netted:",feedbackMsg.toString());post();
                 // outlet(0, [midiMsg[0], midiMsg[1], midiMsg[2]]);
             } else if (feedbackMsg[0] === 0 && feedbackMsg[1] === 0 && feedbackMsg[2] === 0 && feedbackMsg[3] === 0) {
-                post("midievent: dropping unprocessed feedback msg result", feedbackMsg.toString());
+                post("C4Device.midievent: dropping unprocessed feedback msg result", feedbackMsg.toString());
                 post();
             } else {
-                post("midievent: unexpected event processing result", feedbackMsg.toString());
+                post("C4Device.midievent: unexpected event processing result", feedbackMsg.toString());
                 post();
             }
         }
@@ -257,22 +256,22 @@ function midievent(midiMsgIn) {
         else if (feedbackMsg[1] === bypassBtn.index) {
             // local event processing is bypassed
             // dropping virtual button, no physical LED, no feedback
-            // post("midievent: 'button 22' feedback netted", feedbackMsg.toString());
+            // post("C4Device.midievent: 'mode change' signal feedback netted while processing bypassed", feedbackMsg.toString());
             // post();
         } else if (midiMsg[1] >= NBR_PHYSICAL_ENCODERS) {
             // local event processing is bypassed
-            post("midievent: CC feedback netted, forwarding:", midiMsg.toString(), feedbackMsg.toString());post();
+            post("C4Device.midievent: CC feedback netted, forwarding:", midiMsg.toString(), feedbackMsg.toString());post();
             outlet(0, [midiMsg[0], midiMsg[1], midiMsg[2]]);
         } else if (midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) {
             // local event processing is bypassed
-            post("midievent: Note feedback netted, forwarding:", midiMsg.toString(), feedbackMsg.toString());post();
+            post("C4Device.midievent: Note feedback netted, forwarding:", midiMsg.toString(), feedbackMsg.toString());post();
             outlet(0, [midiMsg[0], midiMsg[1], midiMsg[2]]);
         } else {
-            post("midievent: processing bypassed, dropping event:", midiMsg.toString(), feedbackMsg.toString());
+            post("C4Device.midievent: processing bypassed, dropping event:", midiMsg.toString(), feedbackMsg.toString());
             post();
         }
     } else {
-        post("midievent: too small for a 3 byte midi message", arguments);
+        post("C4Device.midievent: too small for a 3 byte midi message", arguments);
         post();
     }
 }
@@ -305,10 +304,10 @@ function midiSysexEvent(byteVal) {
                 // The C4 "blanks out" the display (LEDs and LCDs) when it sends what was just received
                 // so here, "unblank" the display right back
                 if (isMatch) {
-                    post("midiSysexEvent: matching sysex msg in processing mode, refreshing display", sysexMsg); post();
+                    post("C4Device.midiSysexEvent: matching sysex msg in processing mode, refreshing display", sysexMsg); post();
                     sendEncoderPageData(generateDisplayPageChangeMsgs);
                 } else {
-                    post("midiSysexEvent: unexpected sysex msg in processing mode, dropping", sysexMsg); post();
+                    post("C4Device.midiSysexEvent: unexpected sysex msg in processing mode, dropping", sysexMsg); post();
                 }
             } else {
                 outlet(1, sysexMsg);
@@ -408,7 +407,7 @@ function swapActiveCrewsOnDuty(buttonId) {
             // while a higher precedence Assignment button LED is ON (so no "deck on duty" change)
         }
     } else {
-        post("swapActiveCrewsOnDuty: assumption issue, function called for non-Assignment button",
+        post("C4Device.swapActiveCrewsOnDuty: assumption issue, function called for non-Assignment button",
             buttonId, currentDeckName, nextDeckName); post();
     }
 }
@@ -418,13 +417,13 @@ function sendEncoderPageData(encoderPageDataCallback) {
 
     var rtn = encoderPageDataCallback();
     if (!isPatchProcessingEnabled()) {
-        post("sendEncoderPageData: processing bypassed");post();
+        post("C4Device.sendEncoderPageData: processing bypassed");post();
         return;
     }
 
     var MILLIS_OF_LATENCY_BETWEEN_SYSEX = 5;
     if (rtn.length < 5) {
-        post("sendEncoderPageData: unexpected display processing result", rtn.toString());post();
+        post("C4Device.sendEncoderPageData: unexpected display processing result", rtn.toString());post();
     } else {
         for (var i = 0; i < rtn.length; i++) {
             if (i === 0 || i === 5) {
@@ -463,7 +462,7 @@ function processButtonMessage(midiNoteMsg) {
             if (midiNoteMsg[1] === 0 && rtn[0] < 3) {
                 // pass this expected Split button feedback address mismatch silently
             } else {
-                post("processButtonMessage: Note number feedback address mismatch", midiNoteMsg.toString(), rtn.toString());
+                post("C4Device.processButtonMessage: Note number feedback address mismatch", midiNoteMsg.toString(), rtn.toString());
                 post();
             }
         }
@@ -477,7 +476,7 @@ function processButtonMessage(midiNoteMsg) {
         // first 3 returned indexes make the midi feedback message, 4th input-pass-through is for assumption verification
         return feedbackRtn;
     } else {
-        post("processButtonMessage: not a 3 arg midi Note message", arguments);post();
+        post("C4Device.processButtonMessage: not a 3 arg midi Note message", arguments);post();
         return [0, 0, 0, 0];
     }
 }
@@ -491,7 +490,7 @@ function processEncoderMessage(midiCCMsg) {
         var c4Encoder = utilEncoder.newFromDict(encDict);
         var rtn = c4Encoder.processIncrement(midiCCMsg[2]);
         if (midiCCMsg[1] + ENCODER_BTN_OFFSET !== rtn[0]) {
-            post("processEncoderMessage: CC number feedback address mismatch", midiCCMsg.toString(), rtn.toString());
+            post("C4Device.processEncoderMessage: CC number feedback address mismatch", midiCCMsg.toString(), rtn.toString());
             post();
         }
         //feedbackRtn[0] = midiCCMsg[0];// MIDI_CC_ID (176)
@@ -501,7 +500,7 @@ function processEncoderMessage(midiCCMsg) {
 
         return feedbackRtn;// first 3 indexes make the midi feedback message, 4th index is "error checking"
     } else {
-        post("processEncoderMessage: not a 3 arg midi CC message", arguments);post();
+        post("C4Device.processEncoderMessage: not a 3 arg midi CC message", arguments);post();
         return [0, 0, 0, 0];
     }
 }
@@ -518,7 +517,7 @@ function transformEncoderPageData(buttonId) {
         case 20: rotateBy = 1; break;// Track Right button
     }
     if (rotateBy === 0) {
-        post("transformEncoderPageData: unexpected buttonId input", buttonId, "no data transformation"); post();
+        post("C4Device.transformEncoderPageData: unexpected buttonId input", buttonId, "no data transformation"); post();
         return;
     }
     transformEncoderData(encoderPageOffset, NBR_PHYSICAL_ENCODERS, rotateBy);
@@ -536,7 +535,7 @@ function transformEncoderBookData(buttonId) {
         case 12: rotateBy = ENCODERS_PER_LCD_SCREEN; break;// Single Right button
     }
     if (rotateBy === 0) {
-        post("transformEncoderBookData: unexpected buttonId input", buttonId);post();
+        post("C4Device.transformEncoderBookData: unexpected buttonId input", buttonId);post();
         return;
     }
     transformEncoderData(encoderPageOffset, TOTAL_ENCODERS, rotateBy);
@@ -620,7 +619,7 @@ function generateLcdFeedback(encoderId) {
         lcdScreenOffset = ~~(encoderId / ENCODERS_PER_LCD_SCREEN);
     }
     if (!(lcdScreenOffset < TOTAL_LCD_SCREENS)) {
-        post("generateLcdFeedback: encoderID assumption issue, lcd display offset greater than expected",
+        post("C4Device.generateLcdFeedback: encoderID assumption issue, lcd display offset greater than expected",
             lcdScreenOffset);post();
     }
     encoderDisplayRefRow += lcdScreenOffset;
@@ -634,10 +633,10 @@ function generateLcdFeedback(encoderId) {
         btmLine = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(btmLine);
     }
     if (topLine.length !== TOTAL_BYTES_PER_SYSEX_MSG) {// 240...247
-        post("generateLcdFeedback: top line sysex msg length issue", topLine.length, topLine.toString());
+        post("C4Device.generateLcdFeedback: top line sysex msg length issue", topLine.length, topLine.toString());
     }
     if (btmLine.length !== TOTAL_BYTES_PER_SYSEX_MSG) {
-        post("generateLcdFeedback: bottom line sysex msg length issue", btmLine.length, btmLine.toString());
+        post("C4Device.generateLcdFeedback: bottom line sysex msg length issue", btmLine.length, btmLine.toString());
     }
     var rtn = [topLine, btmLine];
     // the "top line" feedback only changes once per "series" of encoder events on any single lcd row,
@@ -742,7 +741,7 @@ function generateWelcomePageMsgs() {
                 sysexBtm03 = c4Enc.pushLcdDisplaySegmentWelcomeSysexBytes(sysexBtm03, isBottomLine);
                 break;
             default:
-                post("generateWelcomePageMsgs: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonStr());
+                post("C4Device.generateWelcomePageMsgs: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonStr());
         }
     }// end for (var i = 0; i < NBR_PHYSICAL_ENCODERS; i++)
 
@@ -809,7 +808,7 @@ function generateDisplayPageUpdateMsgs(seqStepId) {
                 sysexBtm03 = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(sysexBtm03, seqStepId);
                 break;
             default:
-                post("generateDisplayPageUpdateMsgs: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonStr());
+                post("C4Device.generateDisplayPageUpdateMsgs: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonStr());
         }
     }
 
@@ -834,7 +833,7 @@ function processSequencerStep(encoderId) {
 
     var currentDisplayPage = generateDisplayPageUpdateMsgs(encoderId);
     if (currentDisplayPage[0].length < 96) {
-        post("processSequencerStep: CC msg array length is shorter than it is supposed to be"); post();
+        post("C4Device.processSequencerStep: CC msg array length is shorter than it is supposed to be"); post();
     }
 
     if (!arraysMatch(lastLcdSeq00, currentDisplayPage[1])) {
@@ -886,7 +885,7 @@ function sendUpdatedPageInfo(last, current, encId) {
     } else if (encId < 32) {
         boundary = 72;// 8 encoders * 3 bytes per cc == cc msg boundary index 72 for IDs < 32 && >= 24
     } else {//if (boundary === 96) {
-        post("sendUpdatedPageInfo: encoder id to cc msg boundary assumption failure"); post();
+        post("C4Device.sendUpdatedPageInfo: encoder id to cc msg boundary assumption failure"); post();
     }
     var ccMsgRowBoundaryIndex = boundary;
     var rowCCs = [];
@@ -924,7 +923,7 @@ function sendUpdatedPageInfo(last, current, encId) {
         case 0: boundaryPageIndex = 4; break;
     }
     if (boundaryPageIndex === 0) {
-        post("sendUpdatedPageInfo: cc msg boundary to page index assumption failure"); post();
+        post("C4Device.sendUpdatedPageInfo: cc msg boundary to page index assumption failure"); post();
     }
     if (isLCDRowChangeId) {
         last = current[boundaryPageIndex];
