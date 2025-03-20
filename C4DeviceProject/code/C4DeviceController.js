@@ -131,7 +131,7 @@ C4DeviceController.prototype.getDeckForCrewNamePrefix = function(crewPfx) {
         case "f": deck = "functnDeck"; break;
         case "m": deck = "markerDeck"; break;
         case "t": deck = "trackDeck"; break;
-        default: post("getDeckForCrewNamePrefix: unexpected start of crew key-name", crew); post();
+        default: post("C4DeviceController.getDeckForCrewNamePrefix: unexpected start of crew key-name", crew); post();
     }
     return deck;
 };
@@ -145,7 +145,7 @@ C4DeviceController.prototype.getCrewNamePrefixForDeck = function(deckName) {
         case "m": rtn = "mrkr"; break;
         case "t": rtn = "trck"; break;
         case "b": break;
-        default: post("getCrewNamePrefixForDeck: unexpected start of deck key-name", deckName); post();
+        default: post("C4DeviceController.getCrewNamePrefixForDeck: unexpected start of deck key-name", deckName); post();
     }
     return rtn;
 };
@@ -213,19 +213,20 @@ C4DeviceController.prototype.propagateActiveSpareSignalsAcrossDecks = function()
     // ledValue: ON == Using External Transport, OFF == Using Max Transport
     // pressedValue: Pressed == External RTC Running, Released == External RTC Stopped
     // 22: Button 22 represents a signal between this patch and Markus's C4 remote script for Live
+    // "button 22" LED ON == Processing here, OFF == bypassing here (just forwarding)
     // when the script is in USER mode this patch should take over processing midi
     // incoming velocity 127 == START processing midi events here because script is in USER mode
     // incoming velocity   0 == STOP processing midi events here because script is leaving USER mode (forward all events)
-    // "button 22" LED ON == Processing here, OFF == bypassing here (just forwarding)
     // 23: Button 23 represents this patch's user selected Verbose Sequencer status
-    // pressedValue: Pressed == VERBOSE, Released == QUIET
-    // A "verbose sequencer" only matters in conjunction with Markus's C4 remote script for Live
+    // "button 23" led ON == VERBOSE, led OFF == QUIET
+    // A "verbose sequencer" only matters in conjunction with Markus's C4 remote script for Live where
     // If the remote script is in USER mode,
-    // - The sequencer always outputs midi Note messages when the selected transport is running
+    // - Unless the Spot-Erase button led is ON, the sequencer outputs midi Note messages when the selected transport is running
+    // - (just like it does when running "stand alone")
     // If the remote script is NOT in USER mode,
-    // - a VERBOSE setting means the sequencer continues outputting midi Note messages when the transport is running,
+    // - a VERBOSE setting means the sequencer continues outputting midi Note messages when the (external) transport is running,
     // - (NOT updating the C4 display (no CC or SYSEX), just outputting sequenced midi Note messages)
-    // - a QUIET setting means the sequencer stops
+    // - a QUIET setting means the sequencer stops when the mode changes
     // No other "spare buttons" are used like this at this time, propagating all spares anyway.
     var utilBtn = new C4Button(0);
     for (var i = 21; i < ENCODER_BTN_OFFSET; i++) {
@@ -244,7 +245,7 @@ C4DeviceController.prototype.deckToJsonStr = function(deck) {
     deck = deck !== undefined ? deck : "bridgeDeck";
     var objMap = this[deck];
     if (objMap === undefined) {
-        post("deckToJsonStr: unexpected deck key-name", deck); post();
+        post("C4DeviceController.deckToJsonStr: unexpected deck key-name", deck); post();
     }
     return JSON.stringify(objMap);
 };
@@ -253,7 +254,7 @@ C4DeviceController.prototype.deckCrewToJsonStr = function(crew) {
     var deck = this.getDeckForCrewNamePrefix(crew);
     var objMap = this[deck][crew];
     if (objMap === undefined) {
-        post("deckCrewToJsonStr: unexpected crew key-name", crew); post();
+        post("C4DeviceController.deckCrewToJsonStr: unexpected crew key-name", crew); post();
     }
     return JSON.stringify(objMap);
 };

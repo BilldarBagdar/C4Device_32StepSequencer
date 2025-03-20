@@ -172,7 +172,7 @@ C4Encoder.prototype.isShiftButtonPressed = function() {
     var isPressed = buttonsDict.get(shiftBtnId.toString() + "::pressedValue");// 0 or 127
     var pressedToo = btnStateDict.get(shiftBtnId) % 2;// 0 or 1 (because counting)
     if (!((isPressed === 0 && pressedToo === 0)||(isPressed === 127 && pressedToo === 1))) {
-        post("C4Encoder.prototype.isShiftButtonPressed: dict button pressed sync issue", isPressed, pressedToo); post();
+        post("C4Encoder.isShiftButtonPressed: dict button pressed sync issue", isPressed, pressedToo); post();
     }
     return isPressed;
 };
@@ -183,7 +183,7 @@ C4Encoder.prototype.isOptionButtonPressed = function() {
     var isPressed = buttonsDict.get(optionBtnId.toString() + "::pressedValue");// 0 or 127
     var pressedToo = btnStateDict.get(optionBtnId) % 2;// 0 or 1 (because counting)
     if (!((isPressed === 0 && pressedToo === 0)||(isPressed === 127 && pressedToo === 1))) {
-        post("C4Encoder.prototype.isOptionButtonPressed: dict button pressed sync issue", isPressed, pressedToo); post();
+        post("C4Encoder.isOptionButtonPressed: dict button pressed sync issue", isPressed, pressedToo); post();
     }
     return isPressed;
 };
@@ -194,7 +194,7 @@ C4Encoder.prototype.isControlButtonPressed = function() {
     var isPressed = buttonsDict.get(controlBtnId.toString() + "::pressedValue");// 0 or 127
     var pressedToo = btnStateDict.get(controlBtnId) % 2;// 0 or 1 (because counting)
     if (!((isPressed === 0 && pressedToo === 0)||(isPressed === 127 && pressedToo === 1))) {
-        post("C4Encoder.prototype.isControlButtonPressed: dict button pressed sync issue", isPressed, pressedToo); post();
+        post("C4Encoder.isControlButtonPressed: dict button pressed sync issue", isPressed, pressedToo); post();
     }
     return isPressed;
 };
@@ -205,7 +205,7 @@ C4Encoder.prototype.isAltButtonPressed = function() {
     var isPressed = buttonsDict.get(altBtnId.toString() + "::pressedValue");// 0 or 127
     var pressedToo = btnStateDict.get(altBtnId) % 2;// 0 or 1 (because counting)
     if (!((isPressed === 0 && pressedToo === 0)||(isPressed === 127 && pressedToo === 1))) {
-        post("C4Encoder.prototype.isAltButtonPressed: dict button pressed sync issue", isPressed, pressedToo); post();
+        post("C4Encoder.isAltButtonPressed: dict button pressed sync issue", isPressed, pressedToo); post();
     }
     return isPressed;
 };
@@ -234,11 +234,11 @@ C4Encoder.prototype.getStepWelcomeText = function(isBottomLine) {
     var ssStart = (this.lcdRowPosition() * BYTES_PER_SYSEX_SEG);
     var ssEnd = ssStart + BYTES_PER_SYSEX_SEG;
     if (!(ssEnd <= welcomeMsg00.length)) {
-        post("getStepWelcomeText:", this.kname, "text offset calculation issue", ssEnd, welcomeMsg00.length);post();
+        post("C4Encoder.getStepWelcomeText:", this.kname, "text offset calculation issue", ssEnd, welcomeMsg00.length);post();
     }
     var rtn = welcomeMsg00.substring(ssStart, ssEnd);
     if (rtn.length !== BYTES_PER_SYSEX_SEG) {
-        post("getStepWelcomeText:", this.kname, "substring size assumption issue", rtn, welcomeMsg00);post();
+        post("C4Encoder.getStepWelcomeText:", this.kname, "substring size assumption issue", rtn, welcomeMsg00);post();
     }
     return rtn;
 };
@@ -269,11 +269,11 @@ C4Encoder.prototype.pushLcdDisplaySegmentSysexBytes = function(recurIn, isBottom
         } else if (rtn.length === TOTAL_BYTES_PER_SYSEX_MSG) {
             rtn[TOTAL_BYTES_PER_SYSEX_MSG - 1] = 247;
         } else {
-            post("pushLcdDisplaySegmentSysexBytes:", this.kname, "unexpected sysex length",
+            post("C4Encoder.pushLcdDisplaySegmentSysexBytes:", this.kname, "unexpected sysex length",
                 rtn.length, rtn.toString()); post();
         }
     } else {
-        post("pushLcdDisplaySegmentSysexBytes:", this.kname, "unexpected row location", this.index); post();
+        post("C4Encoder.pushLcdDisplaySegmentSysexBytes:", this.kname, "unexpected row location", this.index); post();
     }
     return rtn;
 };
@@ -316,7 +316,7 @@ C4Encoder.prototype.formatLcdDisplaySegmentText = function(anyVal) {
         }
     }
     if (!(txt.length === BYTES_PER_SYSEX_SEG)) {
-        post("formatLcdDisplaySegment: processed display segment is not 7 ascii text-byte values: ");
+        post("C4Encoder.formatLcdDisplaySegment: processed display segment is not 7 ascii text-byte values: ");
         post(txt);
         post();
     }
@@ -330,7 +330,7 @@ C4Encoder.prototype.getLcdRowId = function() {
         rtn = ~~(physicalId / ENCODERS_PER_LCD_SCREEN);
     }
     if (!(rtn < TOTAL_LCD_SCREENS)) {
-        post("C4Encoder.prototype.getLcdRowId: assumption failure", rtn);
+        post("C4Encoder.getLcdRowId: assumption failure", rtn);
         rtn = rtn % TOTAL_LCD_SCREENS;
     }
     return rtn;
@@ -434,11 +434,11 @@ C4Encoder.prototype.setRingFeedbackStyle = function(style) {
     } else {
         // "style" is NOT in the "ring style reference" dict keyset, so use default style instead
         this.ringLedFeedbackStyle = "single";
-        post("c4Encoder.setRingFeedbackStyle: unknown feedback style", style); post();
+        post("C4Encoder.setRingFeedbackStyle: unknown feedback style", style); post();
     }
 }
 
 C4Encoder.prototype.bang = function() {
-    post("This encoder "); post()
+    post("C4Encoder.bang: this: "); post()
     post(this.toJsonStr()); post();
 };

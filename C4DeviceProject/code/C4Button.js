@@ -356,17 +356,14 @@ C4Button.prototype.processGateEvent = function (velocity) {
             // increment the LED change count
             var oldLedStateChangeCount = ledStateDict.get(signalBtn.index);
             if (oldLedStateChangeCount !== signalBtn.ledChangeCount) {// safety check redundant here?
-                post("C4Button.processGateEvent: button LED change count mismatch",
-                    oldLedStateChangeCount, signalBtn.ledChangeCount);
-                post();
+                post("C4Button.processGateEvent: button LED change count mismatch", oldLedStateChangeCount, signalBtn.ledChangeCount);post();
             } else {
                 signalBtn.ledChangeCount += 1;
                 replaceKey = signalBtn.index + "::ledChangeCount";
                 buttonsDict.replace(replaceKey, signalBtn.ledChangeCount);
                 ledStateDict.set(signalBtn.index, signalBtn.ledChangeCount);
                 if (signalBtn.ledChangeCount % 2 !== signalBtn.isLedON()) {
-                    post("C4Button.processGateEvent: button LED change count mismatch, Dict update issue?");
-                    post();
+                    post("C4Button.processGateEvent: button LED change count mismatch, Dict update issue?");post();
                 }
                 signalBtn.ledValue = signalBtn.isLedON() * BUTTON_LED_ON_VALUE;
                 replaceKey = signalBtn.index + "::ledValue";
@@ -381,7 +378,7 @@ C4Button.prototype.processGateEvent = function (velocity) {
             return [signalBtn.index, ledValue, velocity]
         }
     } else {
-        post("C4Button.processGateEvent: (this.index !== PROCESSING_BYPASS_SIGNAL_ID) method called on wrong object")
+        post("C4Button.processGateEvent: (this.index !== PROCESSING_BYPASS_SIGNAL_ID) method called on wrong object"); post();
     }
     return [0, 0, 0]
 };
@@ -390,8 +387,7 @@ C4Button.prototype.processSplitEvent = function (v) {
     buttonsDict.name = "c4Buttons";
     btnStateDict.name = "buttonStateChangeCount";
     ledStateDict.name = "ledStateChangeCount";
-    theCurrentSplitButtonLED.index =
-        SPLIT_FEEDBACK_IDS[splitFeedbackAddressChangeCount % SPLIT_FEEDBACK_IDS.length];
+    theCurrentSplitButtonLED.index = SPLIT_FEEDBACK_IDS[splitFeedbackAddressChangeCount % SPLIT_FEEDBACK_IDS.length];
     var k = theCurrentSplitButtonLED.index;// k value is now one of the Split LED values [0, 1, 2]
     if (k !== this.index) {
         var splitLedJSON = buttonsDict.get(k);
@@ -431,9 +427,7 @@ C4Button.prototype.processSplitEvent = function (v) {
         // only increment the LED change count after complete press+release cycles
         var oldLedStateChangeCount = ledStateDict.get(c4SplitLed.index);
         if (oldLedStateChangeCount !== c4SplitLed.ledChangeCount) {
-            post("C4Button.processSplitEvent: button LED change count mismatch",
-                oldLedStateChangeCount, c4SplitLed.ledChangeCount);
-            post();
+            post("C4Button.processSplitEvent: button LED change count mismatch", oldLedStateChangeCount, c4SplitLed.ledChangeCount); post();
         } else {
             c4SplitLed.ledChangeCount += 1;
             ledStateDict.set(c4SplitLed.index, c4SplitLed.ledChangeCount);
@@ -493,12 +487,12 @@ C4Button.prototype.propagateOnDutyAssignmentChange = function(previouslyActiveDe
             case "f": oneDeckCrew = deckName + functnConnector + crewName; break;
             case "m": oneDeckCrew = deckName + markerConnector + crewName; break;
             case "t": oneDeckCrew = deckName + trackConnector + crewName; break;
-            default: post("propagateOnDutyAssignmentChange: unexpected start of deck key-name", deckName); post();
+            default: post("C4Button.propagateOnDutyAssignmentChange: unexpected start of deck key-name", deckName); post();
         }
         var meKey = "::" + this.index;
         var cmdKeyPrefix = oneDeckCrew + meKey;
         if (cmdKeyPrefix.charAt(0) === "e") {
-            post("propagateOnDutyAssignmentChange: unexpected errorKey", deckName, cmdKeyPrefix); post();
+            post("C4Button.propagateOnDutyAssignmentChange: unexpected errorKey", deckName, cmdKeyPrefix); post();
         }
 
         var cmdBtnDict = c4DeviceControllerDict.get(cmdKeyPrefix);
@@ -522,8 +516,7 @@ C4Button.prototype.propagateOnDutyAssignmentChange = function(previouslyActiveDe
             case "f": oneDeckCrew = previouslyActiveDeckName + functnConnector + crewName; break;
             case "m": oneDeckCrew = previouslyActiveDeckName + markerConnector + crewName; break;
             case "t": oneDeckCrew = previouslyActiveDeckName + trackConnector + crewName; break;
-            default: post("propagateOnDutyAssignmentChange: unexpected start of previously active deck key-name",
-                previouslyActiveDeckName); post();
+            default: post("C4Button.propagateOnDutyAssignmentChange: unexpected start of previously active deck key-name", previouslyActiveDeckName); post();
         }
         cmdKeyPrefix = oneDeckCrew;
         //post("C4Button.propagateOnDutyAssignmentChange: getting Split button officer of deck from Dict with key"); post();
@@ -539,7 +532,7 @@ C4Button.prototype.propagateOnDutyAssignmentChange = function(previouslyActiveDe
         // although it probably wouldn't hurt(?) to "copy-and-store data from" the "previously active"
         // (and still active) deck even in this "not changing yet" case. (would get overwritten again when
         // "previously active" really does differ)
-        // post("propagateOnDutyAssignmentChange: no current_split_button_led data propagated because");
+        // post("C4Button.propagateOnDutyAssignmentChange: no current_split_button_led data propagated because");
         // post(currentDeckName, "===", previouslyActiveDeckName, "correct?"); post();
     }
 

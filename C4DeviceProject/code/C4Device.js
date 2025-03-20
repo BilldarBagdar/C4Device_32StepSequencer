@@ -251,7 +251,7 @@ function midievent(midiMsgIn) {
                 }
             }
         } else { // size > MIDI_MSG_SIZE is a SYSEX
-            // (NEVER HAPPENS, Max midiin object doesn't pass sysex, need sysexin object)
+            // (NEVER HAPPENS, Max midiin objects don't pass sysex, need sysexin object)
             post("C4Device.midievent: Processing is bypassed: <", bypassBtn.isBypassed(), ">");
             post();
             post(midiMsg.toString()[0]);
@@ -439,12 +439,12 @@ function setActiveCrewOnDuty(nextDeckName) {
         var replaceKey = controller.getCrewReplaceKeyForDeck(currentDeckName, "Buttons");
         curDeckCtrlBtn.updateNamedDict("C4DeviceExecutiveController", replaceKey);
         curDeckButtons[i] = curDeckCtrlBtn;// reassignment because next time this crew is "on duty"
-        //post("c:",curDeckCtrlBtn.toJsonStr()); post();
+        //post("C4Device.setActiveCrewOnDuty: c:",curDeckCtrlBtn.toJsonStr()); post();
 
         // pull the previous "on duty" data of the deck going (back) "on duty" for this shift
         // and refresh the active Dicts with the updated info
         nexDeckButtons[i].updateActiveDicts();
-        //post("n:", nexDeckButtons[i].toJsonStr()); post();
+        //post("C4Device.setActiveCrewOnDuty: n:", nexDeckButtons[i].toJsonStr()); post();
 
         // repeat for encoders
         if (i < TOTAL_ENCODERS) {
@@ -513,8 +513,7 @@ function processButtonMessage(midiNoteMsg) {
             if (midiNoteMsg[1] === 0 && rtn[0] < 3) {
                 // pass this expected Split button feedback address mismatch silently
             } else {
-                post("C4Device.processButtonMessage: Note number feedback address mismatch", midiNoteMsg.toString(), rtn.toString());
-                post();
+                post("C4Device.processButtonMessage: Note number feedback address mismatch", midiNoteMsg.toString(), rtn.toString());post();
             }
         }
         //feedbackRtn[0] = midiNoteMsg[0]; MIDI_NOTE_ON_ID (144)
@@ -541,8 +540,7 @@ function processEncoderMessage(midiCCMsg) {
         var c4Encoder = utilEncoder.newFromDict(encDict);
         var rtn = c4Encoder.processIncrement(midiCCMsg[2]);
         if (midiCCMsg[1] + ENCODER_BTN_OFFSET !== rtn[0]) {
-            post("C4Device.processEncoderMessage: CC number feedback address mismatch", midiCCMsg.toString(), rtn.toString());
-            post();
+            post("C4Device.processEncoderMessage: CC number feedback address mismatch", midiCCMsg.toString(), rtn.toString());post();
         }
         //feedbackRtn[0] = midiCCMsg[0];// MIDI_CC_ID (176)
         feedbackRtn[1] = rtn[0];// the last updated "encoder Key" (no page offset) feedback address
@@ -679,8 +677,7 @@ function generateLcdFeedback(encoderId) {
         lcdScreenOffset = ~~(encoderId / ENCODERS_PER_LCD_SCREEN);
     }
     if (!(lcdScreenOffset < TOTAL_LCD_SCREENS)) {
-        post("C4Device.generateLcdFeedback: encoderID assumption issue, lcd display offset greater than expected",
-            lcdScreenOffset);post();
+        post("C4Device.generateLcdFeedback: encoderID assumption issue, lcd display offset greater than expected", lcdScreenOffset);post();
     }
     encoderDisplayRefRow += lcdScreenOffset;
     var encIdsInRow = encIndexesByLcdRowDict.get(encoderDisplayRefRow);
