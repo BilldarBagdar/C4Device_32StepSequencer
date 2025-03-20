@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 729.0, 229.0, 699.0, 340.0 ],
+		"rect" : [ 2124.0, 99.0, 658.0, 350.0 ],
 		"openinpresentation" : 1,
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
@@ -388,7 +388,7 @@
 
 							}
  ],
-						"originid" : "pat-90"
+						"originid" : "pat-146"
 					}
 ,
 					"patching_rect" : [ 1046.0, 365.0, 113.0, 22.0 ],
@@ -795,7 +795,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 499.0, -119.0, 121.0, 22.0 ],
+					"patching_rect" : [ 499.0, -107.0, 121.0, 22.0 ],
 					"text" : "loadmess selection 1"
 				}
 
@@ -823,20 +823,20 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 501.0, -183.0, 213.0, 62.0 ],
-					"text" : "This \"manual\" processing bypass switch is independent from the programmatic bypassing in Javascript \nThis is the \"I'll show you\" bypass"
+					"patching_rect" : [ 242.0, -99.0, 246.0, 62.0 ],
+					"text" : "This \"manual\" processing bypass switch is independent from the programmatic bypassing in Javascript \nThis is the \"I'll show you\" hamer bypass"
 				}
 
 			}
 , 			{
 				"box" : 				{
 					"id" : "obj-50",
-					"linecount" : 15,
+					"linecount" : 21,
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 446.0, -433.0, 896.0, 213.0 ],
-					"text" : "NOTE: Live remote scripts start sending midi messages as soon as each component asynchronously initializes. and when tevents occur in Live like changing the selected track, clip, or device.  This script will ignore any of those feedback updates received (from Live) while it is processing and generating its own feedback for display on the C4 (LEDs and LCDs)\n\n\nHOWTO integrate this C4 sequencer patch with the C4 remote script: \nFor normal \"stand alone\" patch sequencer operation:\n   -assign \"C4 midi in\" here directly to the actual C4out midi port  (DIN out of C4)\n   -assign \"C4 midi out\" here directly to the actual C4in midi port  (DIN in to C4, this connection to C4in never changes)\nFor integrated \"remote script USER mode\" sequencer operation\n   -assign  the actual C4out midi port to the \"remote script\" input in Live Midi Options  (DIN out of C4)\n   -assign Live's \"remote script\" output to a Loopback-in midi port in Live Midi Opitons\n   -assign \"C4 midi in\" port here to that Live loopback-out midi port \n1. Open Live and let the Mackie C4 remote script load completely\n2. Put the remote script in USER mode (press the Marker button in the Assignment group on the C4)"
+					"patching_rect" : [ 333.0, -430.0, 1032.0, 296.0 ],
+					"text" : "NOTE: Live remote scripts start sending midi messages as soon as each component asynchronously initializes. and when tevents occur in Live like changing the selected track, clip, or device.  This script will ignore any of those feedback updates received (from Live) while it is processing and generating its own feedback for display on the C4 (LEDs and LCDs)\n\n\nHOWTO integrate this C4 sequencer patch with the C4 remote script: \nFor normal \"stand alone\" patch sequencer operation:\n   -assign \"C4 midi in\" here directly to the actual C4out midi port  (DIN out of C4)\n   -assign \"C4 midi out\" here directly to the actual C4in midi port  (DIN in to C4, this connection to C4in never changes)\nFor integrated \"remote script USER mode\" sequencer operation\nin Live Midi Options:\n   -assign  the actual C4out midi port to the \"remote script\" input  (DIN out of C4)\n   -assign Live's \"remote script\" output to the C4's \"control port\", on the same computer that's a Loopback-in midi port \nin this patch:\n   -assign \"C4 midi in\" port here to that C4  \"control port\" in Live, (the loopback-out midi port)\n   -assign \"C4 midi out\" here directly to the actual C4in midi port  (DIN in to C4, this connection to C4in never changes)\n1. Open Live and let the Mackie C4 remote script load completely\nBy default this patch opens in \"bypassing\" mode, so the remote script and this patch should be connected, you should be able to use it\nIf you switched the script to USER mode before opening this patch,\n2. \"manually bang\" the js loadUp method with 127 as the $1 value to connect to the remote script\nIf you opened this patch first and switched it to \"processing\" mode (by doing 2 above) before opening Live, and you're not seeing other errors after Live fully loaded the script\n2. Put this patch back into \"bypassing\" mode by \"manually banging\" the js loadUp method with 0 as the $1 value"
 				}
 
 			}
@@ -871,7 +871,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 5,
 					"outlettype" : [ "dictionary", "", "", "", "" ],
-					"patching_rect" : [ 258.0, -401.0, 94.0, 22.0 ],
+					"patching_rect" : [ 157.0, -247.0, 94.0, 22.0 ],
 					"saved_object_attributes" : 					{
 						"embed" : 0,
 						"legacy" : 0,
@@ -974,7 +974,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 5,
 					"outlettype" : [ "dictionary", "", "", "", "" ],
-					"patching_rect" : [ 258.0, -342.0, 166.0, 22.0 ],
+					"patching_rect" : [ 157.0, -188.0, 166.0, 22.0 ],
 					"saved_object_attributes" : 					{
 						"embed" : 0,
 						"legacy" : 0,
@@ -993,7 +993,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 5,
 					"outlettype" : [ "dictionary", "", "", "", "" ],
-					"patching_rect" : [ 258.0, -372.0, 149.0, 22.0 ],
+					"patching_rect" : [ 157.0, -218.0, 149.0, 22.0 ],
 					"saved_object_attributes" : 					{
 						"embed" : 0,
 						"legacy" : 0,
@@ -1998,7 +1998,7 @@
 
 											}
  ],
-										"originid" : "pat-100"
+										"originid" : "pat-156"
 									}
 ,
 									"patching_rect" : [ 353.0, 284.0, 123.0, 22.0 ],
@@ -3244,7 +3244,7 @@
 
 															}
  ],
-														"originid" : "pat-108"
+														"originid" : "pat-164"
 													}
 ,
 													"patching_rect" : [ 38.0, 705.0, 81.0, 22.0 ],
@@ -3853,7 +3853,7 @@
 
 											}
  ],
-										"originid" : "pat-102"
+										"originid" : "pat-158"
 									}
 ,
 									"patching_rect" : [ 498.0, 284.0, 98.0, 22.0 ],
@@ -6430,7 +6430,7 @@
 
 															}
  ],
-														"originid" : "pat-112"
+														"originid" : "pat-168"
 													}
 ,
 													"patching_rect" : [ 816.666679322719574, 767.460329353809357, 183.0, 22.0 ],
@@ -7686,7 +7686,7 @@
 
 											}
  ],
-										"originid" : "pat-110"
+										"originid" : "pat-166"
 									}
 ,
 									"patching_rect" : [ 167.0, 201.0, 179.5, 22.0 ],
@@ -8181,7 +8181,7 @@
 
 							}
  ],
-						"originid" : "pat-96"
+						"originid" : "pat-152"
 					}
 ,
 					"patching_rect" : [ 580.0, 413.0, 331.0, 22.0 ],
@@ -8825,7 +8825,7 @@
 
 			}
  ],
-		"originid" : "pat-86",
+		"originid" : "pat-144",
 		"dependency_cache" : [ 			{
 				"name" : "C4Button.js",
 				"bootpath" : "D:/music/maxStuff/C4Projects/C4Device_32StepSequencer/C4DeviceProject/code",

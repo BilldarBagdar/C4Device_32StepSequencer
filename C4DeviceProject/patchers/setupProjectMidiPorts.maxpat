@@ -4,13 +4,13 @@
 		"appversion" : 		{
 			"major" : 9,
 			"minor" : 0,
-			"revision" : 4,
+			"revision" : 5,
 			"architecture" : "x64",
 			"modernui" : 1
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 2022.0, 397.0, 333.0, 157.0 ],
+		"rect" : [ 650.0, 316.0, 1084.0, 620.0 ],
 		"openinpresentation" : 1,
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
@@ -287,7 +287,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 48.0, 422.0, 358.0, 144.0 ],
-					"text" : "the number 14 here is the index in the \"umenu\" object that will be displayed when the patch loads, but that \"default menu selection\" is display only.  No message is sent from the outlet without a corresponding \"mouseclick\" event in the Max ui.\n\nTo work around this \"user interaction\" dependent behavior and actually connect to the C4 midi port when the patch loads, this sub-patcher can \"remember\" the last midi port selected via \"user interaction\" and reload that port next time the patch loads (if you save the patch when \"your C4\" is connected)"
+					"text" : "the number 9 here is the index in the \"umenu\" object that will be displayed when the patch loads, but that \"default menu selection\" is display only.  No message is sent from the outlet without a corresponding \"mouseclick\" event in the Max ui.\n\nTo work around this \"user interaction\" dependent behavior and actually connect to the C4 midi port when the patch loads, this sub-patcher can \"remember\" the last midi port selected via \"user interaction\" and reload that port next time the patch loads (if you save the patch when \"your C4\" is connected)"
 				}
 
 			}
@@ -323,7 +323,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 277.0, 268.0, 129.0, 22.0 ],
-					"text" : "LMPort_9_Max2Mox"
+					"text" : "\"Yamaha UX256-5\""
 				}
 
 			}
@@ -336,8 +336,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 278.0, 100.0, 75.0, 23.0 ],
-					"text" : "loadmess 9"
+					"patching_rect" : [ 278.0, 100.0, 82.0, 23.0 ],
+					"text" : "loadmess 25"
 				}
 
 			}
@@ -735,7 +735,9 @@
 
 			}
  ],
-		"originid" : "pat-16"
+		"originid" : "pat-142",
+		"dependency_cache" : [  ],
+		"autosave" : 0
 	}
 
 }
