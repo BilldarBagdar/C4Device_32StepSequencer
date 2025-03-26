@@ -38,9 +38,8 @@ loopback ports. L1 and L2 are "Live Midi Output" ports and L3 is a "Live Midi In
 and the input port coming from the physical C4 DIN. (plus any other midi ports you want)  Now close and restart Live.  When Live is ready again, 
 the remote script will only be connected on the front side (C4 to Live).  You can move Live's selected track Left and Right using the C4 Track L and Track R 
 buttons, for example, but you won't see any LEDs or LCDs reacting to "midi feedback" because the feedback-side isn't connected yet. Now, click
-the TRACK button in the Assignment group on the C4 "control panel" to put the script in "Device(s on selected Track)" mode.  Both FUNCTION and CHAN
-STRIP button modes "spam" CC feedback messages to the C4 that could interfere with starting the sequencer patch.  TRACK button (device) mode is quiet by default after the 
-"mode change" updates.  Now the remote script is ready and waiting for the Sequencer.  
+the TRACK button in the Assignment group on the C4 "control panel" to put the script in "Device(s on selected Track)" mode.  You should see a message in Live's message area at the bottom
+of the window indicating the script's "mode change".  The remote script is ready and waiting for the Sequencer.  
 </p>
 <p>
 Open Max.  Drag a default m4l device onto a Track in your session and click the <=> icon upper right corner of the device window to open the m4l device Patcher.
@@ -52,8 +51,8 @@ In a Max window like the Patcher that just opened click File>Open... navigate to
 It is important to open the project file first and open other project files from the project menu because the project establishes a Max-project-relative search path for 
 all the other files in their project-relative folders like /code, /data, /patchers, etc. 
 ("path finding" in Max is otherwise a PITA, patches have no idea what folder they started in, Max doesn't interpret a simple relative path like, "../code/foo.js" 
-(up one level from where this patch file is located and down into /code, look for a file named foo.js)) the way you would normally expect. A '.' is generally 
-interpreted as the folder where max.exe is located.  Inside a project, the "search path" starts in the project folder and recurses.  You just write "foo.js" and the file is found.
+(up one level from "current directory" and down into /code, look for a file named foo.js)) the way you would normally expect. A current directory '.' is generally 
+interpreted as the folder where max.exe is located.  But inside a project, the "search path" starts in the project folder and recurses there first.  You just write "foo.js" and the file gets found.
 </p>
 <p>
 From the "Project menu" window, open the patch file named `openSequencerBypassing.maxpat`.  
