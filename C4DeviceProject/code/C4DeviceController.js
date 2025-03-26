@@ -20,33 +20,32 @@ function C4DeviceController(feedbackStyle) {
     this.bridgeDeck = {};
     this.bridgeDeck.brdgButtons = {};
     this.bridgeDeck.brdgEncoders = {};
-    this.bridgeDeck.brdgSplit = {};
-    this.bridgeDeck.brdgSplit = new C4Button(// officer-of-the-deck
-        256, "SPLCNT", BUTTON_RELEASED_VALUE, 0, 0,0, BUTTON_LED_OFF_VALUE);
+    this.bridgeDeck.brdgSplit = {};// officer-of-the-deck
+    this.bridgeDeck.brdgSplit = new C4Button(256, "SPLCNT", BUTTON_RELEASED_VALUE, 0, 0,0, BUTTON_LED_OFF_VALUE);
+
     this.markerDeck = {};
     this.markerDeck.mrkrButtons = {};
     this.markerDeck.mrkrEncoders = {};
     this.markerDeck.mrkrSplit = {};
-    this.markerDeck.mrkrSplit = new C4Button(
-        257, "SPLCNT", BUTTON_RELEASED_VALUE, 0, 0,0, BUTTON_LED_OFF_VALUE);
+    this.markerDeck.mrkrSplit = new C4Button(257, "SPLCNT", BUTTON_RELEASED_VALUE, 0, 0,0, BUTTON_LED_OFF_VALUE);
+
     this.trackDeck = {};
     this.trackDeck.trckButtons = {};
     this.trackDeck.trckEncoders = {};
     this.trackDeck.trckSplit = {};
-    this.trackDeck.trckSplit = new C4Button(
-        258, "SPLCNT", BUTTON_RELEASED_VALUE, 0, 0,0, BUTTON_LED_OFF_VALUE);
+    this.trackDeck.trckSplit = new C4Button(258, "SPLCNT", BUTTON_RELEASED_VALUE, 0, 0,0, BUTTON_LED_OFF_VALUE);
+
     this.chanStDeck = {};
     this.chanStDeck.chstButtons = {};
     this.chanStDeck.chstEncoders = {};
     this.chanStDeck.chstSplit = {};
-    this.chanStDeck.chstSplit = new C4Button(
-        259, "SPLCNT", BUTTON_RELEASED_VALUE,0, 0,0, BUTTON_LED_OFF_VALUE);
+    this.chanStDeck.chstSplit = new C4Button(259, "SPLCNT", BUTTON_RELEASED_VALUE,0, 0,0, BUTTON_LED_OFF_VALUE);
+
     this.functnDeck = {};
     this.functnDeck.fnctButtons = {};
     this.functnDeck.fnctEncoders = {};
     this.functnDeck.fnctSplit = {};
-    this.functnDeck.fnctSplit = new C4Button(
-        260, "SPLCNT", BUTTON_RELEASED_VALUE,0, 0,0, BUTTON_LED_OFF_VALUE);
+    this.functnDeck.fnctSplit = new C4Button(260, "SPLCNT", BUTTON_RELEASED_VALUE,0, 0,0, BUTTON_LED_OFF_VALUE);
 
     for (var i = 0; i < TOTAL_BUTTONS; i++) {
         this.bridgeDeck["brdgButtons"][i] =
@@ -80,11 +79,11 @@ C4DeviceController.prototype.newFromDict = function(d) {
         var rtn = new C4DeviceController("single");
         var utilBtn = new C4Button(0);
         var utilEnc = new C4Encoder(0);
-        rtn.bridgeDeck.brdgSplit = utilBtn.newFromDict(d.get("bridgeDeck::brdgSplit"));
-        rtn.markerDeck.mrkrSplit = utilBtn.newFromDict(d.get("markerDeck::mrkrSplit"));
-        rtn.trackDeck.trckSplit = utilBtn.newFromDict(d.get("trackDeck::trckSplit"));
-        rtn.chanStDeck.chstSplit = utilBtn.newFromDict(d.get("chanStDeck::chstSplit"));
-        rtn.functnDeck.fnctSplit =  utilBtn.newFromDict(d.get("functnDeck::fnctSplit"));
+        rtn.bridgeDeck.brdgSplit.copyDataFrom(utilBtn.newFromDict(d.get("bridgeDeck::brdgSplit")));
+        rtn.markerDeck.mrkrSplit.copyDataFrom(utilBtn.newFromDict(d.get("markerDeck::mrkrSplit")));
+        rtn.trackDeck.trckSplit.copyDataFrom(utilBtn.newFromDict(d.get("trackDeck::trckSplit")));
+        rtn.chanStDeck.chstSplit.copyDataFrom(utilBtn.newFromDict(d.get("chanStDeck::chstSplit")));
+        rtn.functnDeck.fnctSplit .copyDataFrom(utilBtn.newFromDict(d.get("functnDeck::fnctSplit")));
 
         for (var i = 0; i < TOTAL_BUTTONS; i++) {
             var path = "bridgeDeck::brdgButtons::" + i.toString();
@@ -159,40 +158,36 @@ C4DeviceController.prototype.getCrewReplaceKeyForDeck = function(deckName, crewN
     crewName = crewName !== undefined ? crewName : "Buttons";
     return deckName + "::" + this.getCrewNameForDeck(deckName, crewName);
 };
-C4DeviceController.prototype.refreshDeckForDuty = function(deckName) {
-    c4DeviceControllerDict.name = "C4DeviceExecutiveController";// this.name
+C4DeviceController.prototype.refreshDeckForDutySwap = function(deckName) {
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+    if (deckName === undefined) {
+        post("C4DeviceController.refreshDeckForDutySwap: undefined deckName"); post();
+    }
 
+    this.propagateActiveAssignmentsAcrossDecks();
     this.propagateActiveSpareSignalsAcrossDecks();
     deckName = deckName !== undefined ? deckName : "bridgeDeck";
-    var crewName = this.getCrewNameForDeck(deckName, "Buttons");
-    var curDeckButtons = this[deckName][crewName];
-
-    // Restoring updated "Assignment group" status from the Dict data
-    // (where C4Button.propagateOnDutyAssignmentChange() puts those updates)
-    for(var i = 5; i < 9; i++) {
-
-        var curDeckCtrlBtn = curDeckButtons[i];
-        var refreshKeyPrefix = this.getCrewReplaceKeyForDeck(deckName, "Buttons");
-        var deckAssignmentKey = "::" + curDeckCtrlBtn.index;
-        var key = refreshKeyPrefix + deckAssignmentKey;
-        var backingBtnDict = c4DeviceControllerDict.get(key);
-        var backingBtn = curDeckCtrlBtn.newFromDict(backingBtnDict);
-        curDeckCtrlBtn.copyDataFrom(backingBtn);
-
-        curDeckButtons[i] = curDeckCtrlBtn;
-    }
-    // Also restoring updated "Split Button LED Cycle" status from the Dict data
-    // (where C4Button.propagateOnDutyAssignmentChange() puts those updates)
-    crewName = this.getCrewNameForDeck(deckName, "Split");
+    var crewName = this.getCrewNameForDeck(deckName, "Split");
     var curDeckSplit = this[deckName][crewName];
     var splitRefreshKey = this.getCrewReplaceKeyForDeck(deckName, "Split");
-    //post("C4DeviceController.refreshDeckForDuty: getting stored Split button officer of deck from Dict with key", splitRefreshKey); post();
     var backingSplitDict = c4DeviceControllerDict.get(splitRefreshKey)
     var backingSplitBtn = curDeckSplit.newFromDict(backingSplitDict);
-
-    //post("and restoring officer Split button to active Split data for now"); post();
-    curDeckSplit.copyDataFrom(backingSplitBtn);
+    if (!reqModule.compareSaveData(curDeckSplit, backingSplitBtn)) {
+        // this update is needed every time a deck changes (for example) after the split button (the squad on that deck) has been pressed+released any number of times
+        //post("C4DeviceController.refreshDeckForDutySwap: the two controllers don't agree updating", curDeckSplit.toJsonStr(), "to", backingSplitBtn.toJsonStr()); post();
+        curDeckSplit.copyDataFrom(backingSplitBtn);
+    }
 };
+
+C4DeviceController.prototype.updateActiveDeckSplit = function(activeDeckName, activeSplitButton) {
+    // The C4Button objects don't know about this controller except when the "active" Deck changes
+    // the "active" Split Button (global var) data normally only gets saved to the backing dict when the "active" Deck changes
+    // For saving the sequencer to disk, this controller needs to match the backing dict, so it needs to be updated before that match test
+    var crewName = this.getCrewNameForDeck(activeDeckName, "Split");
+    var curDeckSplit = this[activeDeckName][crewName];
+    curDeckSplit.copyDataFrom(activeSplitButton);
+    curDeckSplit.updateNamedDict("C4DeviceExecutiveController", this.getCrewReplaceKeyForDeck(activeDeckName, "Split"));
+}
 
 // When loading a saved sequencer dataset from file, don't also load the saved "spare signal button" data
 // Keep the currently active signals configuration (selected by the current user)
@@ -201,6 +196,23 @@ C4DeviceController.prototype.refreshDeckForDuty = function(deckName) {
 C4DeviceController.prototype.copyActiveSignals = function() {
     this.propagateActiveSpareSignalsAcrossDecks();
 };
+
+// The Assignment buttons are common across decks
+// (press+release MARKER button on one deck, press+release MARKER on all decks)
+C4DeviceController.prototype.propagateActiveAssignmentsAcrossDecks = function() {
+    buttonsDict.name = "c4Buttons";
+    var utilBtn = new C4Button(0);
+    for(var i = 5; i < 9; i++) {
+        var btnDict = buttonsDict.get(i);
+        var c4ActiveBtn = utilBtn.newFromDict(btnDict);
+
+        this.bridgeDeck["brdgButtons"][i].copyDataFrom(c4ActiveBtn);
+        this.markerDeck["mrkrButtons"][i].copyDataFrom(c4ActiveBtn);
+        this.trackDeck["trckButtons"][i].copyDataFrom(c4ActiveBtn);
+        this.chanStDeck["chstButtons"][i].copyDataFrom(c4ActiveBtn);
+        this.functnDeck["fnctButtons"][i].copyDataFrom(c4ActiveBtn);
+    }
+}
 
 C4DeviceController.prototype.propagateActiveSpareSignalsAcrossDecks = function() {
     buttonsDict.name = "c4Buttons";
@@ -239,8 +251,34 @@ C4DeviceController.prototype.propagateActiveSpareSignalsAcrossDecks = function()
         this.trackDeck["trckButtons"][i].copyDataFrom(c4ActiveBtn);
         this.chanStDeck["chstButtons"][i].copyDataFrom(c4ActiveBtn);
         this.functnDeck["fnctButtons"][i].copyDataFrom(c4ActiveBtn);
+        c4ActiveBtn.propagateOnDutyAssignment();// one call hits same button all decks in "C4DeviceExecutiveController" Dict (c4DeviceControllerDict)
     }
 }
+
+C4DeviceController.prototype.determineSavedOnDutyDeckName = function() {
+    // all decks share common "Assignment Group" button id (5, 6, 7, 8) data, only need to check one deck
+    var myDecks = reqModule.getAllControllerDeckNames()
+    var markerLedOFF = this.bridgeDeck["brdgButtons"][5].ledValue === 0;
+    var trackLedOFF = this.markerDeck["mrkrButtons"][6].ledValue === 0;
+    var chanStLedOFF = this.trackDeck["trckButtons"][7].ledValue === 0;
+    var functionLedOFF = this.functnDeck["fnctButtons"][8].ledValue === 0;
+    var allAssignmentLedsOFF = markerLedOFF && trackLedOFF && chanStLedOFF && functionLedOFF;
+    var rtn = "error";
+    if (allAssignmentLedsOFF) {
+        rtn = myDecks[0];// "bridgeDeck"
+    } else if (!markerLedOFF) {
+        rtn = myDecks[1];// "markerDeck"
+    } else if (!trackLedOFF) {
+        rtn = myDecks[2];// "trackDeck"
+    } else if (!chanStLedOFF) {
+        rtn = myDecks[3];// "chanStDeck"
+    } else if (!functionLedOFF) {
+        rtn = myDecks[4];// "functnDeck"
+    }
+    // post("getControllerActiveDeckKey: returning", rtn);post();
+    return rtn;
+}
+
 C4DeviceController.prototype.deckToJsonStr = function(deck) {
     deck = deck !== undefined ? deck : "bridgeDeck";
     var objMap = this[deck];

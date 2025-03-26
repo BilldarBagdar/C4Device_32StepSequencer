@@ -88,15 +88,25 @@ function saveInitControllerDictToFile() {
 function saveCurrentControllerDictToFile(filename) {
     c4DeviceControllerDict.name = "C4DeviceExecutiveController";
     //post("pathname for save file is", filename); post();
+    currentDeckName = reqModule.getActiveControllerDeckName();// fresh assignment only necessary for actual file saves?
+    updateActiveControllerDeckForSave(currentDeckName);
+
     var controllerDictStr = controller.toJsonStr();
     var maxDictStr = JSON.stringify(JSON.parse(c4DeviceControllerDict.stringify()));
     if (!reqModule.compareSaveData(controllerDictStr, maxDictStr)) {
         post("C4Device.saveCurrentControllerDictToFile(): assumption issue, js controller object and Max js Dict object don't have the same JSON data to save"); post();
-        post("controller JSON:");post(); post(controllerDictStr);post();
-        post("max Dict JSON:");post(); post(maxDictStr);post();
-    } else {
-        c4DeviceControllerDict.export_json(filename);
+        var end = filename.toString().lastIndexOf(".");
+        var ext = filename.toString().substring(end);
+        var path = filename.toString().substring(0, end);
+        var newFilename = path + "_jsControllerSaveData" + ext;
+        //post("C4Device.saveCurrentControllerDictToFile(): constructed mismatched filename:",newFilename);post();
+        var d = new Dict("badSaveCompare");
+        d.parse(controllerDictStr);
+        //post("C4Device.saveCurrentControllerDictToFile(): saving JS executive Object to file:", filename);post();
+        d.export_json(newFilename);
     }
+    //post("C4Device.saveCurrentControllerDictToFile(): saving failed-save Max executive Dict to file:", filename);post();
+    c4DeviceControllerDict.export_json(filename);
 }
 
 function loadCurrentControllerDictFromFile(filename) {
@@ -108,14 +118,21 @@ function loadCurrentControllerDictFromFile(filename) {
     var maxDictStr = JSON.stringify(JSON.parse(c4DeviceControllerDict.stringify()));
     if (!reqModule.compareLoadData(controllerDictStr, maxDictStr)) {
         post("C4Device.loadCurrentControllerDictFromFile(): assumption issue, js controller object and Max js Dict object don't have the same JSON data after load"); post();
-        post("controller JSON:");post(); post(controllerDictStr);post();
-        post("max Dict JSON:");post(); post(maxDictStr);post();
+        var end = filename.toString().lastIndexOf(".");
+        var ext = filename.toString().substring(end);
+        var path = filename.toString().substring(0, end);
+        var newFilename = path + "_jsControllerLoadData" + ext;
+        //post("C4Device.loadCurrentControllerDictFromFile(): constructed mismatched filename:",newFilename);post();
+        var d = new Dict("badLoadCompare");
+        d.parse(controllerDictStr);
+        //post("C4Device.loadCurrentControllerDictFromFile(): saving failed-load JS executive Object to file:", filename);post();
+        d.export_json(newFilename);
     } else {
-
+        // only make the loaded file "active" if the data loaded correctly
         fileController.copyActiveSignals();
         controller = fileController;
-        currentDeckName = reqModule.getActiveControllerDeckName();
-        controller.refreshDeckForDuty(currentDeckName);
+        currentDeckName = controller.determineSavedOnDutyDeckName();
+        controller.refreshDeckForDutySwap(currentDeckName);
         setActiveCrewOnDuty(currentDeckName);
         // "clearing the last step" here is a euphemism for updating the C4 display with data just loaded from disk
         clearLastSequencerStep(1);
@@ -386,10 +403,13 @@ function swapActiveCrewsOnDuty(buttonId) {
     buttonsDict.name = "c4Buttons";
     encodersDict.name = "c4Encoders";
     if (buttonId >= 5 && buttonId <= 8) {
-        var nextDeckName = reqModule.getActiveControllerDeckName();
+        var nextDeckName = reqModule.getActiveControllerDeckName();// depends on which assignment leds are ON in exec Dict
         var deckChange = currentDeckName !== nextDeckName;
         if (deckChange) {
-            setActiveCrewOnDuty(nextDeckName);
+            saveActiveDeck(currentDeckName);
+            activateSavedDeck(nextDeckName);
+            currentDeckName = nextDeckName;
+            // setActiveCrewOnDuty(nextDeckName);
         } else {
             // changes to Assignment buttonId LEDs (5-8) only trigger "on duty" roster changes in hierarchical order
             // Marker deck has the highest precedence, and Bridge deck has lowest.
@@ -400,15 +420,147 @@ function swapActiveCrewsOnDuty(buttonId) {
             // while a higher precedence Assignment button LED is ON (so no "deck on duty" change)
         }
     } else {
-        post("C4Device.swapActiveCrewsOnDuty: assumption issue, function called for non-Assignment button",
-            buttonId, currentDeckName, nextDeckName); post();
+        post("C4Device.swapActiveCrewsOnDuty: assumption issue, function called for non-Assignment button", buttonId, currentDeckName, nextDeckName); post();
     }
 }
 
+function updateActiveControllerDeckForSave(activeDeckName) {
+    saveActiveDeck(activeDeckName);
+}
+
+// Save the "actively changing Dict memory" to the "relatively stable Dict memory"
+// curDeckCtrlBtn.copyDataFrom(activeBtn);
+// replaces old "saved" data (if any) in JS Controller with new "active data" from "active Max Dicts" (buttons, encoders, press counts, led change counts)
+// curDeckCtrlBtn.updateNamedDict("C4DeviceExecutiveController", replaceKey);
+// replaces old "saved" data in Max Dict Executive Controller with new "active data" (just copied from) from "active Max Dicts"
+// "deck officers" like officer "Split button" are not "active" in the same way, but still need addressing for storage.
+//
+// Every deck has three "Split button feedback addresses" corresponding to the three associated Split button leds (1/3, 2/3, 3/3) and a fourth "all leds OFF" state 0/3).
+// The one actual Split button always sends the same two pressed and released midi messages from address 0, which is also the first "feedback address".  So determining the
+// correct "feedback response" midi message to return (which led should turn ON or OFF) is the responsibility of the "Split button" squad, three grunts and an officer.
+//
+// The three split button grunts keep track of their corresponding button-led status like "normal buttons", but they need to coordinate with their deck officer who is always
+// on duty when the deck is on duty counting the number of times the physical Split button is pressed+released which determines the led ON rotation cycle for the deck.
+//
+// "feedback address change count" should be recoverable from stored data? by  (13.ledChangeCount + 23.ledChangeCount + 33.ledChangeCount) %2 but that doesn't tell you which led
+// should be ON, only that all should be OFF when the modulo is zero. More specifically that modulo operation is distributed, (13.ledChangeCount % 2) + (23.ledChangeCount % 2) + (33.ledChangeCount % 2)
+// where each zero means that led is OFF and each 1 means that led is ON (and should never have more than one ON at a time)
+//
+//
+// Every deck also has four "Assignment buttons" that function in a similar manner (but controller wide across all decks), defining five states of the four button leds (0/4, 1/4, 2/4, 3/4, 4/4)
+// or (bridge, Marker, ChanSt, Track, Funct).  The difference is every Assignment led has a corresponding button.
+// The three split leds could be used to track 8 "display pages" on each deck instead of 4 by turning ON in an octal (3 bit) sequence: 000, 001, 010, 011, 100, 101, 110, 111  instead of the
+// "biased" cycle of 4 "display pages" (0, 1, 0, 2, 0, 3)
+// this C4Device object uses the "controller" (both JS object and Max Dict forms) to keep everything organized and running correctly
+function saveActiveDeck(deckName) {
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+    buttonsDict.name = "c4Buttons";
+    encodersDict.name = "c4Encoders";
+    var reqName = reqModule.getActiveControllerDeckName();
+    if (deckName !== reqName) {// these only match when the user "saves a sequencer file" in the Max patch
+        //post("C4Device.saveActiveDeck: input deck", deckName, "is not active deck", reqName, "saving active data to input deck for duty swap"); post();
+    } else {
+        post("C4Device.saveActiveDeck: input deck", deckName, "is the active deck, saving active data to input deck for save to file"); post();
+    }
+
+    // propagate "common" data from this deck across all decks (and make sure the two controller Split button officers match)
+    controller.refreshDeckForDutySwap(deckName);
+
+    var deckSplitName = controller.getCrewNameForDeck(deckName, "Split");
+    var deckSplitKey = controller.getCrewReplaceKeyForDeck(deckName, "Split");
+    theCurrentSplitButtonLED.ledChangeCount = splitFeedbackAddressChangeCount;
+    controller[deckName][deckSplitName].copyDataFrom(theCurrentSplitButtonLED);
+    controller[deckName][deckSplitName].updateNamedDict("C4DeviceExecutiveController", deckSplitKey);
+
+
+    var deckBtnCrew = controller.getCrewNameForDeck(deckName, "Buttons");
+    var deckEncCrew = controller.getCrewNameForDeck(deckName, "Encoders");
+    var deckButtons = controller[deckName][deckBtnCrew];
+    var deckEncoders = controller[deckName][deckEncCrew];
+    for(var i = 0; i < TOTAL_BUTTONS; i++) {
+        var replaceKey = controller.getCrewReplaceKeyForDeck(deckName, "Buttons");
+        // get the active "on duty" data from the "active (buttons and encoders) Dicts"
+        var activeBtnDict = buttonsDict.get(i);
+        var activeBtn = utilButton.newFromDict(activeBtnDict);
+
+        var curDeckCtrlBtn = deckButtons[i];
+        curDeckCtrlBtn.copyDataFrom(activeBtn);
+        // store the active "on duty" data to the Max Exec controller for later
+        curDeckCtrlBtn.updateNamedDict("C4DeviceExecutiveController", replaceKey);
+        // store the active "on duty" data to the JS controller object for later
+        deckButtons[i] = curDeckCtrlBtn;
+
+        // repeat for encoders (encoder 0 and button 0 are not related)
+        if (i < TOTAL_ENCODERS) {// (encoder CC 0 has encoder-button Note 32 and both have "feedback address" CC 32)
+            replaceKey = controller.getCrewReplaceKeyForDeck(deckName, "Encoders");
+            var activeEncDict = encodersDict.get(i);
+            var activeEnc = utilEncoder.newFromDict(activeEncDict);
+            var curDeckCtrlEnc = deckEncoders[i];
+            curDeckCtrlEnc.copyDataFrom(activeEnc);
+            curDeckCtrlEnc.updateNamedDict("C4DeviceExecutiveController", replaceKey);
+            deckEncoders[i] = curDeckCtrlEnc;
+        }
+    }
+}
+
+function activateSavedDeck(deckName) {
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+    buttonsDict.name = "c4Buttons";
+    encodersDict.name = "c4Encoders";
+    var reqName = reqModule.getActiveControllerDeckName();
+    if (deckName !== reqName) {
+        post("C4Device.activateSavedDeck: input deck", deckName, "is not active deck", reqName, "restoring saved data from input deck to active duty for loading from file"); post();
+    } else {
+        //post("C4Device.activateSavedDeck: input deck", deckName, "is the active deck, restoring saved data from input deck to active duty for regular duty swap"); post();
+    }
+
+    controller.refreshDeckForDutySwap(deckName);
+
+    var deckSplitName = controller.getCrewNameForDeck(deckName, "Split");
+
+    theCurrentSplitButtonLED.copyDataFrom(controller[deckName][deckSplitName]);
+    splitFeedbackAddressChangeCount = theCurrentSplitButtonLED.ledChangeCount;
+
+
+    var deckSplitKey = controller.getCrewReplaceKeyForDeck(deckName, "Split");
+    var execContDict = c4DeviceControllerDict.get(deckSplitKey);
+    var execSplitBtn = utilButton.newFromDict(execContDict);
+    if (!reqModule.compareSaveData(controller[deckName][deckSplitName], execSplitBtn)) {
+        post("C4Device.activateSavedDeck: assumption issue, sources don't agree on deck officer Split button data", deckName, reqName); post();
+        execSplitBtn.copyDataFrom(controller[deckName][deckSplitName]);
+        execSplitBtn.updateNamedDict("C4DeviceExecutiveController", deckSplitKey);
+    }
+
+
+    var deckBtnCrew = controller.getCrewNameForDeck(deckName, "Buttons");
+    var deckEncCrew = controller.getCrewNameForDeck(deckName, "Encoders");
+    var deckButtons = controller[deckName][deckBtnCrew];
+    var deckEncoders = controller[deckName][deckEncCrew];
+    for(var i = 0; i < TOTAL_BUTTONS; i++) {
+
+        deckButtons[i].updateActiveDicts();
+        if (i < TOTAL_ENCODERS) {
+            deckEncoders[i].updateActiveDicts();
+        }
+    }
+}
+
+// this method does two things at once, accomplishing a swap,
+// 1. saves the data in the "active Dicts" to the current controller deck's Dicts
+// 2. replaces the data in the "active Dicts" with data from the next controller deck's Dicts
+// saveActiveDeck() and activateSavedDeck() do the same two things separately, this method is likely deprecated
 function setActiveCrewOnDuty(nextDeckName) {
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+    buttonsDict.name = "c4Buttons";
+    encodersDict.name = "c4Encoders";
     // For normal button events, the Reference Dict was already updated, see comments above swapActiveCrewsOnDuty(buttonId)
     // For loading a saved file, the Reference Dict was already updated with the imported data
+    // For saving a loaded file, don't call this method (see updateActiveControllerDeckForSave() above)
+    controller.copyActiveSignals();// signal button (21 - 31) data of "active deck" copied to all decks
+    controller.updateActiveDeckSplit(currentDeckName, theCurrentSplitButtonLED)
     var reqName = reqModule.getActiveControllerDeckName();
+    // post("C4Device.setActiveCrewOnDuty: input deck name:", nextDeckName); post();
+    // post("C4Device.setActiveCrewOnDuty: exec active deck name:", reqName); post();
     if (nextDeckName !== reqName) {
         post("C4Device.setActiveCrewOnDuty: assumption issue, sources don't agree on next deck name", nextDeckName, reqName); post();
     }
@@ -418,9 +570,12 @@ function setActiveCrewOnDuty(nextDeckName) {
     var curDeckButtons = controller[currentDeckName][curBtnCrew];
     var curDeckEncoders = controller[currentDeckName][curEncCrew];
 
-    controller.refreshDeckForDuty(nextDeckName);
-    var nexDeckSplitName = controller.getCrewNameForDeck(nextDeckName, "Split");
-    theCurrentSplitButtonLED = controller[nextDeckName][nexDeckSplitName];
+    controller.refreshDeckForDutySwap(nextDeckName);
+    var nextDeckSplitName = controller.getCrewNameForDeck(nextDeckName, "Split");
+    var deckSplitKey = controller.getCrewReplaceKeyForDeck(nextDeckName, "Split");
+
+    theCurrentSplitButtonLED.copyDataFrom(controller[nextDeckName][nextDeckSplitName]);
+    controller[nextDeckName][nextDeckSplitName].updateNamedDict("C4DeviceExecutiveController", deckSplitKey);// preparing for possible save before next deck crew swap
     splitFeedbackAddressChangeCount = theCurrentSplitButtonLED.ledChangeCount;
 
     var nexBtnCrew = controller.getCrewNameForDeck(nextDeckName, "Buttons");
@@ -438,7 +593,7 @@ function setActiveCrewOnDuty(nextDeckName) {
 
         var replaceKey = controller.getCrewReplaceKeyForDeck(currentDeckName, "Buttons");
         curDeckCtrlBtn.updateNamedDict("C4DeviceExecutiveController", replaceKey);
-        curDeckButtons[i] = curDeckCtrlBtn;// reassignment because next time this crew is "on duty"
+        curDeckButtons[i].copyDataFrom(curDeckCtrlBtn);
         //post("C4Device.setActiveCrewOnDuty: c:",curDeckCtrlBtn.toJsonStr()); post();
 
         // pull the previous "on duty" data of the deck going (back) "on duty" for this shift
@@ -455,7 +610,7 @@ function setActiveCrewOnDuty(nextDeckName) {
 
             replaceKey = controller.getCrewReplaceKeyForDeck(currentDeckName, "Encoders");
             curDeckCtrlEnc.updateNamedDict("C4DeviceExecutiveController", replaceKey);
-            curDeckEncoders[i] = curDeckCtrlEnc;
+            curDeckEncoders[i].copyDataFrom(curDeckCtrlEnc);
 
             nexDeckEncoders[i].updateActiveDicts();
         }
