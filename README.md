@@ -79,7 +79,7 @@ in Live that trigger feedback (like a mouse click changing the selected track). 
 <p>
 NOTE: You will likely see the C4 display "go blank" and revert to the "Mackie power-on Welcome message" shortly after you open any Live set when you are using the remote script.  
 Usually right before your second button press if you are doing two buttons back-to-back, or whenever you look back at the display if you only did one button press.  When that happens, 
-the C4 has reacted to some kind of "reset" midi SYSEX message sent by Live itself, not the remote script. (This "rouge reset" is an outstanding "known issue" the remote script can't 
+the C4 has reacted to some kind of "reset" midi SYSEX message sent by Live itself, not the remote script. (This "rouge reset", lol, is an outstanding "known issue" the remote script can't 
 prevent, but this Max (USER mode) sequencer project might be able to snare since (when you are using it) all midi messages between Live and the C4 pass through the patch on the way to the C4.)
 </p>
 <p>
