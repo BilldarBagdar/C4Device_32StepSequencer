@@ -60,7 +60,8 @@ all the other files in their project-relative folders like /code, /data, /patche
 <p>
 ("path finding" in Max is otherwise a PITA, patches have no idea what folder they started in, Max doesn't interpret a simple relative path like, "../code/foo.js" 
 (up one level from "current directory" and down into /code, look for a file named foo.js)) the way you would normally expect. A current directory '.' is generally 
-interpreted as the folder where max.exe is located.  But inside a project, the "search path" starts in the project folder and recurses there first.  You just write "foo.js" and the file gets found.
+interpreted as the folder where max.exe is located not the patch folder.  But inside a project, the "search path" starts in the project folder and recurses there first.  
+You only need to write "foo.js" in a project patcher and the file gets found.
 </p>
 <p>
 From the "Project menu" window, open the patch file named `openSequencerBypassing.maxpat`.  
@@ -76,10 +77,10 @@ normal remote script feedback appear on the C4 "display" (the LEDs and LCDs) in 
 in Live that trigger feedback (like a mouse click changing the selected track).  If the C4 display still shows the "Mackie power-on Welcome message", switch to Function mode and back.
 </p>
 <p>
-NOTE: You will likely see the C4 display revert to the "Mackie power-on Welcome message" shortly after you open any Live set when you are using the remote script.  Usually right before your 
-second button press if you are doing two buttons back-to-back, or whenever you look back at the display if you only did one button press.  When that happens, the C4 has reacted to some kind of "reset" midi 
-SYSEX message sent by Live itself, not the remote script. (This "rouge reset" is an outstanding "known issue" the remote script can't prevent, but this Max (USER mode) sequencer project 
-might be able to snare since (when you are using it) all midi messages between Live and the C4 pass through the patch on the way to the C4.)
+NOTE: You will likely see the C4 display "go blank" and revert to the "Mackie power-on Welcome message" shortly after you open any Live set when you are using the remote script.  
+Usually right before your second button press if you are doing two buttons back-to-back, or whenever you look back at the display if you only did one button press.  When that happens, 
+the C4 has reacted to some kind of "reset" midi SYSEX message sent by Live itself, not the remote script. (This "rouge reset" is an outstanding "known issue" the remote script can't 
+prevent, but this Max (USER mode) sequencer project might be able to snare since (when you are using it) all midi messages between Live and the C4 pass through the patch on the way to the C4.)
 </p>
 <p>
 If you don't see remote script "feedback display updates" on the C4 display (the LEDs and LCDs), double-check your midi port connections.  Also try running the sequencer patch in standalone mode.  
@@ -118,10 +119,10 @@ the script is in USER mode, the Spot/Erase button acts like a vehicle's clutch o
 and disengaged from the (external RTC) Transport so the sequencer stops running (next list item about Spot/Erase applies here too).  When the script is NOT in USER mode, the clutch 
 is engaged by default (the sequencer is QUIET), but you can "let off the clutch" outside of USER mode by setting the sequencer to VERBOSE mode (before you leave USER mode) so the 
 patch will remain engaged with the RTC Transport and let the sequencer play when the transport plays (outputting Notes only, no "display updates") after leaving USER mode (technically, 
-you should be able to change the sequencer patch back and forth between QUIET and VERBOSE outside of USER mode, but you can adjust the sequencer Note ouput, for example, in USER mode)</li>
+you should be able to change the sequencer patch back and forth between QUIET and VERBOSE outside of USER mode, but you can only adjust the sequencer Note output, for example, in USER mode)</li>
 <li>When the sequencer is in "External Transport" mode, the "Spot/Erase" button controls whether the sequencer "follows" the RTC signals.  When the Spot/Erase LED is ON, 
 the sequencer is "disengaged" from the "External Transport" so the sequencer doesn't run.  <p>This external-transport Spot/Erase LED behavior is opposite to its behavior when in 
-"Internal Transport" mode where LED ON means internal transport is driving the sequencer pulses. If you are in USER mode and using MAX Transport instead of RTC, and you leave USER mode with a VERBOSE 
+"Internal Transport" mode where LED ON means internal transport is actively driving the sequencer pulses. If you are in USER mode and using MAX Transport instead of RTC, and you leave USER mode with a VERBOSE 
 sequencer sending Notes, you have to return to USER mode to STOP the Max Transport using the physical Spot/Erase button (QUIETing the sequencer Note output won't stop the Max Transport)</p></li>
 <li>The Sequencer no longer does any pitch coercion (to C minor pentatonic), except to scale the Note values output between 12 and 120 (i.e. a normal piano's 10 octave range)</li>
 <li>An encoder's stored "pressedValue" now supplements the sequencer's randomly generated (scaled between 50 and 120) velocity for that sequence step. (If the Pressed value is 78 or higher, 
@@ -180,8 +181,8 @@ the buttons labeled (on the Commander overlay sticker) "Parameter Layout" (Left,
 "Parameter Bank" (Left, Right) on the C4 case itself; and the buttons labeled "(Session) Bank" (Up, Down) above are labeled 
 "(Session) Slot" (Up, Down) on the case.  Since the area around the four buttons grouped around the diamond shape on the 
 right in the image above is not grouped by name above nor physically on the C4 case, a useful shorthand name is the "Session" 
-group. (The shape "inside the buttons" painted on the case is bigger and rounder much more oval-shaped (ovular?), no sharp 
-pointy diamond corners.) The "Select" button in the "Split" group (on the "Commander overlay") above is labeled the "Split" 
+group. (The shape "inside the buttons" painted on the case differs between C4 and C4 Pro. On a C4 Pro the shape is bigger and rounder much more oval-shaped (ovular?), no sharp 
+pointy diamond corners. The buttons "cut into" the oval's circumference.) The "Select" button in the "Split" group (on the "Commander overlay") above is labeled the "Split" 
 button in the "Function" group on the case.  The "Function" group above is named the "Assignment" group on the case.  
 </p>
 <p>
@@ -208,7 +209,8 @@ LED cycles in reverse 3, 2, 1.  When the Lock LED is OFF, the Split LED cycles f
 reversing logic is always true based on the underlying data in the button dictionary, but the physical Lock LED status depends on
 whether the sequencer is running or not.  If the sequencer is not running, the physical Lock button LED On/Off status will 
 correspond with the (Lock button's ledValue property) data in the button dictionary.  But if the sequencer is running, 
-the green Lock button LED pulses with the sequencer tempo.
+the green Lock button LED pulses with the sequencer tempo.  Half the time (maybe always?), the visible (feedback) Split LED cycle direction change will lag the logical Lock button 
+direction change by up to 4 Split button clicks.  In other words, you will often see the Split LED cycle go forward one more time before you see it reverse, for example."
 </p>
 <p>
 When Max Transport is selected, Start and Stop the sequencer using the C4's "Spot Erase" button ("Lower" above).  Otherwise, 
@@ -221,7 +223,10 @@ LED will display (green) quarter (half?) note pulses (beats 1 and 3 ON, beats 2 
 <p>
 When the sequencer is running under external Transport, the C4's "Spot Erase" button LED status (virtual or physical) has 
 no impact on the sequencer's running status (which follows midi RTC start/stop signals), it's disconnected, and the green 
-"Lock" button LED pulses with the external (RTC derived) tempo. (regardless whether "Spot Erase" is On or Off)
+"Lock" button LED pulses with the external (RTC derived) tempo. (regardless whether "Spot Erase" is On or Off) 
+</p>
+<p>NOTE: see 2.0 behavior described above, the "Spot Erase" button now 
+behaves like a clutch that will disengage from external Transport when the LED is ON.
 </p>
 <h5> "Session" group Buttons</h5>
 <p>
@@ -276,7 +281,7 @@ Every "virtual" encoder stores and recalls a unique value associated with each M
 pressed.  In effect, this means each of the four main "encoder display page" sequences also has four "modified sequences" 
 readily available. In other words every 32-step "encoder display page" sequence also has a "Shift Pressed" modified 
 version, and an "Option Pressed" modified version, etc...  These modified sequences remain unchanged stepwise.  
-The only thing that changes when Modifier buttons are pressed (and held) is the pitch value data recalled from storage 
+The only thing that changes when Modifier buttons are pressed (and held) is the pitch value data saved to or recalled from storage 
 for a sequence's active, playing steps.
 </p>
 <h5> Assignment group Buttons</h5>
