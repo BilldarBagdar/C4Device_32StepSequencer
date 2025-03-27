@@ -1,12 +1,12 @@
 <h3>Version 2.0</h3> 
-<p>of this Max 9.0.5 project integrates with the Mackie C4 remote script hosted by 
-<a href="https://github.com/markusschloesser/MackieC4_P3"> Markus Schloesser</a> as the script's USER mode.
+<p>of this Max 9.0.5 project builds on the 1.0 "midi data server" and sequencer by integrating with the custom Mackie C4 remote script hosted by 
+<a href="https://github.com/markusschloesser/MackieC4_P3"> Markus Schloesser</a> as the script's USER mode.  
 </p>
 <p>
-The integration is still in development, not necessarily ready for full release.  But it is stable enough to
+The integration is still in development, not necessarily ready for full release.  But the current shapshot is stable enough to
 push to origin here.  (If running on the same computer as a DAW like Live), the integration requires one more midi loopback port 
-(on top of the two required for standalone sequencer operation) 
-between Live's "C4 remote script" midi out and this patch's "C4 Midi In" port.  Connections should flow like this
+(on top of the two required for standalone sequencer operation) between Live's "C4 remote script" midi out and this patch's "C4 Midi In" port.  
+Connections should flow like this
 </p>
 
     C4o--->>---iLiveo--->L1>---iMaxo--->>---iC4     // Remote script and Sequencer patch Control comms ports
@@ -14,10 +14,14 @@ between Live's "C4 remote script" midi out and this patch's "C4 Midi In" port.  
     Maxo--->L3>---iLive                             // Sequencer Midi Note (Max) output port
 
 <p>
+Of course, if this sequencer patch and "the DAW" are running on different computers, the same number of and routes for midi connections applies.  
+Separate computers just don't require "loopback" connections. 
+</p>
+<p>
 You should be able to use this patch with the remote script as long as you hold a Max4Live license, meaning you have a 
 Live Standard + M4L or Live Suite license active. The 2.0 update here (and associated remote script updates) were entirely coded in 2025 using Max 8.x.x - 9.0.5 and Live 12.1.x - 12.1.10.  
 The remote script should be backward compatible with both Live 10 and 11 and the sequencer patch is compatible with Max 8, but these combinations haven't been tested.  
-Except Live 12.1.5 still runs "Max 8" as the default M4L engine, and this is the setup used for M4L-license-only testing.
+Except Live 12.1.10 still runs "Max 8" as the default M4L engine, and this is the setup used for M4L-license-only testing.
 </p>
 <h5>Getting started</h5>
 <p>
@@ -32,24 +36,28 @@ script version installed into Live.
 </p>
 <p>
 Once you've confirmed the (Sequencer compatible) remote script is working, remove the "remote script midi output" port assignment (leave the script input port assignment) 
-and replace the output assignment with a connection to this patch, on the same computer that's a midi Loopback port (L1 above).  Further down the Options Midi tab uncheck (disconnect from) the Live Midi Output
-that goes to the physical C4 DIN input port (disconnect Live from the same port you just disconnected from the remote script), and check (connect to) the other two 
+and replace the output assignment with a connection to this patch, on a single computer that's a midi Loopback port (L1 above).  Further down the Options Midi tab uncheck (disconnect from) 
+the Live Midi Output that goes to the physical C4 DIN input port (disconnect Live from the same port you just disconnected from the remote script), and check (connect to) the other two 
 loopback ports. L1 and L2 are "Live Midi Output" ports and L3 is a "Live Midi Input" port.  You should have 4 associated midi ports open in Live, the 3 loopback ports 
 and the input port coming from the physical C4 DIN. (plus any other midi ports you want)  Now close and restart Live.  When Live is ready again, 
 the remote script will only be connected on the front side (C4 to Live).  You can move Live's selected track Left and Right using the C4 Track L and Track R 
 buttons, for example, but you won't see any LEDs or LCDs reacting to "midi feedback" because the feedback-side isn't connected yet. Now, click
 the TRACK button in the Assignment group on the C4 "control panel" to put the script in "Device(s on selected Track)" mode.  You should see a message in Live's message area at the bottom
-of the window indicating the script's "mode change".  The remote script is ready and waiting for the Sequencer.  
+of the window indicating the script's "mode change". (if not, you don't have the latest remote script running)  The remote script is ready and waiting for the Sequencer.  
 </p>
 <p>
-Open Max.  Drag a default m4l device onto a Track in your session and click the <=> icon upper right corner of the device window to open the m4l device Patcher.
-In a Max window like the Patcher that just opened click File>Open... navigate to your local "production" copy of this project's C4DeviceProject folder in the Open-File dialog
-(main branch of the repository) and...
+Open Max directly (if you have a full Max license) or via M4L.  Via M4L, in Live drag a default M4L device onto a Track in your session and click the <=> icon upper right corner of the 
+device window to open the (empty) M4L device Patcher.  Then, in a Max window like the Patcher that just opened click File>Open... and navigate to your local "production" copy of this 
+repository's C4DeviceProject folder in the Open-File dialog and...  (if you don't plan to do any development of your own, this "runtime" project folder  
+can be a standalone separate "copy" of the C4DeviceProject repo folder (main branch) just like the remote script.  You only "need" the repository to further develop (and contribute?) code.)
 </p>
 <h5><b>Open the project file C4DeviceProject.maxproj</b></h5>
 <p>
 It is important to open the project file first and open other project files from the project menu because the project establishes a Max-project-relative search path for 
-all the other files in their project-relative folders like /code, /data, /patchers, etc. 
+all the other files in their project-relative folders like /code, /data, /patchers, etc. You can close the M4L patcher window any time, but save the empty M4L device with the Live set 
+(if you save) so you can save a few mouse clicks getting back to the C4DeviceProject.maxproj to open the sequencer next time.
+</p>
+<p>
 ("path finding" in Max is otherwise a PITA, patches have no idea what folder they started in, Max doesn't interpret a simple relative path like, "../code/foo.js" 
 (up one level from "current directory" and down into /code, look for a file named foo.js)) the way you would normally expect. A current directory '.' is generally 
 interpreted as the folder where max.exe is located.  But inside a project, the "search path" starts in the project folder and recurses there first.  You just write "foo.js" and the file gets found.
@@ -65,20 +73,27 @@ After the Sequencer patch loads, ensure the patch's 4 midi port connections are 
 
 Since the Sequencer patch opened in "bypassing" mode, and the remote script is still in DEVICES mode (Track button), you should start to see all the
 normal remote script feedback appear on the C4 "display" (the LEDs and LCDs) in response to button presses and encoder turns on the C4 and other actions 
-in Live that trigger feedback (like a mouse click changing the selected track).  
+in Live that trigger feedback (like a mouse click changing the selected track).  If the C4 display still shows the "Mackie power-on Welcome message", switch to Function mode and back.
 </p>
 <p>
-If you don't see "feedback display updates" on the C4 display (the LEDs and LCDs), double-check your midi port connections.  Also try running the sequencer patch in standalone mode.  
+NOTE: You will likely see the C4 display revert to the "Mackie power-on Welcome message" shortly after you open any Live set when you are using the remote script.  Usually right before your 
+second button press if you are doing two buttons back-to-back, or whenever you look back at the display if you only did one button press.  When that happens, the C4 has reacted to some kind of "reset" midi 
+SYSEX message sent by Live itself, not the remote script. (This "rouge reset" is an outstanding "known issue" the remote script can't prevent, but this Max (USER mode) sequencer project 
+might be able to snare since (when you are using it) all midi messages between Live and the C4 pass through the patch on the way to the C4.)
+</p>
+<p>
+If you don't see remote script "feedback display updates" on the C4 display (the LEDs and LCDs), double-check your midi port connections.  Also try running the sequencer patch in standalone mode.  
 Disconnect the remote script in Live and connect both Sequencer "C4 Midi" (in and out) ports to the C4 DIN ports. Close the "start in bypassing mode" patch and 
 open the "start in processing mode" patch.  This standalone configuration should work (without the remote script involved).  If both the remote script and the sequencer work independently 
 but not when chained, double-check that L1 loopback connection.  Otherwise, start or append to an "Issues" thread here.
 </p>
 <p>
 Now with the remote script showing feedback successfully (through this sequencer's bypass), click the physical C4 MARKER button to initiate two changes. To switch the script 
-from DEVICES mode (Track button) to USER mode (Marker button), and to switch the Sequencer patch to PROCESSING mode (via a midi message signal to javascript).
+from DEVICES mode (Track button) to USER mode (Marker button), and to switch the Sequencer patch from BYPASSING mode to PROCESSING mode (via a midi message signal to javascript).
 (Alternatively, if the remote script was already in USER mode (because you pressed the MARKER button first), you would just
-open the Project>patch file named `openSequencerProcessing.maxpat`)  The C4 "display" might be blank at first after USER mode starts, but press the SPLIT button and you should see 
-"page 1" (of the "bridge deck" data) display on the C4.  Click SPLIT again and the "Page 0" data is displayed (properly this time).
+open the Project>patch file named `openSequencerProcessing.maxpat` second)  The C4 "display" might be blank at first after USER mode starts, but press the SPLIT button and you should see 
+"page 1" (of the "bridge deck" data) display on the C4.  Click SPLIT again and the "Page 0" data is displayed (properly this time, although both modes show encoders with default zero values, 
+the encoder names are unique, ENC00 on page 0 is ENC32 on page 1, for example).
 </p>
 <p>
 To Exit USER mode, Press and Hold the MARKER button then Press the LOCK button.  The remote script goes back to whatever other mode was active before going into USER mode and 
@@ -86,28 +101,31 @@ the sequencer patch goes back into "bypassing" mode.  Keep reading (below) for s
 </p>
 <p>
 It is best practice to exit USER mode before you load or reload another session in Live because the "new set" won't open with the remote script in USER mode
-and the sequencer patch will probably get out-of-sync with the remote script in that case.
+and the sequencer patch will be in "processing" mode when it should be "bypassing" in that case.  To get out of this kind of pickle, there is a way to toggle the patch mode "manually" 
+in the patch, but it's generally easier to just close the patch and reopen (from the Max Project menu) in "bypassing" mode.
 </p>
 <p>
-A similarly important practice for your local system is calibrating the "midi sync delay" subtracted from the RTC Midi Out port in Live Midi Options (Options>Midi tab), for 
-example, could be any RTC source/Note destination "daw".  You want to send out the RTC "early" so the Notes come back "on time".
-Every different session could impart subtly different amounts of latency.  -2.5 to -5.0 milliseconds or more (negative) is typical.  You can also use this setting creatively, like a midi delay.
+A similarly important practice for your local system is calibrating the "midi sync delay" subtracted from the RTC Midi Out port in Live, for example, (could be any RTC source/Note 
+destination "daw"), Midi Options (Options>Midi tab).  You want to send out the RTC ticks "early" so the sequencer Notes come back "on time".
+Every different session could impart subtly different amounts of latency.  -2.5 to -5.0 milliseconds or more (negative) is typical.  You can also use this setting creatively, 
+like a midi delay on the sequencer Notes.
 </p>
 <h4>Updates since v1.0</h4>
 <ul>
 <li>You can now save and load sequencer dictionary JSON files. (from/to the project/data/c4Controllers folder by default)</li>
 <li>The sequencer now has a VERBOSE mode that applies when the remote script is NOT in USER mode so the sequencer will keep sending Notes (but not updating the C4 display). For example, when 
-the script is in USER mode, the Spot/Erase button acts like a vehicle's clutch. Meaning when the red Spot/Erase LED is ON you've "stepped on the clutch" and disengaged from the  
-(external RTC) Transport so the sequencer stops running (next list item about Spot/Erase applies here too).  When the script is NOT in USER mode, the clutch is engaged by default 
-(the sequencer is QUIET), but you can "let off the clutch" outside of USER mode by setting the sequencer to VERBOSE mode to re-engage with the RTC Transport and let the sequencer 
-run (outputting Notes only, no "display updates")</li>
+the script is in USER mode, the Spot/Erase button acts like a vehicle's clutch on the RTC (external) transport. Meaning, when the red Spot/Erase LED is ON you've "stepped on the clutch" 
+and disengaged from the (external RTC) Transport so the sequencer stops running (next list item about Spot/Erase applies here too).  When the script is NOT in USER mode, the clutch 
+is engaged by default (the sequencer is QUIET), but you can "let off the clutch" outside of USER mode by setting the sequencer to VERBOSE mode (before you leave USER mode) so the 
+patch will remain engaged with the RTC Transport and let the sequencer play when the transport plays (outputting Notes only, no "display updates") after leaving USER mode (technically, 
+you should be able to change the sequencer patch back and forth between QUIET and VERBOSE outside of USER mode, but you can adjust the sequencer Note ouput, for example, in USER mode)</li>
 <li>When the sequencer is in "External Transport" mode, the "Spot/Erase" button controls whether the sequencer "follows" the RTC signals.  When the Spot/Erase LED is ON, 
-the sequencer is "disengaged" from the "External Transport" so the sequencer doesn't run.  This Spot/Erase LED behavior is opposite to its behavior when in "Internal Transport" mode 
-where LED ON means internal transport is driving the sequencer pulses. If you are in USER mode and using MAX Transport instead of RTC, and you leave USER mode with a VERBOSE 
-sequencer sending Notes, you have to return to USER mode to STOP the Max Transport using the physical Spot/Erase button (QUIETing the sequencer Note output won't stop the Max Transport)</li>
+the sequencer is "disengaged" from the "External Transport" so the sequencer doesn't run.  <p>This external-transport Spot/Erase LED behavior is opposite to its behavior when in 
+"Internal Transport" mode where LED ON means internal transport is driving the sequencer pulses. If you are in USER mode and using MAX Transport instead of RTC, and you leave USER mode with a VERBOSE 
+sequencer sending Notes, you have to return to USER mode to STOP the Max Transport using the physical Spot/Erase button (QUIETing the sequencer Note output won't stop the Max Transport)</p></li>
 <li>The Sequencer no longer does any pitch coercion (to C minor pentatonic), except to scale the Note values output between 12 and 120 (i.e. a normal piano's 10 octave range)</li>
 <li>An encoder's stored "pressedValue" now supplements the sequencer's randomly generated (scaled between 50 and 120) velocity for that sequence step. (If the Pressed value is 78 or higher, 
-every note output will have the maximum 128 velocity) If the sequencer is running, and
+every note output will have the maximum 127 velocity) If the sequencer is running, and
 the encoder button "isPressed" when the "hot step" hits, the encoder's "pressedValue" is still used for that step's Note value too (v1 behavior)</li>
 </ul>
 <p>
