@@ -337,49 +337,74 @@ function midievent(midiMsgIn) {
 
 var sysexMsg = [];
 function midiSysexEvent(byteVal) {
-    buttonsDict.name = "c4Buttons";
-    var ledVal = buttonsDict.get(PROCESSING_BYPASS_SIGNAL_ID + "::ledValue");
-    if (ledVal === 0) {
+    // always check for the "welcome message" (serial number request response message) and handle if found
         if (byteVal === 240) {
+            if (sysexMsg.length > 0) {
+                post("C4Device.midiSysexEvent: assumption issue, sysexMsg array not empty when 240 start byte received", sysexMsg, "this data is dropped"); post();
+            }
             sysexMsg = [byteVal];// resets the array to size 1
         } else if (byteVal === 247) {
             sysexMsg.push(byteVal);
-            // sysex messages only originate on the C4 in specific circumstances like power up and as responses to sysex requests like version info
-            // and would only end up here if they passed thru the remote script first (when the script is in USER mode**) or came from Live directly
-            // but the remote script isn't coded in a way that allows Live to send sysex "display updates" directly.  The script still uses the old
-            // school on_display_update_timer() event to write sysex which is disabled in USER mode
-            // TLDR: this patch is only processing 1 sysex message, for defensive purposes, the C4 (power up / reset) welcome message
-            // all other SYSEX messages are simply forwarded.  (this data is the device serial number or firmware version string)
-            var c4Welcome = [240, 0, 0, 102, 23, 1, 90, 84, 49, 48, 52, 55, 51, 121, 16, 6, 0, 247]
+
             if (isPatchProcessingEnabled()) {
-                var isMatch = true;
-                for (var i in c4Welcome) {
-                    if (i < 6 && sysexMsg[i] !== c4Welcome[i]) {
-                        isMatch = false;
-                    } else if (i > c4Welcome.length - 4 && sysexMsg[i] !== c4Welcome[i]) {
-                        isMatch = false;
-                    }
-                }
-                // The C4 "blanks out" the display (LEDs and LCDs) when it sends what was just received
-                // so here, "unblank" the display right back
-                if (isMatch) {
-                    post("C4Device.midiSysexEvent: matching sysex msg in processing mode, refreshing display", sysexMsg); post();
+                if ( isSerialNumberResponse(sysexMsg)) {
+                    // The C4 "blanks out" the display (LEDs and LCDs) when it sends what was just received
+                    // here, "unblank" the display right back because the patch is processing
+                    post("C4Device.midiSysexEvent: welcome sysex msg detected in processing mode, refreshing display with patch data", sysexMsg); post();
                     sendEncoderPageData(generateDisplayPageChangeMsgs);
                 } else {
-                    post("C4Device.midiSysexEvent: unexpected sysex msg in processing mode, dropping", sysexMsg); post();
+                    post("C4Device.midiSysexEvent: unexpected sysex msg detected in processing mode, dropping", sysexMsg); post();
                 }
             } else {
-                outlet(1, sysexMsg);
+                if (isSerialNumberResponse(sysexMsg)) {
+                    // The C4 "blanks out" the display (LEDs and LCDs) when it sends what was just received
+                    // here, we can't do anything to resolve the situation without tracking the remote script's "display"
+                    // so the LEDs and LCDs could be "unblanked" right back
+                    // because the patch is "not processing", the remote script (or Live) would have passed through (or created) this message
+                    // so we should never land here? just log and eat the message 
+                    post("C4Device.midiSysexEvent: welcome sysex msg detected in bypassing mode, dropping", sysexMsg); post();
+                } else {
+                    outlet(1, sysexMsg);
+                }
             }
+            sysexMsg = [];
         }  else {
             sysexMsg.push(byteVal);
         }
+}
+
+function isSerialNumberResponse(sysex) {
+    // sysex messages only originate on the C4 in specific circumstances like power up and as responses to sysex requests like version info
+    // and would only end up here if they passed thru the remote script first (when the script is in USER mode**) or came from Live directly
+    // but the remote script isn't coded in a way that allows Live to send sysex "display updates" directly.  The script still uses the old
+    // school on_display_update_timer() event to write sysex which is disabled in USER mode
+    // TLDR: this patch is only processing 1 sysex message, for defensive purposes, the C4 (power up / reset) welcome message
+    // all other SYSEX messages are simply forwarded.  (this data is the device serial number or firmware version string)
+    // - sysex msg id         xF0  0  0
+    // - Mackie mfg id                  x66 x17
+    // - C4 msg id                               x1
+    // - C4 msg                                       Z   T   1   0   4   7   3    y DLE ACK NUL
+    // - sysex msg tail                                                                           END
+    var c4Welcome = [240, 0, 0, 102, 23, 1, 90, 84, 49, 48, 52, 55, 51, 121, 16,  6,  0, 247];
+    // specifically, hello from C4Pro unit with serial number ZT10473 - this is also what "serial number request" responses look like
+    // In contrast, a sysex message aimed at C4 LCD screens starts with [240, 0, 0, 102, 23, hb, lb] (hb 48 addresses top LCD, lb 54 addresses bottom row), then 55 bytes of text, then ends with 247
+    var mackieSysexHeader = [240, 0, 0, 102, 23, 1];// the 1 means "serial number request" message type?
+    var sysexTail = [16, 6, 0, 247];// the 16, 6, 0 means "end of response data", "response acknowledges request", "response is complete" (no more parts)?
+    var isMatch = true;
+    if (sysex.length === c4Welcome.length) {
+        for (var i = 0; i < c4Welcome.length; i++) {
+            if (i < mackieSysexHeader.length && sysexMsg[i] !== c4Welcome[i]) {
+                isMatch = false;
+                break;
+            } else if (i > c4Welcome.length - sysexTail.length && sysexMsg[i] !== c4Welcome[i]) {
+                isMatch = false;
+                break;
+            } //else don't compare, is a variable ascii text byte
+        }
     } else {
-        // ** remote script is in USER mode when this patch is processing midi events (ledValue === 127)
-        // this is where any sysex this patch might want to handle gets dropped/ignored
-        // normally this patch ignores/drops all incoming sysex messages
-        sysexMsg = [];
+        isMatch = false;
     }
+    return isMatch;
 }
 
 var currentDeckName = "bridgeDeck";
