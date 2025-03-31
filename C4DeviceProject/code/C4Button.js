@@ -151,6 +151,9 @@ C4Button.prototype.isEncoderButton = function() {
 C4Button.prototype.isAssignmentButton = function() {
     return this.index >= 5 && this.index <= 8;
 };
+C4Button.prototype.isModifierButton = function() {
+    return this.index >= 13 && this.index <= 16;
+};
 C4Button.prototype.isVirtualButton = function() {
     return this.index > 20 && this.index < ENCODER_BTN_OFFSET;
 };
@@ -583,6 +586,29 @@ C4Button.prototype.updateControllerSplit = function(deckName) {
     //post("C4Button.updateControllerSplit:", cmdKeyPrefix, ":and storing Active Split data:", deckSplitBtn.toJsonStr(), "to officer Split button for later");post();
     deckSplitBtn.updateNamedDict("C4DeviceExecutiveController", cmdKeyPrefix);
 };
+
+C4Button.prototype.randomizeData = function() {
+    var offBefore = this.ledValue === 0;
+    this.ledValue = reqModule.generateMidiValue();
+    if (offBefore) {
+        if (this.ledValue > 0) {
+            this.ledValue = 127;
+            this.ledChangeCount += 1;
+            this.pressedCount += 1;
+            this.releasedCount += 1;
+            this.pressedValue = 0;
+        }
+    } else {
+        if (this.ledValue < 127) {
+            this.ledValue = 0;
+            this.ledChangeCount += 1;
+            this.pressedCount += 1;
+            this.releasedCount += 1;
+            this.pressedValue = 0;
+        }
+    }
+    return this.ledValue;
+}
 
 C4Button.prototype.bang = function() {
     post("This button "); post();

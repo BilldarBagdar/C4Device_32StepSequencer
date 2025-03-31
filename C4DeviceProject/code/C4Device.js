@@ -129,14 +129,18 @@ function loadCurrentControllerDictFromFile(filename) {
         d.export_json(newFilename);
     } else {
         // only make the loaded file "active" if the data loaded correctly
-        fileController.copyActiveSignals();
-        controller = fileController;
-        currentDeckName = controller.determineSavedOnDutyDeckName();
-        controller.refreshDeckForDutySwap(currentDeckName);
-        setActiveCrewOnDuty(currentDeckName);
-        // "clearing the last step" here is a euphemism for updating the C4 display with data just loaded from disk
-        clearLastSequencerStep(1);
+        setNextController(fileController);
     }
+}
+
+function setNextController(nextController) {
+    nextController.copyActiveSignals();
+    controller = nextController;
+    currentDeckName = controller.determineSavedOnDutyDeckName();
+    controller.refreshDeckForDutySwap(currentDeckName);
+    setActiveCrewOnDuty(currentDeckName);
+    // "clearing the last step" here is a euphemism for updating the C4 display with data just loaded from disk
+    clearLastSequencerStep(1);
 }
 
 function initButtons(modeSelect){
@@ -239,6 +243,12 @@ function midievent(midiMsgIn) {
                         // wrapping % 32 so 00 - 08 == 24
                         transformEncoderPageData(feedbackMsg[1]);
                         pageChangeSignal = 1;
+                    } else if (feedbackMsg[1] > 12 && feedbackMsg[1] <= 16 && midiMsg[2] === BUTTON_PRESSED_VALUE) {
+                        // Modifier button press feedback, check for two
+                        if (reqModule.areTwoModifiersPressed(currentDeckName)) {
+                            var randomizedControllerData = controller.newRandomizedData();
+                            setNextController(randomizedControllerData);
+                        }
                     }
                     // pass all other button feedback messages
                 } else if (midiMsg[0] === MIDI_CC_ID && midiMsg[1] < NBR_PHYSICAL_ENCODERS) {

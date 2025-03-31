@@ -117,6 +117,43 @@ C4DeviceController.prototype.newFromDict = function(d) {
     }
 };
 
+C4DeviceController.prototype.newRandomizedData = function() {
+
+    var rtn = new C4DeviceController("single");
+    var utilBtn = new C4Button(0);
+    var utilEnc = new C4Encoder(0);
+    rtn.bridgeDeck.brdgSplit.copyDataFrom(this.bridgeDeck.brdgSplit);
+    rtn.markerDeck.mrkrSplit.copyDataFrom(this.markerDeck.mrkrSplit);
+    rtn.trackDeck.trckSplit.copyDataFrom(this.trackDeck.trckSplit);
+    rtn.chanStDeck.chstSplit.copyDataFrom(this.chanStDeck.chstSplit);
+    rtn.functnDeck.fnctSplit .copyDataFrom(this.functnDeck.fnctSplit);
+
+    for (var i = 0; i < TOTAL_BUTTONS; i++) {
+        // ignore "control" buttons
+        if (i >= TOTAL_ENCODERS) {
+            var buttonLedValue = rtn.bridgeDeck.brdgButtons[i] = this.bridgeDeck.brdgButtons[i].randomizeData();
+            rtn.bridgeDeck.brdgEncoders[i] = this.bridgeDeck.brdgEncoders[i - TOTAL_ENCODERS].randomizeData(buttonLedValue);
+
+            rtn.markerDeck.mrkrButtons[i] = this.markerDeck.mrkrButtons[i].randomizeData();
+            rtn.markerDeck.mrkrEncoders[i] = this.markerDeck.mrkrEncoders[i - TOTAL_ENCODERS].randomizeData(buttonLedValue);
+
+            rtn.trackDeck.trckButtons[i] = this.trackDeck.trckButtons[i].randomizeData();
+            rtn.trackDeck.trckEncoders[i] = this.trackDeck.trckEncoders[i - TOTAL_ENCODERS].randomizeData(buttonLedValue);
+
+            rtn.chanStDeck.chstButtons[i] = this.chanStDeck.chstButtons[i].randomizeData();
+            rtn.chanStDeck.chstEncoders[i] = this.chanStDeck.chstEncoders[i - TOTAL_ENCODERS].randomizeData(buttonLedValue);
+
+            rtn.functnDeck.fnctButtons[i] = this.functnDeck.fnctButtons[i].randomizeData();
+            rtn.functnDeck.fnctEncoders[i] = this.functnDeck.fnctEncoders[i - TOTAL_ENCODERS].randomizeData(buttonLedValue);
+        }
+    }
+
+    rtn.propagateActiveAssignmentsAcrossDecks();
+    rtn.propagateActiveSpareSignalsAcrossDecks();
+
+    return rtn;
+};
+
 C4DeviceController.prototype.toJsonStr = function() {
     return JSON.stringify(this);
 };
@@ -278,6 +315,7 @@ C4DeviceController.prototype.determineSavedOnDutyDeckName = function() {
     // post("getControllerActiveDeckKey: returning", rtn);post();
     return rtn;
 }
+
 
 C4DeviceController.prototype.deckToJsonStr = function(deck) {
     deck = deck !== undefined ? deck : "bridgeDeck";

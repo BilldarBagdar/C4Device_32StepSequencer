@@ -26,6 +26,12 @@ exports.compareSaveData = function csd(dictA, dictB) {
 exports.compareLoadData = function cld(dictA, dictB) {
 	return deepCompare(dictA, dictB);
 }
+exports.areTwoModifiersPressed = function tmap(deckName) {
+	return twoModifiersArePressed(deckname);
+}
+exports.generateMidiValue = function grmd() {
+	return getRandomMidiValue();
+}
 
 function getEncoderPageOffset() {
 	ledStateDict.name = "ledStateChangeCount";
@@ -69,6 +75,43 @@ function getControllerActiveDeckKey() {
 	}
 	// post("getControllerActiveDeckKey: returning", rtn);post();
 	return rtn;
+}
+
+function twoModifiersArePressed(onDutyDeckName) {
+	var refDeck = this.getActiveDeckKey();
+	if (onDutyDeckName !== refDeck) {
+		post("commonRequire.twoModifiersArePressed: assumption issue, deck names don't agree"); post();
+	} else {
+		var startsWith = onDutyDeckName.charAt(0);
+		var deckCrewNameKey = "brdg";
+		switch(startsWith) {
+			case "c": deckCrewNameKey = "chst"; break;
+			case "f": deckCrewNameKey = "fnct"; break;
+			case "m": deckCrewNameKey = "mrkr"; break;
+			case "t": deckCrewNameKey = "trck"; break;
+			case "b": break;
+			default: post("commonRequire.twoModifiersArePressed: unexpected start of deck key-name", onDutyDeckName); post();
+		}
+		var buttonCrewKey = refDeck + "::" + deckCrewNameKey + "::";
+		var shiftPressed = c4DeviceControllerDict.get(buttonCrewKey + "13::pressedValue") > 0;
+		var optionPressed = c4DeviceControllerDict.get(buttonCrewKey + "14::pressedValue") > 0;
+		var controlPressed = c4DeviceControllerDict.get(buttonCrewKey + "15::pressedValue") > 0;
+		var altPressed = c4DeviceControllerDict.get(buttonCrewKey + "16::pressedValue") > 0;
+		var pressCount = 0;
+		pressCount = shiftPressed ? pressCount + 1 : pressCount;
+		pressCount = optionPressed ? pressCount + 1 : pressCount;
+		pressCount = controlPressed ? pressCount + 1 : pressCount;
+		pressCount = altPressed ? pressCount + 1 : pressCount;
+		return pressCount > 1;
+	}
+	return false;
+}
+
+function getRandomMidiValue() {
+	var milliTime = max.time;// Current max scheduler time floating point value in milliseconds
+	var pseudoRand = Math.random() * 1000;// random value is between 0 and 1
+	var rando = milliTime * pseudoRand;
+	return rando % 128;
 }
 
 // scraped from: https://stackoverflow.com/questions/26049303/how-to-compare-two-json-have-the-same-properties-without-order

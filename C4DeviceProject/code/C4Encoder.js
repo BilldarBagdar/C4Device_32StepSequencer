@@ -438,6 +438,21 @@ C4Encoder.prototype.setRingFeedbackStyle = function(style) {
     }
 }
 
+
+C4Encoder.prototype.randomizeData = function(buttonLedValue) {
+    this.buttonLedValue = buttonLedValue !== undefined ? buttonLedValue : reqModule.generateMidiValue() % 2;
+    if (this.buttonLedValue > 0) {
+        this.buttonLedValue = 127;// should match corresponding button led value
+    }
+    this.pressedValue = reqModule.generateMidiValue();
+    this.releasedValue = reqModule.generateMidiValue();
+    this.shiftPressedValue = reqModule.generateMidiValue();
+    this.altPressedValue = reqModule.generateMidiValue();
+    this.controlPressedValue = reqModule.generateMidiValue();
+    this.optionPressedValue = reqModule.generateMidiValue();
+}
+
+
 C4Encoder.prototype.bang = function() {
     post("C4Encoder.bang: this: "); post()
     post(this.toJsonStr()); post();
