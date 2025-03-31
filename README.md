@@ -3,19 +3,19 @@
 <a href="https://github.com/markusschloesser/MackieC4_P3"> Markus Schloesser</a> as the script's USER mode.  
 </p>
 <p>
-The integration is still in development, not necessarily ready for full release.  But the current shapshot is stable enough to
+The integration is still in development, not necessarily ready for full release.  But the current snapshot is stable enough to
 push to origin here.  (If running on the same computer as a DAW like Live), the integration requires one more midi loopback port 
 (on top of the two required for standalone sequencer operation) between Live's "C4 remote script" midi out and this patch's "C4 Midi In" port.  
 Connections should flow like this
 </p>
 
-    C4o--->>---iLiveo--->L1>---iMaxo--->>---iC4     // Remote script and Sequencer patch Control comms ports
-    Liveo--->L2>---iMax                             // Midi RTC (real time clock) (Max) input port
-    Maxo--->L3>---iLive                             // Sequencer Midi Note (Max) output port
+    C4o--->>---iLiveo--->L1>---iMaxo--->>---iC4     // Remote script and Sequencer patch Control comms ports C4>>Live>>Max>>C4
+    Liveo--->L2>---iMax                             // Midi RTC (real time clock) (Max) input port  Live>>Max
+    Maxo--->L3>---iLive                             // Sequencer Midi Note (Max) output port  Max>>Live
 
 <p>
 Of course, if this sequencer patch and "the DAW" are running on different computers, the same number of and routes for midi connections applies.  
-Separate computers just don't require "loopback" connections. 
+Separate computers (midi interfaces) just don't require "loopback" connections. 
 </p>
 <p>
 You should be able to use this patch with the remote script as long as you hold a Max4Live license, meaning you have a 
@@ -43,13 +43,15 @@ and the input port coming from the physical C4 DIN. (plus any other midi ports y
 the remote script will only be connected on the front side (C4 to Live).  You can move Live's selected track Left and Right using the C4 Track L and Track R 
 buttons, for example, but you won't see any LEDs or LCDs reacting to "midi feedback" because the feedback-side isn't connected yet. Now, click
 the TRACK button in the Assignment group on the C4 "control panel" to put the script in "Device(s on selected Track)" mode.  You should see a message in Live's message area at the bottom
-of the window indicating the script's "mode change". (if not, you don't have the latest remote script running)  The remote script is ready and waiting for the Sequencer.  
+of the window indicating the script's "mode change". (if not, you don't have the latest remote script running)  The remote script is always ready for the Sequencer, but the Sequencer 
+needs to start in the mode that matches the Remote Script's current mode. (If the Remote Script is in USER mode, the Sequencer should "open in processing mode", and if the remote
+script is in any "other" mode (Track, Channel Strip, Function), the Sequencer should "open in bypassing mode").  These instructions guide toward opening the Sequencer patch in "bypassing" mode.
 </p>
 <p>
-Open Max directly (if you have a full Max license) or via M4L.  Via M4L, in Live drag a default M4L device onto a Track in your session and click the <=> icon upper right corner of the 
+Open Max directly (if you have a full Max license) or via M4L.  Via M4L, in Live drag a default M4L device onto a Track in your session and click the <=> (edit patch) icon upper right corner of the 
 device window to open the (empty) M4L device Patcher.  Then, in a Max window like the Patcher that just opened click File>Open... and navigate to your local "production" copy of this 
 repository's C4DeviceProject folder in the Open-File dialog and...  (if you don't plan to do any development of your own, this "runtime" project folder  
-can be a standalone separate "copy" of the C4DeviceProject repo folder (main branch) just like the remote script.  You only "need" the repository to further develop (and contribute?) code.)
+can be a standalone separate "copy" of the C4DeviceProject repo folder (main branch) just like the remote script folder.  You only "need" the repository to further develop (and contribute?) code.)
 </p>
 <h5><b>Open the project file C4DeviceProject.maxproj</b></h5>
 <p>
@@ -74,7 +76,7 @@ After the Sequencer patch loads, ensure the patch's 4 midi port connections are 
 
 Since the Sequencer patch opened in "bypassing" mode, and the remote script is still in DEVICES mode (Track button), you should start to see all the
 normal remote script feedback appear on the C4 "display" (the LEDs and LCDs) in response to button presses and encoder turns on the C4 and other actions 
-in Live that trigger feedback (like a mouse click changing the selected track).  If the C4 display still shows the "Mackie power-on Welcome message", switch to Function mode and back.
+in Live that trigger controller feedback (like a mouse click changing the selected track).  If the C4 display still shows the "Mackie power-on Welcome message", switch to Function mode and back.
 </p>
 <p>
 NOTE: You will likely see the C4 display "go blank" and revert to the "Mackie power-on Welcome message" shortly after you open any Live set when you are using the remote script.  
@@ -108,9 +110,30 @@ in the patch, but it's generally easier to just close the patch and reopen (from
 <p>
 A similarly important practice for your local system is calibrating the "midi sync delay" subtracted from the RTC Midi Out port in Live, for example, (could be any RTC source/Note 
 destination "daw"), Midi Options (Options>Midi tab).  You want to send out the RTC ticks "early" so the sequencer Notes come back "on time".
-Every different session could impart subtly different amounts of latency.  -2.5 to -5.0 milliseconds or more (negative) is typical.  You can also use this setting creatively, 
-like a midi delay on the sequencer Notes.
+Every different session could impart subtly different amounts of latency, but generally your system's "midi sync delay" should be more or less stable.  -2.0 to -5.0 milliseconds or 
+more (negative) is possible.  But since Live only offers increments of .5 ms for
+this setting, don't get too hung up on the grid lines in a clip when you are calibrating your sync delay, just listen for a musical result from this test.  Record another clip of the sequencer
+playing after you've found a good first amount (Your first recording just shows you where the starting point is, how far your first adjustment might need to be, and your second recording
+usually tells you your first adjustment was too big, so you rinse and repeat.  With .5 ms increments it doesn't take too many tries to zoom in on your first "good amount"). Create a 32 step 
+(2 bar) sequence of notes that play every 8th note (press all the even numbered encoder buttons to "enlighten" their leds and twist the encoder into the 30s or 40s). Set the 
+Track recording monitor to "Auto" and record the sequence.  Then click the clip to "stop recording, start playing back".  The sequencer will keep playing through the monitor 
+(ready for overdub recording), and the clip will also start playing sync'd with Live's grid.  If the combined result sounds musical, that's the ticket, you have found a good amount 
+of sync delay. While the clip continues looping, mess around with the sequencer, click Track L and Track R buttons in a rhythmic pattern, for example.  Fun, right?  With .5 ms
+increments only, your "sync delay" might not actually converge to one "good amount" and only settle around two "not so good amounts" on either side of the grid lines.  Exactly that
+issue isn't known to have happened, but for example, during development it is often useful to run twice as many "loopback" connections so all the midi messages can route through a midi 
+monitor application like Midi-Ox.  The "sync delay" can be very unstable in that configuration, it is the price of monitoring visibility.  The simple "direct" RTC and Note loopback
+connections have so far always landed on one "good amount".  (each time I try recalibrating)
 </p>
+<ul>
+<li>Note1: The RTC starts going out with the Transport, not the count-in, and the sequencer takes a beat to lock in.  So you "never" (hear or) record the first sequencer step 
+(Encoder 00 for example) until the second time around the sequence after "playback" starts.  
+</li>
+<li>Note2: Sometimes, especially right after loading a fresh set, Live needs to "warm up" and "blow out the pipes" 
+before the RTC midi sync actually locks in.  If a recorded sequencer clip has terrible sync delay after you already settled in on a good amount of negative delay, especially if 
+you just loaded a set, try recording the sequence again.  The pipes should be flowing smoothly after the set warms up.  You could also use this setting creatively, 
+like a "hard coded" midi delay on the "playing live" sequencer Notes.
+</li>
+</ul>
 <h4>Updates since v1.0</h4>
 <ul>
 <li>You can now save and load sequencer dictionary JSON files. (from/to the project/data/c4Controllers folder by default)</li>
