@@ -589,23 +589,25 @@ C4Button.prototype.updateControllerSplit = function(deckName) {
 
 C4Button.prototype.randomizeData = function() {
     var offBefore = this.ledValue === 0;
-    this.ledValue = reqModule.generateMidiValue();
+    var offNow = reqModule.generateMidiValue() % 2 === 0;
     if (offBefore) {
-        if (this.ledValue > 0) {
+        if (!offNow) {
             this.ledValue = 127;
             this.ledChangeCount += 1;
             this.pressedCount += 1;
             this.releasedCount += 1;
             this.pressedValue = 0;
         }
-    } else {
-        if (this.ledValue < 127) {
+        // else no change
+    } else {// on before
+        if (offNow) {
             this.ledValue = 0;
             this.ledChangeCount += 1;
             this.pressedCount += 1;
             this.releasedCount += 1;
             this.pressedValue = 0;
         }
+        // else no change
     }
     return this.ledValue;
 }

@@ -2,8 +2,8 @@
 // can't import Consts.js here because Consts.js "requires" (the exports from) this file
 // all the js code in and imported to C4Device.js "requires" (the exports from) this file
 var ledStateDict = new Dict("ledStateChangeCount");
+var buttonsDict = new Dict("c4Buttons");
 var c4DeviceControllerDict = new Dict("C4DeviceExecutiveController");
-
 
 var pageOffsets = [0, 32, 64, 96];
 var controllerDecks = ["bridgeDeck", "markerDeck", "trackDeck", "chanStDeck", "functnDeck"];
@@ -26,8 +26,8 @@ exports.compareSaveData = function csd(dictA, dictB) {
 exports.compareLoadData = function cld(dictA, dictB) {
 	return deepCompare(dictA, dictB);
 }
-exports.areTwoModifiersPressed = function tmap(deckName) {
-	return twoModifiersArePressed(deckname);
+exports.areTwoModifiersPressed = function tmap() {
+	return twoModifiersArePressed();
 }
 exports.generateMidiValue = function grmd() {
 	return getRandomMidiValue();
@@ -77,7 +77,24 @@ function getControllerActiveDeckKey() {
 	return rtn;
 }
 
-function twoModifiersArePressed(onDutyDeckName) {
+function twoModifiersArePressed() {
+	buttonsDict.name = "c4Buttons";
+
+	var shiftPressed = buttonsDict.get("13::pressedValue") > 0;
+	var optionPressed = buttonsDict.get("14::pressedValue") > 0;
+	var controlPressed = buttonsDict.get("15::pressedValue") > 0;
+	var altPressed = buttonsDict.get("16::pressedValue") > 0;
+	var pressCount = 0;
+	pressCount = shiftPressed ? pressCount + 1 : pressCount;
+	pressCount = optionPressed ? pressCount + 1 : pressCount;
+	pressCount = controlPressed ? pressCount + 1 : pressCount;
+	pressCount = altPressed ? pressCount + 1 : pressCount;
+	return pressCount > 1;
+}
+
+// The controller doesn't get updated as often as the "active" Dicts
+function twoModifiersArePressedOnDeck(onDutyDeckName) {
+
 	var refDeck = this.getActiveDeckKey();
 	if (onDutyDeckName !== refDeck) {
 		post("commonRequire.twoModifiersArePressed: assumption issue, deck names don't agree"); post();
@@ -111,7 +128,7 @@ function getRandomMidiValue() {
 	var milliTime = max.time;// Current max scheduler time floating point value in milliseconds
 	var pseudoRand = Math.random() * 1000;// random value is between 0 and 1
 	var rando = milliTime * pseudoRand;
-	return rando % 128;
+	return ~~(rando % 128);
 }
 
 // scraped from: https://stackoverflow.com/questions/26049303/how-to-compare-two-json-have-the-same-properties-without-order

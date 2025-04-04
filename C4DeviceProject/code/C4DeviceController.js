@@ -117,7 +117,7 @@ C4DeviceController.prototype.newFromDict = function(d) {
     }
 };
 
-C4DeviceController.prototype.newRandomizedData = function() {
+C4DeviceController.prototype.newCopy= function() {
 
     var rtn = new C4DeviceController("single");
     var utilBtn = new C4Button(0);
@@ -128,31 +128,64 @@ C4DeviceController.prototype.newRandomizedData = function() {
     rtn.chanStDeck.chstSplit.copyDataFrom(this.chanStDeck.chstSplit);
     rtn.functnDeck.fnctSplit .copyDataFrom(this.functnDeck.fnctSplit);
 
-    for (var i = 0; i < TOTAL_BUTTONS; i++) {
-        // ignore "control" buttons
-        if (i >= TOTAL_ENCODERS) {
-            var buttonLedValue = rtn.bridgeDeck.brdgButtons[i] = this.bridgeDeck.brdgButtons[i].randomizeData();
-            rtn.bridgeDeck.brdgEncoders[i] = this.bridgeDeck.brdgEncoders[i - TOTAL_ENCODERS].randomizeData(buttonLedValue);
+    for (var i = 0; i < TOTAL_BUTTONS; i++) {// 160 logical buttons
+        rtn.bridgeDeck.brdgButtons[i].copyDataFrom(this.bridgeDeck.brdgButtons[i]);
+        rtn.markerDeck.mrkrButtons[i].copyDataFrom(this.markerDeck.mrkrButtons[i]);
+        rtn.trackDeck.trckButtons[i].copyDataFrom(this.trackDeck.trckButtons[i]);
+        rtn.chanStDeck.chstButtons[i].copyDataFrom(this.chanStDeck.chstButtons[i]);
+        rtn.functnDeck.fnctButtons[i].copyDataFrom(this.functnDeck.fnctButtons[i]);
+        if (i < TOTAL_ENCODERS) {// 128 logical encoders
+            rtn.bridgeDeck.brdgEncoders[i].copyDataFrom(this.bridgeDeck.brdgEncoders[i]);
+            rtn.markerDeck.mrkrEncoders[i].copyDataFrom(this.markerDeck.mrkrEncoders[i]);
+            rtn.trackDeck.trckEncoders[i].copyDataFrom(this.trackDeck.trckEncoders[i]);
+            rtn.chanStDeck.chstEncoders[i].copyDataFrom(this.chanStDeck.chstEncoders[i]);
+            rtn.functnDeck.fnctEncoders[i].copyDataFrom(this.functnDeck.fnctEncoders[i]);
+        }
+    }
+    return rtn;
+};
 
-            rtn.markerDeck.mrkrButtons[i] = this.markerDeck.mrkrButtons[i].randomizeData();
-            rtn.markerDeck.mrkrEncoders[i] = this.markerDeck.mrkrEncoders[i - TOTAL_ENCODERS].randomizeData(buttonLedValue);
+C4DeviceController.prototype.newRandomizedData = function() {
 
-            rtn.trackDeck.trckButtons[i] = this.trackDeck.trckButtons[i].randomizeData();
-            rtn.trackDeck.trckEncoders[i] = this.trackDeck.trckEncoders[i - TOTAL_ENCODERS].randomizeData(buttonLedValue);
+    var rtn = this.newCopy();
 
-            rtn.chanStDeck.chstButtons[i] = this.chanStDeck.chstButtons[i].randomizeData();
-            rtn.chanStDeck.chstEncoders[i] = this.chanStDeck.chstEncoders[i - TOTAL_ENCODERS].randomizeData(buttonLedValue);
+    for (var i = 0; i < TOTAL_BUTTONS; i++) {// 160
 
-            rtn.functnDeck.fnctButtons[i] = this.functnDeck.fnctButtons[i].randomizeData();
-            rtn.functnDeck.fnctEncoders[i] = this.functnDeck.fnctEncoders[i - TOTAL_ENCODERS].randomizeData(buttonLedValue);
+        if (i < NBR_PHYSICAL_ENCODERS) {
+            // don't randomize "control" button values, need to keep "ongoing control" data
+        } else { // if (i >= NBR_PHYSICAL_ENCODERS) {// 32
+            //  Encoder 00 is associated with Button 32
+            var ledBefore = rtn.bridgeDeck.brdgButtons[i].ledValue;
+            var buttonLedValue = rtn.bridgeDeck.brdgButtons[i].randomizeData();
+            rtn.bridgeDeck.brdgEncoders[i - NBR_PHYSICAL_ENCODERS].randomizeData(buttonLedValue);
+
+            buttonLedValue = rtn.markerDeck.mrkrButtons[i].randomizeData();
+            rtn.markerDeck.mrkrEncoders[i - NBR_PHYSICAL_ENCODERS].randomizeData(buttonLedValue);
+
+            buttonLedValue = rtn.trackDeck.trckButtons[i].randomizeData();
+            rtn.trackDeck.trckEncoders[i - NBR_PHYSICAL_ENCODERS].randomizeData(buttonLedValue);
+
+            buttonLedValue = rtn.chanStDeck.chstButtons[i].randomizeData();
+            rtn.chanStDeck.chstEncoders[i - NBR_PHYSICAL_ENCODERS].randomizeData(buttonLedValue);
+
+            buttonLedValue = rtn.functnDeck.fnctButtons[i].randomizeData();
+            rtn.functnDeck.fnctEncoders[i - NBR_PHYSICAL_ENCODERS].randomizeData(buttonLedValue);
+        }
+        if (i - NBR_PHYSICAL_ENCODERS >= TOTAL_ENCODERS) {
+            post("C4DeviceController.newRandomizedData: assumption issue, iterating OOB?", i); post();
         }
     }
 
+    // already copied above, should be redundant
     rtn.propagateActiveAssignmentsAcrossDecks();
     rtn.propagateActiveSpareSignalsAcrossDecks();
 
     return rtn;
 };
+
+C4DeviceController.prototype.reconcileActiveModifiers = function(activeDeckName) {
+
+}
 
 C4DeviceController.prototype.toJsonStr = function() {
     return JSON.stringify(this);

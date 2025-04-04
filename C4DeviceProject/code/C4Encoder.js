@@ -441,8 +441,11 @@ C4Encoder.prototype.setRingFeedbackStyle = function(style) {
 
 C4Encoder.prototype.randomizeData = function(buttonLedValue) {
     this.buttonLedValue = buttonLedValue !== undefined ? buttonLedValue : reqModule.generateMidiValue() % 2;
-    if (this.buttonLedValue > 0) {
-        this.buttonLedValue = 127;// should match corresponding button led value
+    if (buttonLedValue === undefined) {
+        if (this.buttonLedValue > 0) {
+            this.buttonLedValue = 127;// should match corresponding button led value, 50/50 chance if input was undefined
+        }
+        post("C4Encoder.randomizeData: input was undefined generating random button led state", this.buttonLedValue); post();
     }
     this.pressedValue = reqModule.generateMidiValue();
     this.releasedValue = reqModule.generateMidiValue();

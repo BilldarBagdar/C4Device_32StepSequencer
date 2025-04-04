@@ -70,6 +70,47 @@ function forceLoadUp() {
     loadUp();
 }
 
+function initButtons(modeSelect){
+    buttonsDict.name = "c4Buttons";
+    btnStateDict.name = "buttonStateChangeCount";
+    ledStateDict.name = "ledStateChangeCount";
+    var bridgeButtons = controller["bridgeDeck"].brdgButtons;
+    for(var i = 0; i < TOTAL_BUTTONS; i++) {
+        var button = bridgeButtons[i];
+        if (button.index === PROCESSING_BYPASS_SIGNAL_ID && modeSelect === 127) {
+            // initialize in "processing mode"
+            button.pressedCount += 1;
+            button.releasedCount += 1;
+            button.ledChangeCount += 1;
+            button.ledValue = 127; // ON === processing events by default
+        }
+        controller["bridgeDeck"].brdgButtons[button.index] = button;
+        buttonsDict.setparse(button.index, button.toJsonStr());// save initial state to dicts
+        var buttonJson = buttonsDict.get(i);
+        button = utilButton.newFromDict(buttonJson);
+        btnStateDict.set(i, button.pressedCount + button.releasedCount);
+        ledStateDict.set(i, button.ledChangeCount);
+    }
+    // save the default signals (specifically "button 22" - PROCESSING ON) to all decks of the "global" controller
+    controller.propagateActiveSpareSignalsAcrossDecks()
+}
+
+// Max's console doesn't post() the correct Dict values above or below, but they're correct
+function initEncoders() {
+    encodersDict.name = "c4Encoders";
+    encBtnReleasedStateDict.name = "encoderBtnReleasedData";
+    encBtnPressedStateDict.name = "encoderBtnPressedData";
+    var bridgeEncoders = controller["bridgeDeck"].brdgEncoders;
+    for(var i = 0; i < TOTAL_ENCODERS; i++) {
+        var encoder = bridgeEncoders[i];
+        encodersDict.setparse(i, encoder.toJsonStr());
+        var encoderJson = encodersDict.get(i);
+        encoder = utilEncoder.newFromDict(encoderJson);
+        encBtnReleasedStateDict.set(i, encoder.releasedValue);
+        encBtnPressedStateDict.set(i, encoder.pressedValue);
+    }
+}
+
 
 function initControllerDict() {
     c4DeviceControllerDict.name = "C4DeviceExecutiveController";
@@ -137,56 +178,19 @@ function setNextController(nextController) {
     nextController.copyActiveSignals();
     controller = nextController;
     currentDeckName = controller.determineSavedOnDutyDeckName();
+    activateSavedDeck(currentDeckName);
     controller.refreshDeckForDutySwap(currentDeckName);
     setActiveCrewOnDuty(currentDeckName);
     // "clearing the last step" here is a euphemism for updating the C4 display with data just loaded from disk
     clearLastSequencerStep(1);
 }
 
-function initButtons(modeSelect){
-    buttonsDict.name = "c4Buttons";
-    btnStateDict.name = "buttonStateChangeCount";
-    ledStateDict.name = "ledStateChangeCount";
-    var bridgeButtons = controller["bridgeDeck"].brdgButtons;
-    for(var i = 0; i < TOTAL_BUTTONS; i++) {
-        var button = bridgeButtons[i];
-        if (button.index === PROCESSING_BYPASS_SIGNAL_ID && modeSelect === 127) {
-            // initialize in "processing mode"
-            button.pressedCount += 1;
-            button.releasedCount += 1;
-            button.ledChangeCount += 1;
-            button.ledValue = 127; // ON === processing events by default
-        }
-        controller["bridgeDeck"].brdgButtons[button.index] = button;
-        buttonsDict.setparse(button.index, button.toJsonStr());// save initial state to dicts
-        var buttonJson = buttonsDict.get(i);
-        button = utilButton.newFromDict(buttonJson);
-        btnStateDict.set(i, button.pressedCount + button.releasedCount);
-        ledStateDict.set(i, button.ledChangeCount);
-    }
-    // save the default signals (specifically "button 22" - PROCESSING ON) to all decks of the "global" controller
-    controller.propagateActiveSpareSignalsAcrossDecks()
-}
-
-// Max's console doesn't post() the correct Dict values above or below, but they're correct
-function initEncoders() {
-    encodersDict.name = "c4Encoders";
-    encBtnReleasedStateDict.name = "encoderBtnReleasedData";
-    encBtnPressedStateDict.name = "encoderBtnPressedData";
-    var bridgeEncoders = controller["bridgeDeck"].brdgEncoders;
-    for(var i = 0; i < TOTAL_ENCODERS; i++) {
-        var encoder = bridgeEncoders[i];
-        encodersDict.setparse(i, encoder.toJsonStr());
-        var encoderJson = encodersDict.get(i);
-        encoder = utilEncoder.newFromDict(encoderJson);
-        encBtnReleasedStateDict.set(i, encoder.releasedValue);
-        encBtnPressedStateDict.set(i, encoder.pressedValue);
-    }
-}
-
+var randomizeOnNextModifierRelease = false;
+var secondRelease = false;
 function midievent(midiMsgIn) {
     encodersDict.name = "c4Encoders";
     buttonsDict.name = "c4Buttons";
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
 
     var MIDI_MSG_SIZE = 3;
     var midiMsg = arrayfromargs(arguments);
@@ -245,23 +249,38 @@ function midievent(midiMsgIn) {
                         pageChangeSignal = 1;
                     } else if (feedbackMsg[1] > 12 && feedbackMsg[1] <= 16 && midiMsg[2] === BUTTON_PRESSED_VALUE) {
                         // Modifier button press feedback, check for two
-                        if (reqModule.areTwoModifiersPressed(currentDeckName)) {
+                        if (reqModule.areTwoModifiersPressed()) {
+                            randomizeOnNextModifierRelease = true;
+                        }
+                    } else if (feedbackMsg[1] > 12 && feedbackMsg[1] <= 16 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
+                        if (randomizeOnNextModifierRelease) {
+                            randomizeOnNextModifierRelease = false;
+                            secondRelease = true;
+                        } else if (secondRelease) {
                             var randomizedControllerData = controller.newRandomizedData();
+                            //post(randomizedControllerData.toJsonStr()); post();
+                            currentDeckName = reqModule.getActiveControllerDeckName();
+                            updateActiveControllerDeckForSave(currentDeckName);
+                            randomizedControllerData.reconcileActiveModifiers(currentDeckName);
+
+                            c4DeviceControllerDict.parse(randomizedControllerData.toJsonStr());
                             setNextController(randomizedControllerData);
+                            secondRelease = false;
                         }
                     }
                     // pass all other button feedback messages
                 } else if (midiMsg[0] === MIDI_CC_ID && midiMsg[1] < NBR_PHYSICAL_ENCODERS) {
                     feedbackMsg = processEncoderMessage(midiMsg);
                 } else {
-                    // true here: Processing enabled and (midiMsg[0] === MIDI_CC_ID && midiMsg[1] >= NBR_PHYSICAL_ENCODERS)
+                    // true here: Processing enabled and this midiMsg is already encoder feedback (midiMsg[0] === MIDI_CC_ID && midiMsg[1] >= NBR_PHYSICAL_ENCODERS)
                     // Live directly updates mapped parameter objects in the remote script when for example, the selected track changes,
                     // those updates include sending CC feedback messages to update the C4 display
                     // (directly from Live, not via any accessible remote script "send midi" methods?)
-                    // This patch is dropping that feedback here because the script is in USER mode and this patch is charge of the C4 display right now.
-                    //post("C4Device.midievent: CC feedback netted while processing:", midiMsg.toString());post();
-                    feedbackMsg = [0, 0, 0, 0];
+                    // This patch is dropping that feedback here because the script is in USER mode and
+                    // this patch is charge of the C4 display right now.
                     return;
+                    //post("C4Device.midievent: CC feedback netted while processing:", midiMsg.toString());post();
+                    //feedbackMsg = [0, 0, 0, 0];
                     //outlet(0, midiMsg);
                 }
             } else { // bypassBtn.isBypassed()
@@ -395,9 +414,11 @@ function isSerialNumberResponse(sysex) {
     // - C4 msg id                               x1
     // - C4 msg                                       Z   T   1   0   4   7   3    y DLE ACK NUL
     // - sysex msg tail                                                                           END
-    var c4Welcome = [240, 0, 0, 102, 23, 1, 90, 84, 49, 48, 52, 55, 51, 121, 16,  6,  0, 247];
+    var c4Welcome = [240, 0, 0, 102, 23, 1, 90, 84, 49, 48, 52, 55, 51, 121, 16,  6,  0, 247];// to/from a C4Pro
+    //                                                H   U   1   0   1   8   2    E DC4
+    //       var c4Welcome = [240, 0, 0, 102, 23, 1, 72, 85, 49, 48, 49, 56, 50,  69, 20,  6,  0, 247];// to/from a C4
     // specifically, hello from C4Pro unit with serial number ZT10473 - this is also what "serial number request" responses look like
-    // In contrast, a sysex message aimed at C4 LCD screens starts with [240, 0, 0, 102, 23, hb, lb] (hb 48 addresses top LCD, lb 54 addresses bottom row), then 55 bytes of text, then ends with 247
+    // In contrast, a sysex message aimed at C4 LCD screens starts with [240, 0, 0, 102, 23, hb, lb] (example: hb 48 addresses top LCD, lb 54 addresses bottom row), then 55 bytes of text, then ends with 247
     var mackieSysexHeader = [240, 0, 0, 102, 23, 1];// the 1 means "serial number request" message type?
     var sysexTail = [16, 6, 0, 247];// the 16, 6, 0 means "end of response data", "response acknowledges request", "response is complete" (no more parts)?
     var isMatch = true;
