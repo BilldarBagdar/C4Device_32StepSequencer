@@ -3,8 +3,7 @@
 <a href="https://github.com/markusschloesser/MackieC4_P3"> Markus Schloesser</a> as the script's USER mode.  
 </p>
 <p>
-The integration is still in development, not necessarily ready for full release.  But the current snapshot is stable enough to
-push to origin here.  (If running on the same computer as a DAW like Live), the integration requires one more midi loopback port 
+The integration is still in development, not necessarily ready for full release. (If running on the same computer as a DAW like Live), the integration requires one more midi loopback port 
 (on top of the two required for standalone sequencer operation) between Live's "C4 remote script" midi out and this patch's "C4 Midi In" port.  
 Connections should flow like this
 </p>
@@ -81,14 +80,16 @@ in Live that trigger controller feedback (like a mouse click changing the select
 <p>
 NOTE: You will likely see the C4 display "go blank" and revert to the "Mackie power-on Welcome message" shortly after you open any Live set when you are using the remote script.  
 Usually right before your second button press if you are doing two buttons back-to-back, or whenever you look back at the display if you only did one button press.  When that happens, 
-the C4 has reacted to some kind of "reset" midi SYSEX message sent by Live itself, not the remote script. (This "rouge reset", lol, is an outstanding "known issue" the remote script can't 
-prevent, but this Max (USER mode) sequencer project might be able to snare since (when you are using it) all midi messages between Live and the C4 pass through the patch on the way to the C4.)
+the C4 has reacted to some kind of "reset" midi SYSEX message sent by Live itself(?), not the remote script. (This "rogue reset" is an outstanding "known issue" the remote script can't 
+prevent, but this Max (USER mode) sequencer project can snare since (when you are using it) all midi messages between Live and the C4 pass through the patch on the way to the C4.
+Unfortunately, this patch can't do anything about the remote script's "blank display" without "remembering" what the remote script's display should look like by scanning sysex messages
+as they pass through.  The remote script should refresh its own display within 2 seconds anyway)
 </p>
 <p>
-If you don't see remote script "feedback display updates" on the C4 display (the LEDs and LCDs), double-check your midi port connections.  Also try running the sequencer patch in standalone mode.  
-Disconnect the remote script in Live and connect both Sequencer "C4 Midi" (in and out) ports to the C4 DIN ports. Close the "start in bypassing mode" patch and 
-open the "start in processing mode" patch.  This standalone configuration should work (without the remote script involved).  If both the remote script and the sequencer work independently 
-but not when chained, double-check that L1 loopback connection.  Otherwise, start or append to an "Issues" thread here.
+If you don't see remote script "feedback display updates" on the C4 display (the LEDs and LCDs) at this point, double-check your midi port connections.  Also try running the sequencer 
+patch in standalone mode (remove Live from the equation).  Disconnect the remote script in Live and connect both Sequencer "C4 Midi" (in and out) ports to the C4 DIN ports. 
+Close the "start in bypassing mode" patch and open the "start in processing mode" patch.  This standalone configuration should work (without the remote script involved).  
+If both the remote script and the sequencer work independently but not when chained, double-check that L1 loopback connection.  Otherwise, start or append to an "Issues" thread in this repository.
 </p>
 <p>
 Now with the remote script showing feedback successfully (through this sequencer's bypass), click the physical C4 MARKER button to initiate two changes. To switch the script 
@@ -110,32 +111,29 @@ in the patch, but it's generally easier to just close the patch and reopen (from
 <p>
 A similarly important practice for your local system is calibrating the "midi sync delay" subtracted from the RTC Midi Out port in Live, for example, (could be any RTC source/Note 
 destination "daw"), Midi Options (Options>Midi tab).  You want to send out the RTC ticks "early" so the sequencer Notes come back "on time".
-Every different session could impart subtly different amounts of latency, but generally your system's "midi sync delay" should be more or less stable.  -2.0 to -5.0 milliseconds or 
-more (negative) is possible.  But since Live only offers increments of .5 ms for
-this setting, don't get too hung up on the grid lines in a clip when you are calibrating your sync delay, just listen for a musical result from this test.  Record another clip of the sequencer
-playing after you've found a good first amount (Your first recording just shows you where the starting point is, how far your first adjustment might need to be, and your second recording
-usually tells you your first adjustment was too big, so you rinse and repeat.  With .5 ms increments it doesn't take too many tries to zoom in on your first "good amount"). Create a 32 step 
-(2 bar) sequence of notes that play every 8th note (press all the even numbered encoder buttons to "enlighten" their leds and twist the encoder into the 30s or 40s). Set the 
-Track recording monitor to "Auto" and record the sequence.  Then click the clip to "stop recording, start playing back".  The sequencer will keep playing through the monitor 
-(ready for overdub recording), and the clip will also start playing sync'd with Live's grid.  If the combined result sounds musical, that's the ticket, you have found a good amount 
-of sync delay. While the clip continues looping, mess around with the sequencer, click Track L and Track R buttons in a rhythmic pattern, for example.  Fun, right?  With .5 ms
-increments only, your "sync delay" might not actually converge to one "good amount" and only settle around two "not so good amounts" on either side of the grid lines.  Exactly that
-issue isn't known to have happened, but for example, during development it is often useful to run twice as many "loopback" connections so all the midi messages can route through a midi 
-monitor application like Midi-Ox.  The "sync delay" can be very unstable in that configuration, it is the price of monitoring visibility.  The simple "direct" RTC and Note loopback
-connections have so far always landed on one "good amount".  (each time I try recalibrating)
+Every different session could impart subtly different amounts of latency, but generally your system's "midi sync delay" should be more or less stable.  -5.0 milliseconds or 
+more (negative) is possible.  But since Live only offers increments of .5 ms for this setting, don't get too hung up on the grid lines in a clip when you are calibrating your sync delay.
+I probably don't understand how to get "best results" in this situation because it seems like Live inconsistently applies "sync delay" settings on midi ports.  I've tried -2.5, 
+-2.0, -1.5, -1.0, -0.5, and 0.00 "sync delay" settings on the RTC output port with basically zero impact on the relationship between the recorded midi sequencer notes and the 
+grid lines in the clip (all the Notes were recorded in test clips about the same amount "early", seemingly regardless of the "sync delay" setting).  Restarting Live, not restarting, 
+rebooting and not rebooting, keeping latency and not keeping latency.  I've been unable to synchronize the incoming midi notes with the grid.  Sequencer clips play nicely with 
+each other, but not necessarily with anything "grid aligned".  Tighter timing with the grid is the number one item on the "next release" improvements list.
 </p>
 <ul>
-<li>Note1: The RTC starts going out with the Transport, not the count-in, and the sequencer takes a beat to lock in.  So you "never" (hear or) record the first sequencer step 
+<li>Note1: The RTC starts going out (from Live) with the Transport, not the count-in, and the sequencer takes a beat to lock in.  So you "never" (hear or) record the first sequencer step 
 (Encoder 00 for example) until the second time around the sequence after "playback" starts.  
 </li>
 <li>Note2: Sometimes, especially right after loading a fresh set, Live needs to "warm up" and "blow out the pipes" 
-before the RTC midi sync actually locks in.  If a recorded sequencer clip has terrible sync delay after you already settled in on a good amount of negative delay, especially if 
+before the RTC midi sync actually locks in.  If a recorded sequencer clip suddenly has much worse sync delay after you already settled in on a good amount, especially if 
 you just loaded a set, try recording the sequence again.  The pipes should be flowing smoothly after the set warms up.  You could also use this setting creatively, 
 like a "hard coded" midi delay on the "playing live" sequencer Notes.
 </li>
 </ul>
 <h4>Updates since v1.0</h4>
 <ul>
+<li>Pressing two "modifier buttons" at the same time, then releasing them, will now randomize "all" sequencer data values.  There is a 50/50 chance any given "encoder button LED" will randomly
+turn ON during randomization.  However, encoder button LEDs only "flip" for actual randomization changes. LEDs that randomly hit ON will stay ON if already ON, for example, 
+while encoder values randomly change most of the time (always randomize).</li>
 <li>You can now save and load sequencer dictionary JSON files. (from/to the project/data/c4Controllers folder by default)</li>
 <li>The sequencer now has a VERBOSE mode that applies when the remote script is NOT in USER mode so the sequencer will keep sending Notes (but not updating the C4 display). For example, when 
 the script is in USER mode, the Spot/Erase button acts like a vehicle's clutch on the RTC (external) transport. Meaning, when the red Spot/Erase LED is ON you've "stepped on the clutch" 
@@ -150,7 +148,8 @@ sequencer sending Notes, you have to return to USER mode to STOP the Max Transpo
 <li>The Sequencer no longer does any pitch coercion (to C minor pentatonic), except to scale the Note values output between 12 and 120 (i.e. a normal piano's 10 octave range)</li>
 <li>An encoder's stored "pressedValue" now supplements the sequencer's randomly generated (scaled between 50 and 120) velocity for that sequence step. (If the Pressed value is 78 or higher, 
 every note output will have the maximum 127 velocity) If the sequencer is running, and
-the encoder button "isPressed" when the "hot step" hits, the encoder's "pressedValue" is still used for that step's Note value too (v1 behavior)</li>
+the encoder button "isPressed" when the "hot step" hits, the encoder's "pressedValue" is still used for that step's Note value too (v1 behavior)  Manually changing the "pressedValue" still
+toggles the button LED state as well.</li>
 </ul>
 <p>
 </p>
