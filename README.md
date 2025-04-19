@@ -106,18 +106,14 @@ the sequencer patch goes back into "bypassing" mode.  Keep reading (below) for s
 <p>
 It is best practice to exit USER mode before you load or reload another session in Live because the "new set" won't open with the remote script in USER mode
 and the sequencer patch will be in "processing" mode when it should be "bypassing" in that case.  To get out of this kind of pickle, there is a way to toggle the patch mode "manually" 
-in the patch, but it's generally easier to just close the patch and reopen (from the Max Project menu) in "bypassing" mode.
+in the patch, but it's generally easier to just close the patch and reopen (from the Max Project menu) in "bypassing" mode.  
 </p>
 <p>
-A similarly important practice for your local system is calibrating the "midi sync delay" subtracted from the RTC Midi Out port in Live, for example, (could be any RTC source/Note 
-destination "daw"), Midi Options (Options>Midi tab).  You want to send out the RTC ticks "early" so the sequencer Notes come back "on time".
-Every different session could impart subtly different amounts of latency, but generally your system's "midi sync delay" should be more or less stable.  -5.0 milliseconds or 
-more (negative) is possible.  But since Live only offers increments of .5 ms for this setting, don't get too hung up on the grid lines in a clip when you are calibrating your sync delay.
-I probably don't understand how to get "best results" in this situation because it seems like Live inconsistently applies "sync delay" settings on midi ports.  I've tried -2.5, 
--2.0, -1.5, -1.0, -0.5, and 0.00 "sync delay" settings on the RTC output port with basically zero impact on the relationship between the recorded midi sequencer notes and the 
-grid lines in the clip (all the Notes were recorded in test clips about the same amount "early", seemingly regardless of the "sync delay" setting).  Restarting Live, not restarting, 
-rebooting and not rebooting, keeping latency and not keeping latency.  I've been unable to synchronize the incoming midi notes with the grid.  Sequencer clips play nicely with 
-each other, but not necessarily with anything "grid aligned".  Tighter timing with the grid is the number one item on the "next release" improvements list.
+A similarly important practice for your local system is calibrating "midi sync delay".  If you need to adjust timing, typically you want to send out the RTC ticks "early" so the 
+sequencer Notes come back "on time".  Depending on what other tasks are consuming CPU resources, every different Live session could impart subtly different amounts of latency, 
+but generally your system's "midi sync delay" should be more or less stable.  -5.0 milliseconds or more (negative) is possible though under heavy loads.  But since Live only offers increments of .5 ms 
+for this setting, don't get too hung up on the grid lines in a clip when you are calibrating your sync delay.  When just running Live and Max (this project), you may not notice any 
+audible latency.
 </p>
 <ul>
 <li>Note1: The RTC starts going out (from Live) with the Transport, not the count-in, and the sequencer takes a beat to lock in.  So you "never" (hear or) record the first sequencer step 
@@ -127,6 +123,11 @@ each other, but not necessarily with anything "grid aligned".  Tighter timing wi
 before the RTC midi sync actually locks in.  If a recorded sequencer clip suddenly has much worse sync delay after you already settled in on a good amount, especially if 
 you just loaded a set, try recording the sequence again.  The pipes should be flowing smoothly after the set warms up.  You could also use this setting creatively, 
 like a "hard coded" midi delay on the "playing live" sequencer Notes.
+</li>
+<li>
+Note3: When the sequencer is running, "control" updates like SPLIT button page changes happen right away, you'll hear the changes, but the associated display updates can appear to lag because they 
+follow the "hot step".  If your eye is following the "hot step", you'll see page change updates right away, for example.  But if your eye is fixed on one spot, 
+any page change display updates will lag until the "hot step" comes around.
 </li>
 </ul>
 <h4>Updates since v1.0</h4>

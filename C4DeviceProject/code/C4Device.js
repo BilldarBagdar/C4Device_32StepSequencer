@@ -512,12 +512,13 @@ function saveActiveDeck(deckName) {
     c4DeviceControllerDict.name = "C4DeviceExecutiveController";
     buttonsDict.name = "c4Buttons";
     encodersDict.name = "c4Encoders";
-    var reqName = reqModule.getActiveControllerDeckName();
-    if (deckName !== reqName) {// these only match when the user "saves a sequencer file" in the Max patch
-        //post("C4Device.saveActiveDeck: input deck", deckName, "is not active deck", reqName, "saving active data to input deck for duty swap"); post();
-    } else {
-        post("C4Device.saveActiveDeck: input deck", deckName, "is the active deck, saving active data to input deck for save to file"); post();
-    }
+    // var reqName = reqModule.getActiveControllerDeckName();
+    // if (deckName !== reqName) {// these only match when the user "saves a sequencer file" in the Max patch
+    //     //post("C4Device.saveActiveDeck: input deck", deckName, "is not active deck", reqName, "saving active data to input deck for duty swap"); post();
+    // } else {
+    //     // this method is also called when users "randomize controller data" via the updateActiveControllerDeckForSave() method
+    //     //post("C4Device.saveActiveDeck: input deck", deckName, "is the active deck, saving active data to input deck for save to file"); post();
+    // }
 
     // propagate "common" data from this deck across all decks (and make sure the two controller Split button officers match)
     controller.refreshDeckForDutySwap(deckName);
