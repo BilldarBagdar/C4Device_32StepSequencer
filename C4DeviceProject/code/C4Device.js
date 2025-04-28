@@ -306,9 +306,14 @@ function midievent(midiMsgIn) {
 
         if (!bypassBtn.isBypassed()) {
             // if the output matches the input as expected, return the midi feedback msg to Max (to the C4)
-            if (feedbackMsg[3] === midiMsg[2] || feedbackMsg[3] === (ENCODER_RING_BTN_LED_ON_OFFSET - midiMsg[2])) {
+            var test = feedbackMsg[3] === (ENCODER_RING_BTN_LED_ON_OFFSET - midiMsg[2]);
+            if (feedbackMsg[3] === midiMsg[2] || test) {
+                // if (test) {
+                //     // pops when knob turns counter clockwise
+                //     post("C4Device.midiEvent: encoder button led ring offset test condition popped", midiMsg);post();
+                // }
 
-                outlet(0, [feedbackMsg[0], feedbackMsg[1], feedbackMsg[2]]);
+                outlet(0, [feedbackMsg[0], feedbackMsg[1], feedbackMsg[2]]);//  feedbackMsg[2] is an "led ring" value
                 // if there are any more feedback messages, return them next
                 // if the sequencer is running and the page changes, defer sysex feedback to sequencer control
                 // only send this "display page update" if the sequencer is not running when the page changes
