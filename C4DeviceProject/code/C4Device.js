@@ -314,8 +314,17 @@ function midievent(midiMsgIn) {
                 // only send this "display page update" if the sequencer is not running when the page changes
                 if (pageChangeSignal > 0 && !isSequencerRunning()) {
                     sendEncoderPageData(generateDisplayPageChangeMsgs);
-                } else if (midiMsg[0] === MIDI_CC_ID && !isSequencerRunning()) {
-                    var lcdFdbkMsg = generateLcdFeedback(midiMsg[1]);
+                } else if (feedbackMsg[0] === MIDI_CC_ID && !isSequencerRunning()) {
+                    encoderId = midiMsg[1];
+                    if ((midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) && feedbackMsg[0] === MIDI_CC_ID) {
+                        //post("C4Device.midiEvent: encoder button event", midiMsg);post();
+                        encoderId -= ENCODER_BTN_OFFSET;
+                    }
+                    // } else if (feedbackMsg[0] === midiMsg[0]) {
+                    //     post("C4Device.midiEvent: encoder knob event", midiMsg); post();
+                    // }
+
+                    var lcdFdbkMsg = generateLcdFeedback(encoderId);
                     // only send if content changed
                     if (lcdFdbkMsg[0][0] !== ABORT_FEEDBACK_SIGNAL) {
                         outlet(1, lcdFdbkMsg[0]);//top line
