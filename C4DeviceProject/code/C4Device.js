@@ -315,10 +315,15 @@ function midievent(midiMsgIn) {
 
                 outlet(0, [feedbackMsg[0], feedbackMsg[1], feedbackMsg[2]]);//  feedbackMsg[2] is an "led ring" value
                 // if there are any more feedback messages, return them next
+
                 // if the sequencer is running and the page changes, defer sysex feedback to sequencer control
                 // only send this "display page update" if the sequencer is not running when the page changes
                 if (pageChangeSignal > 0 && !isSequencerRunning()) {
+                    // assignment button - page change
                     sendEncoderPageData(generateDisplayPageChangeMsgs);
+                } else if (feedbackMsg[1] >= 13 && feedbackMsg[1]  <= 16 && !isSequencerRunning()) {
+                    // modifier button - repaint showing "shift pressed" data for example
+                    sendEncoderPageData(generateDisplayPageUpdateMsgs);
                 } else if (feedbackMsg[0] === MIDI_CC_ID && !isSequencerRunning()) {
                     encoderId = midiMsg[1];
                     if ((midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) && feedbackMsg[0] === MIDI_CC_ID) {
@@ -328,7 +333,7 @@ function midievent(midiMsgIn) {
                     // } else if (feedbackMsg[0] === midiMsg[0]) {
                     //     post("C4Device.midiEvent: encoder knob event", midiMsg); post();
                     // }
-
+                    // repaint encoder knob turn or button pressed/released data
                     var lcdFdbkMsg = generateLcdFeedback(encoderId);
                     // only send if content changed
                     if (lcdFdbkMsg[0][0] !== ABORT_FEEDBACK_SIGNAL) {
