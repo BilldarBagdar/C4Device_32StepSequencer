@@ -318,31 +318,33 @@ function midievent(midiMsgIn) {
 
                 // if the sequencer is running and the page changes, defer sysex feedback to sequencer control
                 // only send this "display page update" if the sequencer is not running when the page changes
-                if (pageChangeSignal > 0 && !isSequencerRunning()) {
-                    // assignment button - page change
-                    sendEncoderPageData(generateDisplayPageChangeMsgs);
-                } else if (feedbackMsg[1] >= 13 && feedbackMsg[1]  <= 16 && !isSequencerRunning()) {
-                    // modifier button - repaint showing "shift pressed" data for example
-                    sendEncoderPageData(generateDisplayPageUpdateMsgs);
-                } else if (feedbackMsg[0] === MIDI_CC_ID && !isSequencerRunning()) {
-                    encoderId = midiMsg[1];
-                    if ((midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) && feedbackMsg[0] === MIDI_CC_ID) {
-                        //post("C4Device.midiEvent: encoder button event", midiMsg);post();
-                        encoderId -= ENCODER_BTN_OFFSET;
+                if (!isSequencerRunning()) {
+                    if (pageChangeSignal > 0) {
+                        // assignment button - page change
+                        sendEncoderPageData(generateDisplayPageChangeMsgs);
+                    } else if (feedbackMsg[1] >= 13 && feedbackMsg[1] <= 16) {
+                        // modifier button - repaint showing "shift pressed" data for example
+                        sendEncoderPageData(generateDisplayPageUpdateMsgs);
+                    } else if (feedbackMsg[0] === MIDI_CC_ID) {
+                        encoderId = midiMsg[1];
+                        if ((midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) && feedbackMsg[0] === MIDI_CC_ID) {
+                            //post("C4Device.midiEvent: encoder button event", midiMsg);post();
+                            encoderId -= ENCODER_BTN_OFFSET;
+                        }
+                        // } else if (feedbackMsg[0] === midiMsg[0]) {
+                        //     post("C4Device.midiEvent: encoder knob event", midiMsg); post();
+                        // }
+                        // repaint encoder knob turn or button pressed/released data
+                        var lcdFdbkMsg = generateLcdFeedback(encoderId);
+                        // only send if content changed
+                        if (lcdFdbkMsg[0][0] !== ABORT_FEEDBACK_SIGNAL) {
+                            outlet(1, lcdFdbkMsg[0]);//top line
+                        }
+                        if (lcdFdbkMsg[1][0] !== ABORT_FEEDBACK_SIGNAL) {
+                            outlet(1, lcdFdbkMsg[1]);//bottom line
+                        }
                     }
-                    // } else if (feedbackMsg[0] === midiMsg[0]) {
-                    //     post("C4Device.midiEvent: encoder knob event", midiMsg); post();
-                    // }
-                    // repaint encoder knob turn or button pressed/released data
-                    var lcdFdbkMsg = generateLcdFeedback(encoderId);
-                    // only send if content changed
-                    if (lcdFdbkMsg[0][0] !== ABORT_FEEDBACK_SIGNAL) {
-                        outlet(1, lcdFdbkMsg[0]);//top line
-                    }
-                    if (lcdFdbkMsg[1][0] !== ABORT_FEEDBACK_SIGNAL) {
-                        outlet(1, lcdFdbkMsg[1]);//bottom line
-                    }
-                }
+                } // else sequencer is running
             }
             else if (feedbackMsg[1] === bypassBtn.index) {
                 // dropping because "button 22" is virtual, no physical LED.  Dictionary data is already updated
