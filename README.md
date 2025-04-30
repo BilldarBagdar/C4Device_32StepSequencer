@@ -29,9 +29,9 @@ folder and its contents.  Paste the folder and contents into your "MIDI Remote S
 <span style="font-family: 'Courier New',ui-monospace">C:\ProgramData\Ableton\Live 12 Suite\Resources\MIDI Remote Scripts</span>.  Then start Live and add the (new) MackieC4 "remote script" to 
 an open script slot (Live Options midi tab) including selecting both C4 midi DIN ports.  If the remote script doesn't start working 
 (processing button clicks and showing feedback, for example) as soon as you close Options, restart Live.  If it still doesn't work, check all your
-port assignments and or Markus's<a href="https://github.com/markusschloesser/MackieC4_P3/wiki"> wiki</a>.  Test going into and coming out of USER mode.  
-If you don't see static USER mode text on the LCDs telling you how to exit USER mode [(press+hold) Marker + (press) LOCK] then you don't have the correct (latest?) remote 
-script version installed into Live.
+port assignments and or the MackieC4_P3 repo<a href="https://github.com/markusschloesser/MackieC4_P3/wiki"> wiki</a>.  Test going into (and coming out of) USER mode, by pressing the MARKER button.  
+If you don't see static USER mode text on the LCDs telling you how to exit USER mode [(press+hold) MARKER + (press) LOCK] then you don't have the correct (latest?) remote 
+script version installed and running in Live.
 </p>
 <p>
 Once you've confirmed the (Sequencer compatible) remote script is working, remove the "remote script's midi output" port assignment (leave the script input port assignment) 
@@ -41,11 +41,11 @@ loopback ports. L1 and L2 are "Live Midi Output" ports and L3 is a "Live Midi In
 and the input port coming from the physical C4 DIN. (plus any other midi ports you want)  Now close and restart Live.  When Live is ready again, 
 the remote script will only be connected on the front side (C4 to Live).  You can move Live's selected track Left and Right using the C4 Track L and Track R 
 buttons, for example, because the remote script works, but you won't see any LEDs or LCDs reacting to "midi feedback" because the feedback-side isn't connected yet. Now, click
-the TRACK button in the Assignment group on the C4 "control panel" to put the script in "Track Device(s)" mode.  You should see a message in Live's message area at the bottom
-of the window indicating the script's "mode change". (if not, you don't have the latest remote script running)  The remote script is always ready for the Sequencer, but the Sequencer 
-needs to start in the mode that matches the Remote Script's current mode. (If the Remote Script is in USER mode, the Sequencer should "open in processing mode", and if the remote
-script is in any "other" mode (Track-Device, Track-Channel-Strip, Song-Function), the Sequencer should "open in bypassing mode").  
-These instructions guide toward opening the Sequencer patch in "bypassing" mode.
+the TRACK button in the Assignment group on the C4 "control panel" to put the script in "Track Device(s)" mode. (freshly loaded sessions start in "Track Channel Strip" mode)  
+You should see a message in Live's message area at the bottom of the window indicating the script's "mode change". (if not, you don't have the latest remote script running)  
+The remote script is always ready for the Sequencer, but the Sequencer needs to start in the mode that matches the Remote Script's current mode. (If the Remote Script is in 
+USER mode, the Sequencer should "open in processing mode", and if the remote script is in any "other" mode (Track-Device, Track-Channel-Strip, Song-Function), the Sequencer 
+should "open in bypassing mode").  These instructions guide toward opening the Sequencer patch in "bypassing" mode.
 </p>
 <p>
 Open Max directly (if you have a full Max license) or via M4L.  Via M4L, in Live drag a default M4L device onto a Track in your session and click the <=> (edit patch) icon upper right corner of the 
@@ -61,9 +61,9 @@ all the other files in their project-relative folders like /code, /data, /patche
 </p>
 <p>
 ("path finding" in Max is otherwise a PITA, patches have no idea what folder they started in, Max doesn't interpret a simple relative path like, "../code/foo.js" 
-(up one level from "current directory" and down into /code, look for a file named foo.js)) the way "programmers" would normally expect. A current directory '.' in a path-search string is generally 
-interpreted as the folder where max.exe is located not the current patch folder.  But inside a project, the "path-search search path" starts in the project folder and recurses there first.  
-You only need to write "foo.js" in a project patcher and the file gets found within the project folder heirarchy.
+(up one level from "current directory" and down into /code, look for a file named foo.js) the way path interpretation works in other scripting environments. A current 
+directory '.' in a path-search string is generally interpreted as the folder where max.exe is located not the current patch folder.  But inside a project, the 
+"path-search search path" starts in the project folder and recurses there first.  You only need to write "foo.js" in a project patcher and the file gets found within the project folder hierarchy.)
 </p>
 <p>
 From the "Project menu" window, open the patch file named `openSequencerBypassing.maxpat`.  
@@ -74,9 +74,10 @@ After the Sequencer patch loads, ensure the patch's 4 midi port connections are 
     "RTC Midi In" port should connect to the L2 loopback (coming from a Live Midi Out port with "Sync" checked)
     "Sound Module Midi Out" port should connect to the L3 loopback (going to a Live Midi In port with "Track" checked)
 
-Since the Sequencer patch opened in "bypassing" mode, and the remote script is still in DEVICES mode (Track button), you should start to see all the
+Since the Sequencer patch opened in "bypassing" mode, and the remote script is still in "Track Device(s)" mode (TRACK button), you should start to see all the
 normal remote script feedback appear on the C4 "display" (the LEDs and LCDs) in response to button presses and encoder turns on the C4 and other actions 
-in Live that trigger controller feedback (like a mouse click changing the selected track).  If the C4 display still shows the "Mackie power-on Welcome message", switch to Function mode and back.
+in Live that trigger remote script feedback (like a mouse click changing the selected track).  If the C4 display still shows the "Mackie power-on Welcome message", switch to "Song 
+Function" mode and back. (Press FUNCTION button, then TRACK again)
 </p>
 <p>
 NOTE: You will likely see the C4 display "go blank" and revert to the "Mackie power-on Welcome message" shortly after you open any Live set when you are using the remote script.  
@@ -94,18 +95,18 @@ If both the remote script and the sequencer work independently but not when chai
 </p>
 <p>
 Now with the remote script showing feedback successfully (through this sequencer's bypass), click the physical C4 MARKER button to initiate two changes. To switch the script 
-from TRACK-DEVICES mode (Track button) to USER mode (Marker button), and to switch the Sequencer patch from BYPASSING mode to PROCESSING mode (via a midi message signal to javascript).
-(Alternatively, if the remote script was already in USER mode (because you pressed the MARKER button first), you would just
-open the Project>patch file named `openSequencerProcessing.maxpat` second)  The C4 "display" might be blank at first after USER mode starts, but press the SPLIT button and you should see 
-"page 1" (of the "bridge deck" data) display on the C4.  Click SPLIT again and the "Page 0" data is displayed (properly this time, although both modes show encoders with default zero values, 
-the encoder names are unique, ENC00 on page 0 is ENC32 on page 1, for example).
+from "Track Device(s)" mode (TRACK button) to "User" mode (MARKER button), and to switch the Sequencer patch from BYPASSING mode to PROCESSING mode (via a midi message signal to javascript).
+(Alternatively, if the remote script was already in "User" mode (because you pressed the MARKER button first), you would just
+open the Project>patch file named `openSequencerProcessing.maxpat` second)  The C4 "display" might be blank at first after "User" mode starts (after the sequencer starts processing), 
+but press the SPLIT button and you should see the C4 display update to show "page 1" (of the "bridge deck" data).  Click SPLIT again and the "Page 0" data is displayed 
+(properly this time, although both modes show encoders with default zero values, the encoder names are unique, ENC00 on page 0 is ENC32 on page 1, for example).
 </p>
 <p>
-To Exit USER mode, Press and Hold the MARKER button then Press the LOCK button.  The remote script goes back to whatever other mode was active before going into USER mode and 
-the sequencer patch goes back into "bypassing" mode.  Keep reading (below) for sequencer operation details, and Markus's wiki for remote script operation details.  Enjoy. Have fun.
+To Exit "User" mode, Press and Hold the MARKER button then Press the LOCK button.  The remote script goes back to whatever other mode was active before going into "User" mode and 
+the sequencer patch goes back into "bypassing" mode.  Keep reading (below) for sequencer operation details, and the MackieC4_P3 repo wiki for remote script operation details.  Enjoy. Have fun.
 </p>
 <p>
-It is best practice to exit USER mode before you load or reload another session in Live because the "new set" won't open with the remote script in USER mode
+It is best practice to exit "User" mode before you load or reload another session in Live because the "new set" won't open with the remote script in "User" mode
 and the sequencer patch will be in "processing" mode when it should be "bypassing" in that case.  To get out of this kind of pickle, there is a way to toggle the patch mode "manually" 
 in the patch, but it's generally easier to just close the patch and reopen (from the Max Project menu) in "bypassing" mode.  
 </p>
@@ -130,7 +131,7 @@ you just loaded a set, try recording the sequence again.  The pipes should be fl
 like a "hard coded" midi delay on the "playing live" sequencer Notes.
 </li>
 <li>
-Note3: When the sequencer is running, "control" updates like SPLIT button page changes happen right away, you'll hear the changes, but the associated display updates can appear to lag because they 
+Note3: When the sequencer is running, "control" updates like SPLIT button page changes happen right away, you'll hear the changes, but the associated LCD display updates can appear to lag because they 
 follow the sequencer's "hot step".  If your eye is following the "hot step", you'll see page change updates right away, for example.  But if your eye is fixed on one spot, 
 page change display updates can lag until the "hot step" comes around.
 </li>
@@ -141,17 +142,19 @@ page change display updates can lag until the "hot step" comes around.
 turn ON during randomization.  However, encoder button LEDs only "flip" for actual randomization changes. LEDs that randomly hit ON will stay ON if already ON, for example, 
 while encoder values randomly change most of the time (always randomize).</li>
 <li>You can now save and load sequencer dictionary JSON files. (from/to the project/data/c4Controllers folder by default)</li>
-<li>The sequencer now has a VERBOSE mode that applies when the remote script is NOT in USER mode so the sequencer will keep sending Notes (but not updating the C4 display). For example, when 
-the script is in USER mode, the Spot/Erase button acts like a vehicle's clutch on the RTC (external) transport. Meaning, when the red Spot/Erase LED is ON you've "stepped ON the clutch" 
-and disengaged from the (external RTC) Transport so the sequencer stops generating Notes (next list item about Spot/Erase applies here too).  When the script is NOT in USER mode, the clutch 
-is engaged by default (the sequencer is QUIET, doesn't generate Notes), but you can "let OFF the clutch" outside of USER mode by setting the sequencer to VERBOSE mode (before you leave USER mode) so the 
-patch will remain engaged with the RTC Transport and let the sequencer play whenever the transport plays (outputting Notes only, no "display updates") after leaving USER mode (technically, 
-you can change the sequencer patch back and forth between QUIET and VERBOSE outside of USER mode, but you can only adjust the sequencer Note output, for example, in USER mode)</li>
-<li>When the sequencer is in "External Transport" mode, the "Spot/Erase" button controls whether the sequencer "follows" the RTC signals.  When the Spot/Erase LED is ON, 
-you've "stepped ON the clutch" and the sequencer is "disengaged" from the "External Transport" so the sequencer doesn't generate Notes, it coasts.  
-<p>This external-transport Spot/Erase LED behavior is opposite to its behavior when in 
-"Internal Transport" mode where LED ON means internal transport is actively driving the sequencer pulses. If you are in USER mode and using MAX Transport instead of RTC, and you leave USER mode with a VERBOSE 
-sequencer sending Notes, you have to return to USER mode to STOP the Max Transport using the physical Spot/Erase button (QUIETing the sequencer Note output won't stop the Max Transport)
+<li>The sequencer now has a VERBOSE mode that applies when the remote script is NOT in "User" mode so the sequencer will keep sending Notes (but not updating the C4 display). For example, when 
+the script is in ""User"" mode, the SPOT-ERASE button acts like a vehicle's clutch on the RTC (external) transport. Meaning, when the red SPOT-ERASE LED is ON you've "stepped ON the clutch" 
+and disengaged from the (external RTC) Transport so the sequencer stops generating Notes (next list item about SPOT-ERASE applies here too).  When the script is NOT in "User" mode, the clutch 
+is engaged by default (the sequencer is QUIET, doesn't generate Notes), but you can "let OFF the clutch" outside of "User" mode by setting the sequencer to VERBOSE mode (before 
+you leave "User" mode) so the 
+patch will remain engaged with the RTC Transport and let the sequencer play whenever the transport plays (outputting Notes only, no "display updates") after leaving "User" mode (technically, 
+you can change the sequencer patch back and forth between QUIET and VERBOSE outside "User" mode, but you can only adjust the sequencer Note output, for example, inside "User" mode)</li>
+<li>When the sequencer is in "External Transport" mode, the "SPOT-ERASE" button controls whether the sequencer "follows" the RTC signals.  When the SPOT-ERASE LED is ON, 
+you've "stepped ON the clutch" and the sequencer is "disengaged" from the "External Transport" so the sequencer doesn't generate Notes, it coasts until you "let OFF" the clutch.  
+<p>This external-transport SPOT-ERASE LED behavior is opposite to its behavior when in 
+"Internal Transport" mode where LED ON means internal transport is actively driving the sequencer pulses. If you are in "User" mode and using MAX Transport instead of RTC, and 
+you leave "User" mode with a VERBOSE 
+sequencer sending Notes, you have to return to "User" mode to STOP the Max Transport using the physical SPOT-ERASE button (QUIETing the sequencer Note output won't stop the Max Transport)
 </p></li>
 <li>The Sequencer no longer does any pitch coercion (to C minor pentatonic), except to scale the Note values output between 12 and 120 (i.e. a normal piano's 10 octave range)</li>
 <li>An encoder's stored "pressedValue" now supplements the sequencer's randomly generated (scaled between 50 and 120) velocity for that sequence step. (If the Pressed value is 78 or higher, 
@@ -204,7 +207,7 @@ length 16th notes (kinda-legato) or 0.75 length 16th notes (dotted 32nd notes).
 </p>
 <h3> Sequencer Operations</h3>
 <p>
-<b>NOTE:</b> The Control Button labels screenprinted on the C4 case are a little different from the "Commander overlay" labels in the image above-top.  
+<b>NOTE:</b> The Control Button labels screen-printed on the C4 case are a little different from the "Commander overlay" labels in the image above-top.  
 The image (of the C4 device front panel layout) above shows a screenshot of the 
 left side of the "C4 Commander" app window (in Edit mode, and the only view of the app in Performance mode).  Specifically, 
 the buttons labeled (on the Commander overlay sticker) "Parameter Layout" (Left, Right) in the image above are labeled 
@@ -229,7 +232,7 @@ you will experience roughly 10 turning-clicks where nothing happens for every cl
 </p>
 <h5> Function group Buttons</h5>
 <p>
-Change the current "encoder display page" using the C4's "Split" button ("Select" above).  Page 0 is the "main page" whose display 
+Change the current "encoder display page" using the C4's SPLIT button ("Select" above).  Page 0 is the "main page" whose display 
 alternates with display of the other three pages in the biased cycle 0, 1, 0, 2, 0, 3. The Split button LEDs are 
 associated with the 3 "other pages" 1/3, 2/3, 3/3. The main page displays when all Split LEDs are OFF.
 </p>
@@ -239,48 +242,48 @@ LED cycles in reverse 3, 2, 1.  When the Lock LED is OFF, the Split LED cycles f
 reversing logic is always true based on the underlying data in the button dictionary, but the physical Lock LED status depends on
 whether the sequencer is running or not.  If the sequencer is not running, the physical Lock button LED On/Off status will 
 correspond with the (Lock button's ledValue property) data in the button dictionary.  But if the sequencer is running, 
-the green Lock button LED pulses with the sequencer tempo.  Half the time (maybe always?), the visible (feedback) Split LED cycle direction change will lag the logical Lock button 
-direction change by up to 4 Split button clicks.  In other words, you will often see the Split LED cycle go forward one more time before you see it reverse, for example."
+the green Lock button LED pulses with the sequencer tempo.  If you change cycle directions when no SPLIT button led is lit, the visible (feedback) SPLIT LED cycle direction change 
+will lag the logical LOCK button direction change.  In other words, in that case you will see the SPLIT LED cycle forward one more time before you see it reverse.
 </p>
 <p>
-When Max Transport is selected, Start and Stop the sequencer using the C4's "Spot Erase" button ("Lower" above).  Otherwise, 
+When Max Transport is selected, Start and Stop the sequencer using the C4's SPOT-ERASE button ("Lower" above).  Otherwise, 
 Start and Stop the sequencer using external Transport controls.
 </p>
 <p>
-When the sequencer is running under Max Transport, the "Spot Erase" button LED will be ON (red), and the "Lock" button
+When the sequencer is running under Max Transport, the SPOT-ERASE button LED will be ON (red), and the LOCK button
 LED will display (green) quarter (half?) note pulses (beats 1 and 3 ON, beats 2 and 4 OFF)
 </p>
 <p>
-When the sequencer is running under external Transport, the C4's "Spot Erase" button LED status (virtual or physical) has 
+When the sequencer is running under external Transport, the C4's SPOT-ERASE button LED status (virtual or physical) has 
 no impact on the sequencer's running status (which follows midi RTC start/stop signals), it's disconnected, and the green 
-"Lock" button LED pulses with the external (RTC derived) tempo. (regardless whether "Spot Erase" is On or Off) 
+"Lock" button LED pulses with the external (RTC derived) tempo. (regardless whether SPOT-ERASE is On or Off) 
 </p>
-<p>NOTE: see 2.0 behavior described above, the "Spot Erase" button now 
+<p>NOTE: see 2.0 behavior described above, the SPOT-ERASE button now 
 behaves like a clutch that will disengage from external Transport when the LED is ON.
 </p>
 <h5> "Session" group Buttons</h5>
 <p>
-You can "rotate" each 32-step "encoder page" sequence around its display page.  The "Slot Up" button will rotate the 
-sequence up one encoder row, wrapping around to the bottom row. The "Slot Down" button will rotate the other way, 
-wrapping around to the top.  "Track Left" and "Track Right" work the same way but only rotating by one encoder at a 
-time instead of eight.  For example, pressing "Track Left" eight times in a row is equivalent to a single "Slot Up" press.
+You can "rotate" each 32-step "encoder page" sequence around its display page.  The SLOT-UP button will rotate the 
+sequence up one encoder row, wrapping around to the bottom row. The SLOT-DOWN button will rotate the other way, 
+wrapping around to the top.  TRACK-LEFT and TRACK-RIGHT work the same way but only rotating by one encoder at a 
+time instead of eight.  For example, pressing TRACK-LEFT eight times in a row is equivalent to a single SLOT-UP press.
 </p>
 <p>
 You can effectively "stutter" the two beats of any sequence represented by any row of 8 encoders by repeatedly pressing
-the "Slot Down" button (in time) as the sequence plays.
+the SLOT-DOWN button (in time) as the sequence plays.
 </p>
 <p>
 It's not difficult to randomly create sequences that "feel" like the One of the sequence is off from the One of the 
 Transport metronome.  The Ones of each bar of sixteenth-note-steps in this 32-step sequencer are represented by encoder 00 and 
 encoder 16.  Say the "feel" of some random sequence puts the One of the sequence at encoder 12 instead. If that's a problem, 
-you could fix it, for example, by pressing "Track Right" four times to rotate the sequence's One from encoder 12 to encoder 
+you could fix it, for example, by pressing TRACK-RIGHT four times to rotate the sequence's One from encoder 12 to encoder 
 16 to align with the Transport metronome's One (in bar two of sequence).  Of course, you can always "rotate" any sequences 
 for any reason.
 </p>
 <h5> Parameter group Buttons</h5>
 <p>
 You can also "rotate" each "encoder page" sequence around the whole book of display pages using the Parameter "Bank" 
-buttons.  Page 0 becomes page 1 or 3, for example.  Or you can "Single Left" to rotate row 0 on page 0 data to 
+buttons.  Page 0 becomes page 1 or 3, for example.  Or you can SINGLE-LEFT to rotate row 0 on page 0 data to 
 row 3 on page 3.  (Slot Up/Down buttons respect page boundaries, Single Left/Right buttons only respect the Book boundary)
 </p>
 <p>
@@ -288,21 +291,21 @@ You can effectively create longer sequences by "banking Left/Right" (in time) so
 in turn.  
 </p>
 <p>
-The audible result of "Bank Left" and "Bank Right" button presses can be indistinguishable from "Split" button
-presses.  The difference is kind of subtle.  The "Split" button changes the "feedback display page" shown on the C4 so 
+The audible result of BANK-LEFT and BANK-RIGHT button presses can be indistinguishable from SPLIT button
+presses.  The difference is kind of subtle.  The SPLIT button changes the "feedback display page" shown on the C4 so 
 the (32 encoder) "feedback viewport frame" over the underlying data moves from showing page 0 data to showing page 3 data, for 
 example, but the data doesn't actually move, page 0 data remains associated with page 0 encoders, the viewport frame just
 moves to page 3.  The "Bank" buttons on the other hand, cause (the underlying) data to get rearranged, page 0 data 
 "rotates" to become associated with page 1 or 3 encoders.  
 </p>
 <p>
-Another difference between the behaviors associated with these buttons is the page rotation cycle length.  The "Split" 
+Another difference between the behaviors associated with these buttons is the page rotation cycle length.  The SPLIT 
 button cycles pages in "main page biased" order 0,1,0,2,0,3. (depending on "Lock" button direction selected), while the 
-"Bank" buttons cycle pages-of-data evenly 0,1,2,3.  The "Split" button only changes the display-page view not any data, 
+"Bank" buttons cycle pages-of-data evenly 0,1,2,3.  The SPLIT button only changes the display-page view not any data, 
 and the Parameter and Session buttons change (rotate) data not the display-page view.
 </p>
 <p>
-You can rotate the data associated with any sequence to be on the "main page" so that sequence enjoys the "Split button 
+You can rotate the data associated with any sequence to be on the "main page" so that sequence enjoys the "SPLIT button 
 cycle bias".
 </p>
 <h5> Modifier group Buttons</h5>
@@ -316,12 +319,13 @@ for a sequence's active, playing steps.
 </p>
 <h5> Assignment group Buttons</h5>
 <p>
-The four "Assignment" buttons (Marker, Track, Chan Strip, and Function) represent four more layers of the functionality
+The four "Assignment" buttons (MARKER, TRACK, CHAN-STRIP, and FUNCTION) represent four more layers of the functionality
 described above, meaning the sequencer actually handles five "4-page books" of sequences instead of only the 
-one "default book". (so 80 total "32-step sequences" are accessible counting all the "modified" sequences)
+one "default book". (so 100 total "32-step sequence variations" are accessible counting all the "modified" sequences. Each sequence can play a default set of Note values and four 
+modified sets of Note values, or 5 variations of Note values per sequence times 4 sequence pages times 5 sequence books equals 100 variations)
 The "Assignment" button Precedence cascade follows the order: Marker, Track, Chan Strip, Function, 
-and finally "all group off".  So the "Marker book layer" is always "on duty" when the Marker LED is ON, the "default book 
-layer" is only "on duty" when no "Assignment group" LEDs are ON, and the "Function layer" is only "on duty" when no other 
+and finally "all group off".  So the "Marker book layer" is always "on duty" when the MARKER LED is ON, the "default book 
+layer" is only "on duty" when no "Assignment group" LEDs are ON, and the "Function book layer" is only "on duty" when no other 
 "Assignment group" LEDs are ON.
 </p>
 <h5>Links</h5>
