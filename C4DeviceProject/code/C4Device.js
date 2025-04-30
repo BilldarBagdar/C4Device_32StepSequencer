@@ -4,10 +4,10 @@
 // this is the project's main "C4Device" javascript file
 // (the inlets and outlets are defined here)
 // This javascript implements a "C4 device midi data" server where the C4 itself is the
-// server's only "midi data client" connection.  The only other client is "this Max patch"
+// server's only "midi data client" connection.  The client's only server is "this Max patch"
 // which provides two main signals that influence what "feedback" appears on the C4 "display"
 // a repeating stream of "encoder ID" numbers (0 - 31) or a "stop sign".
-// "display" means every component on the C4 (4 LCD screens, 9 button LEDS, 32 encoder LED rings)
+// The word "display" means every light emitting component on the C4 (4 LCD screens, 9 button LEDS, 32 encoder LED rings)
 // a "display-page" is like one frame of animation or a "screen frame" in graphics FPS terms.
 // "frame rate" is the rate at which "sequencer step" processing requests are handled.  The C4
 // can only physically handle so much data per millisecond, but that line is somewhere north of

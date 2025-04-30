@@ -9,10 +9,10 @@
 // for all 5 "decks": 1445 total crew and officers; 805 total buttons, 640 total encoders
 // The deck crew, the buttons and encoders on each deck, are independent of every other deck crew
 // EXCEPT - The state of the "Assignment Group" Buttons (Marker, Track, Chan Strip, Function, and "all group off")
-// is common to all decks. (The decks are hierarchically selected. (Precedence: Marker, Track, ChanStrip, Function,
+// is common to all decks. The decks are hierarchically selected. (Precedence: Marker, Track, ChanStrip, Function,
 // and "all off"). "Marker" always wins when LED is ON, and "ChanStrip" loses to both "Marker" and "Track" but
 // wins over "Function".  "Function" LED ON only wins over "all (Assignment group) LEDs OFF".
-//  (Similar to how the Split button LED On states are (1/2, 2/3, 3/3, and "all off"), except the "Assignment LEDs"
+//  (Similar to how the Split button LED On states are (1/3, 2/2, 3/1, and "all off"), except the "Assignment LEDs"
 //  operate independently of the "deck hierarchy".  "Marker" wins when ON, but when "Marker" turns OFF, the next winner
 //  could be any other ON "Assignment LED", "all (group) OFF" comes in last every time.) see commonRequire.js
 function C4DeviceController(feedbackStyle) {
