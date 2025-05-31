@@ -55,7 +55,7 @@ function setNoteValueDisplayType(display) {
         showNoteNamesOrNoteNumbers = display;
         paintDisplayUpdate();
     }
-};
+}
 function getNoteValueDisplayType() {
     return showNoteNamesOrNoteNumbers;
 }
@@ -338,7 +338,8 @@ function midievent(midiMsgIn) {
                         sendEncoderPageData(generateDisplayPageChangeMsgs);
                     } else if (feedbackMsg[1] >= 13 && feedbackMsg[1] <= 16) {
                         // modifier button - repaint showing "shift pressed" data for example
-                        sendEncoderPageData(generateDisplayPageUpdateMsgs);
+                        //sendEncoderPageData(generateDisplayPageUpdateMsgs);
+                        paintDisplayUpdate();
                     } else if (feedbackMsg[0] === MIDI_CC_ID) {
                         encoderId = midiMsg[1];
                         if ((midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) && feedbackMsg[0] === MIDI_CC_ID) {
