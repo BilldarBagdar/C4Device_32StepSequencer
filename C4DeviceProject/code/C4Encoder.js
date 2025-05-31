@@ -242,11 +242,17 @@ C4Encoder.prototype.getStepWelcomeText = function(isBottomLine) {
     }
     return rtn;
 };
-C4Encoder.prototype.pushLcdDisplaySegmentSysexBytes = function(recurIn, isBottomLine, isHotStep, isWelcome) {
-    var txt = isBottomLine ? this.getLcdDisplayBottomText() : this.getLcdDisplayTopText();
+C4Encoder.prototype.pushLcdDisplaySegmentSysexBytes = function(recurIn, isBottomLine, isHotStep, isWelcome, numbersOrNames) {
+    numbersOrNames = numbersOrNames !== undefined ? numbersOrNames : "numbers";
+    if (!(numbersOrNames === "numbers" || numbersOrNames === "names")) {
+        post("C4Encoder.pushLcdDisplaySegmentSysexBytes:", this.kname, "unexpected display text option", numbersOrNames);post();
+    }
+    var useNoteNames = numbersOrNames === "names";
+    var txt = isBottomLine ? this.getLcdDisplayBottomText(useNoteNames) : this.getLcdDisplayTopText();
     txt = isHotStep ? this.getHotStepText(isBottomLine) : txt;
     txt = isWelcome ? this.getStepWelcomeText(isBottomLine) : txt;
     var rtn = recurIn !== undefined ? recurIn : [];
+
     if (this.isRowHeader()) {
         rtn = [240, 0, 0, 102, 23];
         var asciiCharCodeOffset = 48;
@@ -278,21 +284,23 @@ C4Encoder.prototype.pushLcdDisplaySegmentSysexBytes = function(recurIn, isBottom
     return rtn;
 };
 C4Encoder.prototype.pushLcdDisplaySegmentTopSysexBytes = function(recurIn, hotStepId) {
-    var isBottomLine = false;
     var isHotStep = hotStepId === undefined ? false : this.getPhysicalId() === hotStepId;
     var isWelcome = false;
+    var isBottomLine = false;
+    // numbersOrNames only matters for isBottomLine = true
     return this.pushLcdDisplaySegmentSysexBytes(recurIn, isBottomLine, isHotStep, isWelcome);
 };
-C4Encoder.prototype.pushLcdDisplaySegmentBottomSysexBytes = function(recurIn, hotStepId) {
+C4Encoder.prototype.pushLcdDisplaySegmentBottomSysexBytes = function(recurIn, hotStepId, numbersOrNames) {
     var isBottomLine = true;
     var isHotStep = hotStepId === undefined ? false : this.getPhysicalId() === hotStepId;
     var isWelcome = false;
-    return this.pushLcdDisplaySegmentSysexBytes(recurIn, isBottomLine, isHotStep, isWelcome);
+    return this.pushLcdDisplaySegmentSysexBytes(recurIn, isBottomLine, isHotStep, isWelcome, numbersOrNames);
 };
 C4Encoder.prototype.pushLcdDisplaySegmentWelcomeSysexBytes = function(recurIn, isBottomLine) {
     isBottomLine = isBottomLine !== undefined;
     var isHotStep = false;
     var isWelcome = true;
+    // numbersOrNames only matters for isWelcome = false;
     return this.pushLcdDisplaySegmentSysexBytes(recurIn, isBottomLine, isHotStep, isWelcome);
 };
 C4Encoder.prototype.formatLcdDisplaySegmentText = function(anyVal) {
@@ -353,8 +361,12 @@ C4Encoder.prototype.isRowTrailer = function() {
 C4Encoder.prototype.getLcdDisplayTopText = function() {
     return this.formatLcdDisplaySegmentText(this.kname);
 };
-C4Encoder.prototype.getLcdDisplayBottomText = function() {
-    return this.formatLcdDisplaySegmentText(this.getFeedbackValueRaw());
+C4Encoder.prototype.getLcdDisplayBottomText = function(useNoteNames) {
+    midiNoteNumbersToNoteNamesDict.name = "noteNumberNameRef";
+    useNoteNames = useNoteNames !== undefined ? useNoteNames : false;
+    var noteNbr = this.getFeedbackValueRaw();
+    var txt = useNoteNames ? midiNoteNumbersToNoteNamesDict.get(noteNbr) : noteNbr;
+    return this.formatLcdDisplaySegmentText(txt);
 };
 C4Encoder.prototype.getFeedbackValueRaw = function() {
     var rtn = this.releasedValue;

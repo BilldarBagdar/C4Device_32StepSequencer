@@ -8,6 +8,7 @@ var encBtnPressedStateDict = new Dict("encoderBtnPressedData");
 var encBtnReleasedStateDict = new Dict("encoderBtnReleasedData");
 var encLedRingFeedbackStyleDict = new Dict("ringStyleRef");
 var encIndexesByLcdRowDict = new Dict("lcdScreenRowIndexRef");
+var midiNoteNumbersToNoteNamesDict = new Dict("noteNumberNameRef");
 var c4DeviceControllerDict = new Dict("C4DeviceExecutiveController");
 
 var reqModule = require("commonRequire");

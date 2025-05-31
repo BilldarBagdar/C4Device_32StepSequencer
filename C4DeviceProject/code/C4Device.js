@@ -46,6 +46,20 @@ var utilEncoder = new C4Encoder();
 var utilButton = new C4Button();
 var controller = new C4DeviceController("single");
 
+var showNoteNamesOrNoteNumbers = "numbers";
+function setNoteValueDisplayType(display) {
+    display = display !== undefined ? display : "numbers";
+    if (!(display === "names" || display === "numbers")) {
+        post("C4Device.setNoteValueDisplayType(): unexpected midi note value display type", display);post();
+    } else {
+        showNoteNamesOrNoteNumbers = display;
+        paintDisplayUpdate();
+    }
+};
+function getNoteValueDisplayType() {
+    return showNoteNamesOrNoteNumbers;
+}
+
 function loadUp(modeSelect) {
     if (!isInitialized) {
         // Run garbage collection to clear out any old objects.
@@ -58,6 +72,7 @@ function loadUp(modeSelect) {
         initEncoders();
         encLedRingFeedbackStyleDict.import_json("ledRingFeedbackStyleReference.json");
         encIndexesByLcdRowDict.import_json("rowMap16RowsOf8Keys.json");
+        midiNoteNumbersToNoteNamesDict.import_json("midiNoteNbrNameMap.json");
         saveInitControllerDictToFile();
         if (modeSelect === 127) {
             sendEncoderPageData(generateWelcomePageMsgs);
@@ -181,8 +196,7 @@ function setNextController(nextController) {
     activateSavedDeck(currentDeckName);
     controller.refreshDeckForDutySwap(currentDeckName);
     setActiveCrewOnDuty(currentDeckName);
-    // "clearing the last step" here is a euphemism for updating the C4 display with data just loaded from disk
-    clearLastSequencerStep(1);
+    paintDisplayUpdate();
 }
 
 var randomizeOnNextModifierRelease = false;
@@ -916,11 +930,14 @@ function generateLcdFeedback(encoderId) {
     var encIdsInRow = encIndexesByLcdRowDict.get(encoderDisplayRefRow);
     var topLine = [];
     var btmLine = [];
+    var noteValueType = this.getNoteValueDisplayType();
+    var hotStepId = undefined;// sequencer never uses this feedback generator
+    //post("C4Device.generateLcdFeedback: noteValueType", noteValueType);post();
     for (var i = 0; i < encIdsInRow.length; i++) {
         var encDict = encodersDict.get(encIdsInRow[i]);
         var c4Enc = utilEncoder.newFromDict(encDict);
-        topLine = c4Enc.pushLcdDisplaySegmentTopSysexBytes(topLine);
-        btmLine = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(btmLine);
+        topLine = c4Enc.pushLcdDisplaySegmentTopSysexBytes(topLine, hotStepId);
+        btmLine = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(btmLine, hotStepId, noteValueType);
     }
     if (topLine.length !== TOTAL_BYTES_PER_SYSEX_MSG) {// 240...247
         post("C4Device.generateLcdFeedback: top line sysex msg length issue", topLine.length, topLine.toString());
@@ -982,6 +999,9 @@ function generateDisplayPageChangeMsgs() {
     return generateDisplayPageUpdateMsgs();// no "hot sequencer step" to display
 }
 
+function paintDisplayUpdate() {
+    clearLastSequencerStep(1);
+}
 function clearLastSequencerStep(signal) {
     if (signal === 1 && isPatchProcessingEnabled()) {
         sendEncoderPageData(generateDisplayPageChangeMsgs);
@@ -1074,6 +1094,7 @@ function generateDisplayPageUpdateMsgs(seqStepId) {
     var sysexBtm01 = [];
     var sysexBtm02 = [];
     var sysexBtm03 = [];
+    var noteValueType = this.getNoteValueDisplayType();
     for (var i = encoderPageOffset; i < (encoderPageOffset + NBR_PHYSICAL_ENCODERS); i++) {
         var encDict = encodersDict.get(i);
         var c4Enc = utilEncoder.newFromDict(encDict);
@@ -1083,19 +1104,19 @@ function generateDisplayPageUpdateMsgs(seqStepId) {
         switch(c4Enc.getLcdRowId()) {
             case 0:
                 sysexTop00 = c4Enc.pushLcdDisplaySegmentTopSysexBytes(sysexTop00, seqStepId);
-                sysexBtm00 = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(sysexBtm00, seqStepId);
+                sysexBtm00 = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(sysexBtm00, seqStepId, noteValueType);
                 break;
             case 1:
                 sysexTop01 = c4Enc.pushLcdDisplaySegmentTopSysexBytes(sysexTop01, seqStepId);
-                sysexBtm01 = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(sysexBtm01, seqStepId);
+                sysexBtm01 = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(sysexBtm01, seqStepId, noteValueType);
                 break;
             case 2:
                 sysexTop02 = c4Enc.pushLcdDisplaySegmentTopSysexBytes(sysexTop02, seqStepId);
-                sysexBtm02 = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(sysexBtm02, seqStepId);
+                sysexBtm02 = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(sysexBtm02, seqStepId, noteValueType);
                 break;
             case 3:
                 sysexTop03 = c4Enc.pushLcdDisplaySegmentTopSysexBytes(sysexTop03, seqStepId);
-                sysexBtm03 = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(sysexBtm03, seqStepId);
+                sysexBtm03 = c4Enc.pushLcdDisplaySegmentBottomSysexBytes(sysexBtm03, seqStepId, noteValueType);
                 break;
             default:
                 post("C4Device.generateDisplayPageUpdateMsgs: unexpected lcd row ID", c4Enc.getLcdRowId(), c4Enc.toJsonStr());

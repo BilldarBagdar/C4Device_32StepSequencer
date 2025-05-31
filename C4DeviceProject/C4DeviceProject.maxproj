@@ -2,8 +2,8 @@
 	"name" : "C4DeviceProject",
 	"version" : 1,
 	"creationdate" : 3800031733,
-	"modificationdate" : 3825010238,
-	"viewrect" : [ 1511.0, 349.0, 300.0, 500.0 ],
+	"modificationdate" : 3831461807,
+	"viewrect" : [ 994.0, 436.0, 300.0, 500.0 ],
 	"autoorganize" : 0,
 	"hideprojectwindow" : 0,
 	"showdependencies" : 1,
@@ -80,6 +80,11 @@
 					"projectrelativepath" : "../../../Projects/C4_deviceTests/data"
 				}
 
+			}
+,
+			"midiNoteNbrNameMap.json" : 			{
+				"kind" : "json",
+				"local" : 1
 			}
 
 		}
