@@ -157,6 +157,10 @@ eye is fixed on one spot, page change display updates can lag until the "hot ste
 </ul>
 <h4>Updates since v1.0</h4>
 <ul>
+<li>The sequencer no longer scales Note values to a 10 octave "piano range".  Now you will be more likely to hear "silent" sequencer Notes that are outside the range of 
+(above or below) whatever Instrument is receiving the Notes (The silence is especially noticeable with 16 pad drum kits. Out of 128 possibilities, there are 7 chances for 
+"silent misses" for each of the 16 "pad hit" chances.  If you want more chances for sequencer Note hits, use Live's Pitch "Midi Effect" device in "Fold" mode.  Set the 
+lowest note of the "Fold range" to the lowest note of the Instrument and set the "size" of the "Fold Range" to the "size" of the Instrument's Range (16 pads for example)</li>
 <li>The LCD screens will now display the stored encoder "midi Note value" data as "Note Numbers" (0 to 127) or as "Note Names" (C-2 to G8).  Use the dropdown menu in the patch UI
 to change between "numbers" and "names" Note value display</li>
 <li>Pressing two "modifier buttons" at the same time, then releasing them, will now randomize "all" sequencer data values.  There is a 50/50 chance any given "encoder button LED" will randomly
