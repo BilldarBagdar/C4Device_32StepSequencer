@@ -16,6 +16,7 @@ Midi Port Connections should flow like this:
 Of course, if this sequencer patch and "the DAW" are running on different computers, the same number of and routes for midi connections applies.  
 Separate computers (midi interfaces) just don't require "loopback" connections. 
 </p>
+<p>Demo video: <a href="https://www.youtube.com/watch?v=rdjTxElN2JQ">https://www.youtube.com/watch?v=rdjTxElN2JQ</a></p>
 <p>
 You can always use this C4 sequencer project with the C4 remote script but if you don't hold a full Max license, you can't activate a Max4Live-only license at the same time as this project. 
 Meaning if you only have a Live Standard + M4L or Live Suite license, you must run this sequencer project only, and not activate your M4L license. In other words, even if you don't hold a 
@@ -72,9 +73,9 @@ just like the remote script folder.  You only "need" the repository to further d
 </p>
 <p>
 <b>It is important</b> to open the project file first and open other project files from the project menu because the project establishes a Max-project-relative search path for 
-all the other files in their project-relative folders like /code, /data, /patchers, etc. If you opened max via an M4L device in Live, you can close the M4L patcher window 
-any time after opening this project, but save the empty M4L device with the Live set (if you save) so you can cut out a few mouse clicks getting back to the 
-C4DeviceProject.maxproj to open the sequencer project next time.
+all the other files in their project-relative folders like /code, /data, /patchers, etc. If you opened Max via an M4L device in Live for some reason, you can close the M4L 
+patcher window any time after opening this project, but save the empty M4L device with the Live set (if you save) so you can cut out a few mouse clicks getting back to the 
+C4DeviceProject.maxproj to open the sequencer via Live again next time.
 </p>
 <p>
 ("path finding" in Max is otherwise a PITA, patches have no idea what folder they started in, Max doesn't interpret a simple relative path like, "../code/foo.js" 
