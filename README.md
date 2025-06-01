@@ -28,7 +28,7 @@ A M4L-only license only allows access to Live's M4L device specific midi port(s)
 the (unauthorized) "Max Runtime", but that unauthorized status disappears as soon as you activate your (authorized) M4L-only license.  If you have a full Max license and 
 Max is authorized on the machine where this project is running, then you can even "Use bundled (M4L) Max version" to open the project patches in Live for editing and saving 
 (in Max) without issue.  (If you have both a M4L and a full Max license (authorized installations), you always "see" all the available midi ports in Max courtesy of your 
-full license, even when Live is only running"the "bundled (M4L) version of Max")
+full license, even when Live is only running the "bundled (M4L) version of Max")
 </p>
 <p>
 The 2.0 update (and associated remote script updates) were entirely coded in 2025 using Max 8.x.x - 9.0.7 and Live 12.1.x - 12.1.11.  (WebStorm and PyCharm IDEs)
@@ -137,16 +137,16 @@ sequencer Notes come back "on time".  Depending on what other tasks are consumin
 but generally your system's "midi sync delay" should be more or less stable.  -5.0 milliseconds or more (negative) is possible though under heavy loads like also recording/streaming 
 videos.  But since Live only offers increments of .5 ms for this "delay" setting, don't get too hung up on the grid lines in a clip when you are calibrating your system.  
 When just running Live and Max (this project), you may not notice any audible latency. Or any latency might be "exactly" a sixteenth note increment so you can "rotate" 
-sequences "right" by one, two, or three steps to account for the latency without adjusting "midi sync delay".
+sequences "right" by one, two, or three steps to account for the latency without adjusting "midi sync delay". You could also use either of these delay settings creatively, 
+like a "hard coded" syncopated alignment of the "playing live" sequencer Notes to Live's "grid".
 </p>
 <ul>
 <li>Note1: The RTC starts going out (from Live) with the Transport, not the count-in, and the sequencer takes a beat to lock in.  So you "never" (hear or) record the first sequencer step 
 (Encoder 00 for example) until the second time around the sequence after "playback" starts.  
 </li>
 <li>Note2: Sometimes, especially right after loading a fresh set, Live needs to "warm up" and "blow out the pipes" 
-before the RTC midi sync actually locks in.  If a recorded sequencer clip suddenly has much worse sync delay after you already settled in on a good amount, especially if 
-you just loaded a set, try recording the sequence again.  The pipes should be flowing smoothly after the set warms up.  You could also use this setting creatively, 
-like a "hard coded" midi delay on the "playing live" sequencer Notes.
+before the RTC midi sync actually locks in.  If a freshly recorded sequencer clip suddenly has much worse sync delay after you already settled in on a good amount, especially if 
+you just loaded a set, try recording the sequence again.  The pipes should be flowing smoothly after the set warms up.  
 </li>
 <li>
 Note3: When the sequencer is running, "control" updates like SPLIT button page changes happen right away, you'll hear the changes, but the associated LCD screen updates can 
