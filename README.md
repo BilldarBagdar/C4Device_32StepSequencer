@@ -1,5 +1,5 @@
 <h3>Version 2.0</h3> 
-<p>of this Max 9.0.5 project builds on the 1.0 "midi data server" and sequencer by integrating with the custom Mackie C4 remote script hosted by 
+<p>of this Max 9.0.7 project builds on the 1.0 "midi data server" and sequencer by integrating with the custom Mackie C4 remote script hosted by 
 <a href="https://github.com/markusschloesser/MackieC4_P3"> Markus Schloesser</a> as the script's USER mode.  
 </p>
 <p>
@@ -17,8 +17,21 @@ Of course, if this sequencer patch and "the DAW" are running on different comput
 Separate computers (midi interfaces) just don't require "loopback" connections. 
 </p>
 <p>
-You can use this patch with the remote script as long as you hold a Max4Live license, meaning you have a Live Standard + M4L or Live Suite license active. 
-The 2.0 update (and associated remote script updates) were entirely coded in 2025 using Max 8.x.x - 9.0.5 and Live 12.1.x - 12.1.11.  (WebStorm and PyCharm IDEs)
+You can always use this C4 sequencer project with the C4 remote script but if you don't hold a full Max license, you can't activate a Max4Live-only license at the same time as this project. 
+Meaning if you only have a Live Standard + M4L or Live Suite license, you must run this sequencer project only, and not activate your M4L license. In other words, even if you don't hold a 
+Max license, you still need to install Max to use this sequencer project, but all you can do is "run" (M4L devices and) this sequencer project after installation, you can't 
+save any changes until a Max installation is authorized.  Only the "Max Runtime" works by default after installation. Until you authorize a license, you can't save or 
+export any editing you do in Max patchers.  For example, you won't be able to save your custom midi port selections in the project SetupProjectMidiPorts.maxpat "bPatcher" as 
+described below (1.0) unless you save the change on a machine where Max is fully authorized.  Instead, you will need to select your specific midi ports every time you run any 
+of the project patches.  Additionally, you won't be able to edit any M4L device patches by opening the device patcher in Live without breaking this project for the session.  
+A M4L-only license only allows access to Live's M4L device specific midi port(s).  This project requires access to other specific midi ports, and you have that access using 
+the (unauthorized) "Max Runtime", but that unauthorized status disappears as soon as you activate your (authorized) M4L-only license.  If you have a full Max license and 
+Max is authorized on the machine where this project is running, then you can even "Use bundled (M4L) Max version" to open the project patches in Live for editing and saving 
+(in Max) without issue.  (If you have both a M4L and a full Max license (authorized installations), you always "see" all the available midi ports in Max courtesy of your 
+full license, even when Live is only running"the "bundled (M4L) version of Max")
+</p>
+<p>
+The 2.0 update (and associated remote script updates) were entirely coded in 2025 using Max 8.x.x - 9.0.7 and Live 12.1.x - 12.1.11.  (WebStorm and PyCharm IDEs)
 The remote script should be backward compatible with both Live 10 and 11 and the sequencer patch is compatible with Max 8, but these combinations haven't been tested in 2025.  
 Except that Live 12.1.11 still runs "Max 8" as the default M4L engine, and this is the setup used for M4L-license-only testing.
 </p>
@@ -48,16 +61,20 @@ USER mode, the Sequencer should "open in processing mode", and if the remote scr
 should "open in bypassing mode").  These instructions guide toward opening the Sequencer patch in "bypassing" mode.
 </p>
 <p>
-Open Max directly (if you have a full Max license) or via M4L.  Via M4L, in Live drag a default M4L device onto a Track in your session and click the <=> (edit patch) icon upper right corner of the 
-device window to open the (empty) M4L device Patcher.  Then, in a Max window like the Patcher that just opened click File>Open... and navigate to your local "production" copy of this 
-repository's C4DeviceProject folder in the Open-File dialog and...  (if you don't plan to do any development of your own, this "runtime" project folder  
-can be a standalone separate "copy" of the C4DeviceProject repo folder (main branch) just like the remote script folder.  You only "need" the repository to further develop (and contribute?) code.)
+Open Max directly even if you don't have a full Max license (don't open Max via a M4L device in Live unless Max is fully authorized).  
+In a Max window like the "Max Console" that just opened click File>Open... and navigate to your local "production" copy of this 
+repository's C4DeviceProject folder in the Open-File dialog and...  
 </p>
 <h5><b>Open the project file C4DeviceProject.maxproj</b></h5>
 <p>
-It is important to open the project file first and open other project files from the project menu because the project establishes a Max-project-relative search path for 
-all the other files in their project-relative folders like /code, /data, /patchers, etc. You can close the M4L patcher window any time, but save the empty M4L device with the Live set 
-(if you save) so you can cut out a few mouse clicks getting back to the C4DeviceProject.maxproj to open the sequencer next time.
+(if you don't plan to do any development of your own, this "runtime" project folder can be a standalone separate "copy" of the C4DeviceProject repo folder (main branch) 
+just like the remote script folder.  You only "need" the repository to further develop (and contribute?) code.)
+</p>
+<p>
+<b>It is important</b> to open the project file first and open other project files from the project menu because the project establishes a Max-project-relative search path for 
+all the other files in their project-relative folders like /code, /data, /patchers, etc. If you opened max via an M4L device in Live, you can close the M4L patcher window 
+any time after opening this project, but save the empty M4L device with the Live set (if you save) so you can cut out a few mouse clicks getting back to the 
+C4DeviceProject.maxproj to open the sequencer project next time.
 </p>
 <p>
 ("path finding" in Max is otherwise a PITA, patches have no idea what folder they started in, Max doesn't interpret a simple relative path like, "../code/foo.js" 
@@ -83,13 +100,14 @@ Function" mode and back. (Press FUNCTION button, then TRACK again)
 NOTE: You will likely see the C4 display "go blank" and revert to the "Mackie power-on Welcome message" shortly after you open any Live set when you are using the remote script.  
 Usually right before your second button press if you are doing two buttons back-to-back, or whenever you look back at the display if you only did one button press.  When that happens, 
 the C4 has reacted to some kind of "reset" midi SYSEX message sent by Live itself(?), not the remote script. (This "rogue reset" is an outstanding "known issue" the remote script can't 
-prevent, but this Max (USER mode) sequencer project can snare since (when you are using it) all midi messages between Live and the C4 pass through the patch on the way to the C4.
+always prevent, but this Max (USER mode) sequencer project can snare since (when you are using it) all midi messages between Live and the C4 pass through the patch on the way to the C4.
 Unfortunately, this patch can't do anything about the remote script's "blank display" without "remembering" what the remote script's display should look like by scanning sysex messages
-as they pass through.  The remote script should refresh its own display within 2 seconds anyway)
+as they pass through.  The remote script should refresh its own display within 2 seconds anyway)  The C4 sends a "serial number response" sysex message when the "Welcome message"
+appears on the C4 display and both the remote script and this sequencer log the fact whenever they process such a message.
 </p>
 <p>
 If you don't see remote script "feedback display updates" on the C4 display (the LEDs and LCDs) at this point, double-check your midi port connections.  Also try running the sequencer 
-patch in standalone mode (remove Live from the equation).  Disconnect the remote script in Live and connect both Sequencer "C4 Midi" (in and out) ports to the C4 DIN ports. 
+patch in standalone mode (remove the remote script from the equation).  Disconnect the remote script in Live and connect both Sequencer "C4 Midi" (in and out) ports to the C4 DIN ports. 
 Close the "start in bypassing mode" patch and open the "start in processing mode" patch.  This standalone configuration should work (without the remote script involved).  
 If both the remote script and the sequencer work independently but not when chained, double-check that L1 loopback connection.  Otherwise, start or append to an "Issues" thread in this repository.
 </p>
@@ -114,12 +132,12 @@ in the patch, but it's generally easier to just close the patch and reopen (from
 Another best practice is to exit USER mode before you (re)load (your saved) "sequencer" JSON data files.
 </p>
 <p>
-A similarly important practice for your local system is calibrating "midi sync delay".  If you need to adjust timing, typically you want to send out the RTC ticks "early" so the 
+A similarly important practice for your local system can be calibrating "midi sync delay".  If you need to adjust timing, typically you want to send out the RTC ticks "early" so the 
 sequencer Notes come back "on time".  Depending on what other tasks are consuming CPU resources with "priority", every different Live session could impart subtly different amounts of latency, 
-but generally your system's "midi sync delay" should be more or less stable.  -5.0 milliseconds or more (negative) is possible though under heavy loads.  But since Live only offers increments of .5 ms 
-for this setting, don't get too hung up on the grid lines in a clip when you are calibrating your sync delay.  When just running Live and Max (this project), you may not notice any 
-audible latency. Or any latency might be "exactly" a sixteenth note increment so you can "rotate" sequences "right" by one, two, or three steps to account for the latency 
-without adjusting "midi sync delay".
+but generally your system's "midi sync delay" should be more or less stable.  -5.0 milliseconds or more (negative) is possible though under heavy loads like also recording/streaming 
+videos.  But since Live only offers increments of .5 ms for this "delay" setting, don't get too hung up on the grid lines in a clip when you are calibrating your system.  
+When just running Live and Max (this project), you may not notice any audible latency. Or any latency might be "exactly" a sixteenth note increment so you can "rotate" 
+sequences "right" by one, two, or three steps to account for the latency without adjusting "midi sync delay".
 </p>
 <ul>
 <li>Note1: The RTC starts going out (from Live) with the Transport, not the count-in, and the sequencer takes a beat to lock in.  So you "never" (hear or) record the first sequencer step 
@@ -131,13 +149,15 @@ you just loaded a set, try recording the sequence again.  The pipes should be fl
 like a "hard coded" midi delay on the "playing live" sequencer Notes.
 </li>
 <li>
-Note3: When the sequencer is running, "control" updates like SPLIT button page changes happen right away, you'll hear the changes, but the associated LCD display updates can appear to lag because they 
-follow the sequencer's "hot step".  If your eye is following the "hot step", you'll see page change updates right away, for example.  But if your eye is fixed on one spot, 
-page change display updates can lag until the "hot step" comes around.
+Note3: When the sequencer is running, "control" updates like SPLIT button page changes happen right away, you'll hear the changes, but the associated LCD screen updates can 
+appear to lag because they follow the sequencer's "hot step".  If your eye is following the "hot step", you'll see page change updates right away, for example.  But if your 
+eye is fixed on one spot, page change display updates can lag until the "hot step" comes around.
 </li>
 </ul>
 <h4>Updates since v1.0</h4>
 <ul>
+<li>The LCD screens will now display the stored encoder "midi Note value" data as "Note Numbers" (0 to 127) or as "Note Names" (C-2 to G8).  Use the dropdown menu in the patch UI
+to change between "numbers" and "names" Note value display</li>
 <li>Pressing two "modifier buttons" at the same time, then releasing them, will now randomize "all" sequencer data values.  There is a 50/50 chance any given "encoder button LED" will randomly
 turn ON during randomization.  However, encoder button LEDs only "flip" for actual randomization changes. LEDs that randomly hit ON will stay ON if already ON, for example, 
 while encoder values randomly change most of the time (always randomize).</li>
@@ -145,7 +165,7 @@ while encoder values randomly change most of the time (always randomize).</li>
 <li>The sequencer now has a VERBOSE mode that applies when the remote script is NOT in "User" mode so the sequencer will keep sending Notes (but not updating the C4 display). For example, when 
 the script is in ""User"" mode, the SPOT-ERASE button acts like a vehicle's clutch on the RTC (external) transport. Meaning, when the red SPOT-ERASE LED is ON you've "stepped ON the clutch" 
 and disengaged from the (external RTC) Transport so the sequencer stops generating Notes (next list item about SPOT-ERASE applies here too).  When the script is NOT in "User" mode, the clutch 
-is engaged by default (the sequencer is QUIET, doesn't generate Notes), but you can "let OFF the clutch" outside of "User" mode by setting the sequencer to VERBOSE mode (before 
+is engaged by default (the sequencer is QUIET, doesn't generate Notes), but you can "let OFF the clutch" outside "User" mode by setting the sequencer to VERBOSE mode (before 
 you leave "User" mode) so the 
 patch will remain engaged with the RTC Transport and let the sequencer play whenever the transport plays (outputting Notes only, no "display updates") after leaving "User" mode (technically, 
 you can change the sequencer patch back and forth between QUIET and VERBOSE outside "User" mode, but you can only adjust the sequencer Note output, for example, inside "User" mode)</li>
@@ -176,7 +196,8 @@ ui objects every time you load the patch, or you can open the underlying project
 so they reload again every time you reload the patch.  
 </p>
 <img src="./C4DeviceProject/media/sequencerPatcher.PNG" alt="Image of main project patcher window">
-<p>
+<p> 
+(You can only save these port selections if Max is authorized where it is running) 
 To save your Midi Port selections, open the project <a href="./C4DeviceProject/patchers/setupProjectMidiPorts.maxpat">
 "setup midi" bpatcher</a> for editing and select from the "C4" dropdown menus the 
 midi input and output ports that connect to your C4 on your system. Then replace the 14, for example, arg in the "loadmess" 
