@@ -229,13 +229,23 @@ C4DeviceController.prototype.getCrewReplaceKeyForDeck = function(deckName, crewN
     return deckName + "::" + this.getCrewNameForDeck(deckName, crewName);
 };
 C4DeviceController.prototype.refreshDeckForDutySwap = function(deckName) {
+
+    this.propagateActiveAssignmentsAcrossDecks();// copies the current "active" assignment data to all decks of "this"
+    this.refreshDeckForFileLoad(deckName);
+};
+
+// When loading from file, the "Active Assignments" data needs to be replaced with saved assignment data.
+// But the "Spare Signals" data needs to be respected
+// (For example, don't change current verbose status because loading data from file)
+C4DeviceController.prototype.refreshDeckForFileLoad = function(deckName) {
+
     c4DeviceControllerDict.name = "C4DeviceExecutiveController";
     if (deckName === undefined) {
-        post("C4DeviceController.refreshDeckForDutySwap: undefined deckName"); post();
+        post("C4DeviceController.refreshDeckForFileLoad: undefined deckName"); post();
     }
 
-    this.propagateActiveAssignmentsAcrossDecks();
-    this.propagateActiveSpareSignalsAcrossDecks();
+    this.propagateActiveSpareSignalsAcrossDecks();// copies the current "active" spare signals data to all decks of "this"
+
     deckName = deckName !== undefined ? deckName : "bridgeDeck";
     var crewName = this.getCrewNameForDeck(deckName, "Split");
     var curDeckSplit = this[deckName][crewName];
@@ -244,10 +254,10 @@ C4DeviceController.prototype.refreshDeckForDutySwap = function(deckName) {
     var backingSplitBtn = curDeckSplit.newFromDict(backingSplitDict);
     if (!reqModule.compareSaveData(curDeckSplit, backingSplitBtn)) {
         // this update is needed every time a deck changes (for example) after the split button (the squad on that deck) has been pressed+released any number of times
-        //post("C4DeviceController.refreshDeckForDutySwap: the two controllers don't agree updating", curDeckSplit.toJsonStr(), "to", backingSplitBtn.toJsonStr()); post();
+        //post("C4DeviceController.refreshDeckForFileLoad: the two controllers don't agree updating", curDeckSplit.toJsonStr(), "to", backingSplitBtn.toJsonStr()); post();
         curDeckSplit.copyDataFrom(backingSplitBtn);
     }
-};
+}
 
 C4DeviceController.prototype.updateActiveDeckSplit = function(activeDeckName, activeSplitButton) {
     // The C4Button objects don't know about this controller except when the "active" Deck changes
