@@ -18,23 +18,41 @@ Separate computers (midi interfaces) just don't require "loopback" connections.
 </p>
 <p>Demo video: <a href="https://www.youtube.com/watch?v=rdjTxElN2JQ">https://www.youtube.com/watch?v=rdjTxElN2JQ</a></p>
 <p>
-You can always use this C4 sequencer project with the C4 remote script but if you don't hold a full Max license, you can't activate a Max4Live-only license at the same time as this project. 
-Meaning if you only have a Live Standard + M4L or Live Suite license, you must run this sequencer project only, and not activate your M4L license. In other words, even if you don't hold a 
-Max license, you still need to install Max to use this sequencer project, but all you can do is "run" (M4L devices and) this sequencer project after installation, you can't 
-save any changes until a Max installation is authorized.  Only the "Max Runtime" works by default after installation. Until you authorize a license, you can't save or 
-export any editing you do in Max patchers.  For example, you won't be able to save your custom midi port selections in the project SetupProjectMidiPorts.maxpat "bPatcher" as 
-described below (1.0) unless you save the change on a machine where Max is fully authorized.  Instead, you will need to select your specific midi ports every time you run any 
-of the project patches.  Additionally, you won't be able to edit any M4L device patches by opening the device patcher in Live without breaking this project for the session.  
-A M4L-only license only allows access to Live's M4L device specific midi port(s).  This project requires access to other specific midi ports, and you have that access using 
-the (unauthorized) "Max Runtime", but that unauthorized status disappears as soon as you activate your (authorized) M4L-only license.  If you have a full Max license and 
-Max is authorized on the machine where this project is running, then you can even "Use bundled (M4L) Max version" to open the project patches in Live for editing and saving 
-(in Max) without issue.  (If you have both a M4L and a full Max license (authorized installations), you always "see" all the available midi ports in Max courtesy of your 
-full license, even when Live is only running the "bundled (M4L) version of Max")
+You can always use this C4 sequencer project with the C4 remote script but if you don't hold a full Max license, you can't activate a Max4Live-only license at the same time as 
+this project without breaking the project for the session. Meaning, if you only have a Live Standard + M4L or Live Suite license, you must run this sequencer project only, and not activate 
+your M4L license. When you first install Max, before you authorize the installation with a license key, your Max installation is locked down.  All you can do is explore the 
+functionality offered by the core "Max runtime", you can't for example, save or export any patches you edit or create before some installation is authorized.  From here, I call this 
+pre-authorized-installation licensing status Max's "none" license.  So, in effect, Max has three valid licensing states you can leverage after you install: None, Full, and 
+M4L.  The M4L license only grants access to Live's "midi port setup" and specifically only allows you to, for example, select/see the "Midi Instrument Midi-In" port in a M4L 
+(Instrument) patch's "Max Midi Setup" screen.  The none license only grants access to Max's "Max Runtime" but the "Max Midi Setup" screen is part of the runtime environment, 
+so Max's midi setup screen is fully populated under the none license showing the midi ports on your machine.  This project requires visibility of all midi ports on your 
+system (not just the specific M4L patcher's "internal" midi port) so you need to activate one of the not-M4L licensing types (full or none) to actually run this sequencer project.  
+If your Max installation is authorized with a full Max license, the full license trumps a M4L license, so you always see the complete "Max Midi Setup" screen showing all the 
+midi ports on your machine no matter what kind of Max patch you open or how you open it.  But if your Max installation is only authorized with a M4L license. Meaning, if you 
+want to save any changes, you can't open Max directly because it will be in a "none" licensing state.  In order to save edits, you have to open Max using the widget in some 
+M4L device inside a running instance of Live.  You can still open Max directly to run a pre-existing patcher if you only have a M4L authorization, even M4L patchers, you just 
+can't save any changes you make with the "none" license active.  However, if the patcher you open requires the ability to select from the full list of midi ports on your 
+machine (like this sequencer requires), then you can ONLY successfully run that patcher using a full or none Max license.  If you are using this sequencer patch leveraging a 
+none license, then you can't also open a M4L patcher using the widget on the device in Live because that action will activate your M4L license and authorize Max (for that 
+runtime session) so you can save changes, which replaces the "none" license activated status with the M4L license activated status, which breaks this sequencer patch because 
+it loses access to the full list of midi ports on your machine under a M4L (only) activation.
 </p>
 <p>
-The 2.0 update (and associated remote script updates) were entirely coded in 2025 using Max 8.x.x - 9.0.7 and Live 12.1.x - 12.1.11.  (WebStorm and PyCharm IDEs)
+In other words, even if you don't hold a full Max license, you still need to install Max to use this sequencer project, but all you can do is "run" (M4L devices and) this 
+sequencer project after installation, you can't save any changes until a Max installation is authorized.  Only the "Max Runtime" works by default after installation. Until 
+you authorize a license, you can't save or export any editing you do in Max patchers.  For example, you won't be able to save your custom midi port selections in the project 
+SetupProjectMidiPorts.maxpat "bPatcher" as described below (1.0) unless you save the change on a machine where Max is fully authorized.  Instead, you will need to select your 
+specific midi ports every time you run the sequencer patch.  Additionally, you won't be able to edit any M4L device patches by opening the device patcher in Live 
+without breaking this project for the session.  A M4L-only license only allows access to Live's M4L device specific midi port(s).  This project requires access to other 
+specific midi ports, and you have that access using the ("none" licensed) "Max Runtime", but that unauthorized status disappears as soon as you activate your (authorized) 
+M4L-only license.  If you have a full Max license and Max is authorized on the machine where this project is running, then you can even "Use bundled (M4L) Max version" to 
+open the project patches in Live for editing and saving (in Max) without issue.  (If you have both a M4L and a full Max license (authorized installations), you always "see" 
+all the available midi ports in Max courtesy of your full license, even when Live is only running the "bundled (M4L) version of Max")
+</p>
+<p>
+The 2.0 update (and associated remote script updates) were entirely coded in 2025 using Max 8.x.x - 9.0.7 and Live 12.1.x - 12.2.  (WebStorm and PyCharm IDEs)
 The remote script should be backward compatible with both Live 10 and 11 and the sequencer patch is compatible with Max 8, but these combinations haven't been tested in 2025.  
-Except that Live 12.1.11 still runs "Max 8" as the default M4L engine, and this is the setup used for M4L-license-only testing.
+Except that Live 12.1.11 still ran "Max 8" as the default M4L engine, and this was the setup used for M4L-license-only testing until 12.2.  Live 12.2 bundles Max 9.
 </p>
 <h5>Getting started</h5>
 <p>
@@ -78,10 +96,11 @@ patcher window any time after opening this project, but save the empty M4L devic
 C4DeviceProject.maxproj to open the sequencer via Live again next time.
 </p>
 <p>
-("path finding" in Max is otherwise a PITA, patches have no idea what folder they started in, Max doesn't interpret a simple relative path like, "../code/foo.js" 
+("path finding" in Max patch "code" is otherwise a PITA, patches have no canonical idea what folder they started in, Max doesn't interpret a simple relative path like, "../code/foo.js" 
 (up one level from "current directory" and down into /code, look for a file named foo.js) the way path interpretation works in other scripting environments. A current 
 directory '.' in a path-search string is generally interpreted as the folder where max.exe is located not the current patch folder.  But inside a project, the 
-"path-search search path" starts in the project folder and recurses there first.  You only need to write "foo.js" in a project patcher and the file gets found within the project folder hierarchy.)
+"path-search search path" starts in the project folder and recurses there first.  You only need to write "foo.js" in a project patcher and the file gets found within the 
+project folder hierarchy.)
 </p>
 <p>
 From the "Project menu" window, open the patch file named `openSequencerBypassing.maxpat`.  
