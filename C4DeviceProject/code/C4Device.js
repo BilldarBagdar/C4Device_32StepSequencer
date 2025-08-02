@@ -145,12 +145,16 @@ function saveCurrentControllerDictToFile(filename) {
     c4DeviceControllerDict.name = "C4DeviceExecutiveController";
     //post("pathname for save file is", filename); post();
     currentDeckName = reqModule.getActiveControllerDeckName();// fresh assignment only necessary for actual file saves?
+    post("C4Device.saveCurrentControllerDictToFile: controller before update for save"); post();
+    logAssignments(controller)
     updateActiveControllerDeckForSave(currentDeckName);
+    post("C4Device.saveCurrentControllerDictToFile: controller after update for save"); post();
+    logAssignments(controller)
 
     var controllerDictStr = controller.toJsonStr();
     var maxDictStr = JSON.stringify(JSON.parse(c4DeviceControllerDict.stringify()));
     if (!reqModule.compareSaveData(controllerDictStr, maxDictStr)) {
-        post("C4Device.saveCurrentControllerDictToFile(): assumption issue, js controller object and Max js Dict object don't have the same JSON data to save"); post();
+        post("C4Device.saveCurrentControllerDictToFile: assumption issue, js controller object and Max js Dict object don't have the same JSON data to save"); post();
         var end = filename.toString().lastIndexOf(".");
         var ext = filename.toString().substring(end);
         var path = filename.toString().substring(0, end);
@@ -189,20 +193,62 @@ function loadCurrentControllerDictFromFile(filename) {
     }
 }
 
+// function setNextController(nextController) {
+//     nextController.copyActiveSignals();// file stored "spare button signal" data is never valid
+//     controller.copyDataFrom(nextController);
+//     var nbrDecks = reqModule.getAllControllerDeckNames().length;
+//     for (var i = 0; i < nbrDecks; i++) {
+//         var deck = reqModule.getAllControllerDeckNames()[i];
+//         //post("C4Device.setNextController: refreshing deck", deck); post();
+//         controller.refreshDeckForFileLoad(deck)
+//     }
+//     currentDeckName = controller.determineSavedOnDutyDeckName();
+//     activateSavedDeck(currentDeckName);
+//     controller.refreshDeckForFileLoad(currentDeckName);
+//     setActiveCrewOnDuty(currentDeckName);
+//     paintDisplayUpdate();
+// }
+
 function setNextController(nextController) {
-    nextController.copyActiveSignals();// file stored "spare button signal" data is never valid
+    nextController.copyActiveSignals();
+    post("controller data from file:"); post();
+    logAssignments(nextController)
+    post("controller data current was:"); post();
+    logAssignments(controller)
     controller.copyDataFrom(nextController);
-    var nbrDecks = reqModule.getAllControllerDeckNames().length;
-    for (var i = 0; i < nbrDecks; i++) {
-        var deck = reqModule.getAllControllerDeckNames()[i];
-        //post("C4Device.setNextController: refreshing deck", deck); post();
-        controller.refreshDeckForFileLoad(deck)
-    }
+    post("next controller copied to current controller"); post();
+    post("controller data current is:"); post();
+    logAssignments(controller)
     currentDeckName = controller.determineSavedOnDutyDeckName();
+    post("saved deck on duty to restore is", currentDeckName); post();
     activateSavedDeck(currentDeckName);
+    post("controller data activated from save:"); post();
+    logAssignments(controller)
     controller.refreshDeckForFileLoad(currentDeckName);
     setActiveCrewOnDuty(currentDeckName);
+    post("controller data activated, refreshed, on duty from save:"); post();
+    logAssignments(controller)
     paintDisplayUpdate();
+}
+
+function logAssignments(controllerDict) {
+    for (var i = 5; i < 9; i++) {
+        var cntrlAssgnBtn = controllerDict.bridgeDeck.brdgButtons[i]
+        var dtls = [cntrlAssgnBtn.index, cntrlAssgnBtn.pressedCount, cntrlAssgnBtn.ledChangeCount].join(" ")
+        post("-bridge:", dtls); //post();
+        cntrlAssgnBtn = controllerDict.markerDeck.mrkrButtons[i]
+        dtls = [cntrlAssgnBtn.index, cntrlAssgnBtn.pressedCount, cntrlAssgnBtn.ledChangeCount].join(" ")
+        post("-marker:", dtls); //post();
+        cntrlAssgnBtn = controllerDict.trackDeck.trckButtons[i]
+        dtls = [cntrlAssgnBtn.index, cntrlAssgnBtn.pressedCount, cntrlAssgnBtn.ledChangeCount].join(" ")
+        post("-track:", dtls); //post();
+        cntrlAssgnBtn = controllerDict.chanStDeck.chstButtons[i]
+        dtls = [cntrlAssgnBtn.index, cntrlAssgnBtn.pressedCount, cntrlAssgnBtn.ledChangeCount].join(" ")
+        post("-chan strip:", dtls); //post();
+        cntrlAssgnBtn = controllerDict.functnDeck.fnctButtons[i]
+        dtls = [cntrlAssgnBtn.index, cntrlAssgnBtn.pressedCount, cntrlAssgnBtn.ledChangeCount].join(" ")
+        post("-function:", dtls); post();
+    }
 }
 
 var randomizeOnNextModifierRelease = false;
@@ -611,14 +657,26 @@ function activateSavedDeck(deckName) {
     c4DeviceControllerDict.name = "C4DeviceExecutiveController";
     buttonsDict.name = "c4Buttons";
     encodersDict.name = "c4Encoders";
+    var head = ["C4Device.activateSavedDeck: saved deck", deckName].join(" ");
+    var tail = [", restoring saved data from", deckName].join(" ")
     var reqName = reqModule.getActiveControllerDeckName();
+    // This comparison always matches here? (method is called twice)
     if (deckName !== reqName) {
-        post("C4Device.activateSavedDeck:", deckName, "is not the active deck", reqName, "restoring saved data from", deckName, "to active duty"); post();
+        var middle = [" is not active deck", reqName].join(" ");
+        var msg = head + middle + tail;
+        post(msg); post();
     } else {
-        //post("C4Device.activateSavedDeck:", deckName, "is the active deck, restoring saved data from", deckName, "to active duty"); post();
+        var middle = " is the active deck"
+        var msg = head + middle + tail;
+        post(msg); post();
+        // post("C4Device.activateSavedDeck: input deck", deckName, "is the active deck, because loading from file or regular duty swap, restoring saved data from", deckName, "to active duty"); post();
     }
 
-    controller.refreshDeckForDutySwap(deckName);
+    // post("C4Device.activateSavedDeck: controller data to activate from save:"); post();
+    // logAssignments(controller)
+    controller.refreshDeckForFileLoad(deckName);
+    // post("C4Device.activateSavedDeck: controller data refreshed for duty swap:"); post();
+    // logAssignments(controller)
 
     var deckSplitName = controller.getCrewNameForDeck(deckName, "Split");
 
