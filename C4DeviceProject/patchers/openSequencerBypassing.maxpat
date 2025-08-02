@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 526.0, 290.0, 661.0, 362.0 ],
+		"rect" : [ 730.0, 262.0, 696.0, 369.0 ],
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
@@ -54,7 +54,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 17.0, 362.0, 58.0, 22.0 ],
+					"patching_rect" : [ 17.0, 366.0, 58.0, 22.0 ],
 					"text" : "loadbang"
 				}
 
