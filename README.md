@@ -50,7 +50,7 @@ open the project patches in Live for editing and saving (in Max) without issue. 
 all the available midi ports in Max courtesy of your full license, even when Live is only running the "bundled (M4L) version of Max")
 </p>
 <p>
-The 2.0 update (and associated remote script updates) were entirely coded in 2025 using Max 8.x.x - 9.0.7 and Live 12.1.x - 12.2.  (WebStorm and PyCharm IDEs)
+The 2.0 update (and associated remote script updates) were entirely coded in 2025 using Max 8.x.x - 9.0.7 and Live 12.1.x - 12.2.1.  (WebStorm and PyCharm IDEs)
 The remote script should be backward compatible with both Live 10 and 11 and the sequencer patch is compatible with Max 8, but these combinations haven't been tested in 2025.  
 Except that Live 12.1.11 still ran "Max 8" as the default M4L engine, and this was the setup used for M4L-license-only testing until 12.2.  Live 12.2 bundles Max 9.
 </p>
@@ -99,7 +99,7 @@ C4DeviceProject.maxproj to open the sequencer via Live again next time.
 ("path finding" in Max patch "code" is otherwise a PITA, patches have no canonical idea what folder they started in, Max doesn't interpret a simple relative path like, "../code/foo.js" 
 (up one level from "current directory" and down into /code, look for a file named foo.js) the way path interpretation works in other scripting environments. A current 
 directory '.' in a path-search string is generally interpreted as the folder where max.exe is located not the current patch folder.  But inside a project, the 
-"path-search search path" starts in the project folder and recurses there first.  You only need to write "foo.js" in a project patcher and the file gets found within the 
+"path-search search path" starts in the project folder and recurses there first.  You only need to write "foo.js" in a project patcher and the file gets found anywhere within the 
 project folder hierarchy.)
 </p>
 <p>
@@ -117,13 +117,13 @@ in Live that trigger remote script feedback (like a mouse click changing the sel
 Function" mode and back. (Press FUNCTION button, then TRACK again)
 </p>
 <p>
-NOTE: You will likely see the C4 display "go blank" and revert to the "Mackie power-on Welcome message" shortly after you open any Live set when you are using the remote script.  
+NOTE: You could see the C4 display "go blank" and revert to the "Mackie power-on Welcome message" shortly after you open any Live set when you are using the remote script.  
 Usually right before your second button press if you are doing two buttons back-to-back, or whenever you look back at the display if you only did one button press.  When that happens, 
 the C4 has reacted to some kind of "reset" midi SYSEX message sent by Live itself(?), not the remote script. (This "rogue reset" is an outstanding "known issue" the remote script can't 
 always prevent, but this Max (USER mode) sequencer project can snare since (when you are using it) all midi messages between Live and the C4 pass through the patch on the way to the C4.
 Unfortunately, this patch can't do anything about the remote script's "blank display" without "remembering" what the remote script's display should look like by scanning sysex messages
 as they pass through.  The remote script should refresh its own display within 2 seconds anyway)  The C4 sends a "serial number response" sysex message when the "Welcome message"
-appears on the C4 display and both the remote script and this sequencer log the fact whenever they process such a message.
+appears on the C4 display and both the remote script and this sequencer log the fact whenever they process such a "serial number" message.
 </p>
 <p>
 If you don't see remote script "feedback display updates" on the C4 display (the LEDs and LCDs) at this point, double-check your midi port connections.  Also try running the sequencer 
@@ -187,7 +187,7 @@ turn ON during randomization.  However, encoder button LEDs only "flip" for actu
 while encoder values randomly change most of the time (always randomize).</li>
 <li>You can now save and load sequencer dictionary JSON files. (from/to the project/data/c4Controllers folder by default)</li>
 <li>The sequencer now has a VERBOSE mode that applies when the remote script is NOT in "User" mode so the sequencer will keep sending Notes (but not updating the C4 display). For example, when 
-the script is in ""User"" mode, the SPOT-ERASE button acts like a vehicle's clutch on the RTC (external) transport. Meaning, when the red SPOT-ERASE LED is ON you've "stepped ON the clutch" 
+the script is in "User" mode, the SPOT-ERASE button acts like a vehicle's clutch on the RTC (external) transport. Meaning, when the red SPOT-ERASE LED is ON you've "stepped ON the clutch" 
 and disengaged from the (external RTC) Transport so the sequencer stops generating Notes (next list item about SPOT-ERASE applies here too).  When the script is NOT in "User" mode, the clutch 
 is engaged by default (the sequencer is QUIET, doesn't generate Notes), but you can "let OFF the clutch" outside "User" mode by setting the sequencer to VERBOSE mode (before 
 you leave "User" mode) so the 
@@ -210,7 +210,7 @@ toggles the button LED state as well.</li>
 </p>
 
 <h3>Version 1.0</h3> <p>of this Max 8.6.2 project implements a midi data server (in javascript) and leverages the server 
-to implement a 32 step midi sequencer.</p>
+to implement a 32-step midi sequencer, with 20 distinct 32-step sequences that each have 5 variations available</p>
 
 <img src="./C4DeviceProject/media/mackieC4_ControlLayout.PNG" alt="Image from the C4 manual(?) showing a C4 Commander app screenshot of the physical control layout on the C4 hardware (with 'Commander overlay' button labels)">
 <p>
@@ -279,7 +279,7 @@ you will experience roughly 10 turning-clicks where nothing happens for every cl
 <p>
 Change the current "encoder display page" using the C4's SPLIT button ("Select" above).  Page 0 is the "main page" whose display 
 alternates with display of the other three pages in the biased cycle 0, 1, 0, 2, 0, 3. The Split button LEDs are 
-associated with the 3 "other pages" 1/3, 2/3, 3/3. The main page displays when all Split LEDs are OFF.
+associated with the 3 "other pages" 1/3, 2/2, 3/1. The main page displays when all Split LEDs are OFF.
 </p>
 <p>
 The Lock button ("Upper" above) reverses the direction of the Split button LED cycle.  When the Lock LED is ON, the Split 
