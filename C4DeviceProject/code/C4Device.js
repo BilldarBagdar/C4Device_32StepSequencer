@@ -190,11 +190,17 @@ function loadCurrentControllerDictFromFile(filename) {
 }
 
 function setNextController(nextController) {
-    nextController.copyActiveSignals();
-    controller = nextController;
+    nextController.copyActiveSignals();// file stored "spare button signal" data is never valid
+    controller.copyDataFrom(nextController);
+    var nbrDecks = reqModule.getAllControllerDeckNames().length;
+    for (var i = 0; i < nbrDecks; i++) {
+        var deck = reqModule.getAllControllerDeckNames()[i];
+        //post("C4Device.setNextController: refreshing deck", deck); post();
+        controller.refreshDeckForFileLoad(deck)
+    }
     currentDeckName = controller.determineSavedOnDutyDeckName();
     activateSavedDeck(currentDeckName);
-    controller.refreshDeckForDutySwap(currentDeckName);
+    controller.refreshDeckForFileLoad(currentDeckName);
     setActiveCrewOnDuty(currentDeckName);
     paintDisplayUpdate();
 }
@@ -517,6 +523,11 @@ function swapActiveCrewsOnDuty(buttonId) {
 }
 
 function updateActiveControllerDeckForSave(activeDeckName) {
+    // for(deck in reqMod.getAllControllerDeckNames()) {
+    //     if (deck !== activeDeckName) {
+    //         saveActiveDeck(deck);
+    //     }
+    // }
     saveActiveDeck(activeDeckName);
 }
 
@@ -602,9 +613,9 @@ function activateSavedDeck(deckName) {
     encodersDict.name = "c4Encoders";
     var reqName = reqModule.getActiveControllerDeckName();
     if (deckName !== reqName) {
-        post("C4Device.activateSavedDeck: input deck", deckName, "is not active deck", reqName, "restoring saved data from input deck to active duty for loading from file"); post();
+        post("C4Device.activateSavedDeck:", deckName, "is not the active deck", reqName, "restoring saved data from", deckName, "to active duty"); post();
     } else {
-        //post("C4Device.activateSavedDeck: input deck", deckName, "is the active deck, restoring saved data from input deck to active duty for regular duty swap"); post();
+        //post("C4Device.activateSavedDeck:", deckName, "is the active deck, restoring saved data from", deckName, "to active duty"); post();
     }
 
     controller.refreshDeckForDutySwap(deckName);

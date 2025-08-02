@@ -145,6 +145,30 @@ C4DeviceController.prototype.newCopy= function() {
     return rtn;
 };
 
+C4DeviceController.prototype.copyDataFrom= function(fileController) {
+
+    this.bridgeDeck.brdgSplit.copyDataFrom(fileController.bridgeDeck.brdgSplit);
+    this.markerDeck.mrkrSplit.copyDataFrom(fileController.markerDeck.mrkrSplit);
+    this.trackDeck.trckSplit.copyDataFrom(fileController.trackDeck.trckSplit);
+    this.chanStDeck.chstSplit.copyDataFrom(fileController.chanStDeck.chstSplit);
+    this.functnDeck.fnctSplit .copyDataFrom(fileController.functnDeck.fnctSplit);
+
+    for (var i = 0; i < TOTAL_BUTTONS; i++) {// 160 logical buttons
+        this.bridgeDeck.brdgButtons[i].copyDataFrom(fileController.bridgeDeck.brdgButtons[i]);
+        this.markerDeck.mrkrButtons[i].copyDataFrom(fileController.markerDeck.mrkrButtons[i]);
+        this.trackDeck.trckButtons[i].copyDataFrom(fileController.trackDeck.trckButtons[i]);
+        this.chanStDeck.chstButtons[i].copyDataFrom(fileController.chanStDeck.chstButtons[i]);
+        this.functnDeck.fnctButtons[i].copyDataFrom(fileController.functnDeck.fnctButtons[i]);
+        if (i < TOTAL_ENCODERS) {// 128 logical encoders
+            this.bridgeDeck.brdgEncoders[i].copyDataFrom(fileController.bridgeDeck.brdgEncoders[i]);
+            this.markerDeck.mrkrEncoders[i].copyDataFrom(fileController.markerDeck.mrkrEncoders[i]);
+            this.trackDeck.trckEncoders[i].copyDataFrom(fileController.trackDeck.trckEncoders[i]);
+            this.chanStDeck.chstEncoders[i].copyDataFrom(fileController.chanStDeck.chstEncoders[i]);
+            this.functnDeck.fnctEncoders[i].copyDataFrom(fileController.functnDeck.fnctEncoders[i]);
+        }
+    }
+};
+
 C4DeviceController.prototype.newRandomizedData = function() {
 
     var rtn = this.newCopy();
@@ -276,6 +300,21 @@ C4DeviceController.prototype.updateActiveDeckSplit = function(activeDeckName, ac
 C4DeviceController.prototype.copyActiveSignals = function() {
     this.propagateActiveSpareSignalsAcrossDecks();
 };
+
+C4DeviceController.prototype.copyAssignmentsToActiveButtons = function() {
+    buttonsDict.name = "c4Buttons";
+    var utilBtn = new C4Button(0);
+    for(var i = 5; i < 9; i++) {
+        var btnDict = buttonsDict.get(i);
+        var c4ActiveBtn = utilBtn.newFromDict(btnDict);
+
+        c4ActiveBtn.copyDataFrom(this.bridgeDeck["brdgButtons"][i]);
+        c4ActiveBtn.copyDataFrom(this.markerDeck["mrkrButtons"][i]);
+        c4ActiveBtn.copyDataFrom(this.trackDeck["trckButtons"][i]);
+        c4ActiveBtn.copyDataFrom(this.chanStDeck["chstButtons"][i]);
+        c4ActiveBtn.copyDataFrom(this.functnDeck["fnctButtons"][i]);
+    }
+}
 
 // The Assignment buttons are common across decks
 // (press+release MARKER button on one deck, press+release MARKER on all decks)
