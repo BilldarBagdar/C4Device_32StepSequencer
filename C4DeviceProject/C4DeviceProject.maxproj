@@ -2,8 +2,8 @@
 	"name" : "C4DeviceProject",
 	"version" : 1,
 	"creationdate" : 3800031733,
-	"modificationdate" : 3831461807,
-	"viewrect" : [ 994.0, 436.0, 300.0, 500.0 ],
+	"modificationdate" : 3841487005,
+	"viewrect" : [ 1375.0, 335.0, 300.0, 500.0 ],
 	"autoorganize" : 0,
 	"hideprojectwindow" : 0,
 	"showdependencies" : 1,
@@ -31,6 +31,11 @@
 			}
 ,
 			"openSequencerProcessing.maxpat" : 			{
+				"kind" : "patcher",
+				"local" : 1
+			}
+,
+			"ExecutiveControllerDictLibrarian.maxpat" : 			{
 				"kind" : "patcher",
 				"local" : 1
 			}
