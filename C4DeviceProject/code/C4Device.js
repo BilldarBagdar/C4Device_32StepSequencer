@@ -449,12 +449,12 @@ function midievent(midiMsgIn) {
 var sysexMsg = [];
 function midiSysexEvent(byteVal) {
     // always check for the "welcome message" (serial number request response message) and handle if found
-        if (byteVal === 240) {
+        if (byteVal === MIDI_SYSEX_START_ID) {
             if (sysexMsg.length > 0) {
                 post("C4Device.midiSysexEvent: assumption issue, sysexMsg array not empty when 240 start byte received", sysexMsg, "this data is dropped"); post();
             }
             sysexMsg = [byteVal];// resets the array to size 1
-        } else if (byteVal === 247) {
+        } else if (byteVal === MIDI_SYSEX_END_ID) {
             sysexMsg.push(byteVal);
 
             if (isPatchProcessingEnabled()) {

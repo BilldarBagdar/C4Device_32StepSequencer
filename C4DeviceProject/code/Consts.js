@@ -32,6 +32,8 @@ var BYTES_PER_SYSEX_SEG = 7;// ~~(LCD_BOTTOM_ROW_OFFSET / ENCODERS_PER_LCD_SCREE
 var MIDI_CC_ID = 176;
 var MIDI_NOTE_ON_ID = 144;
 var MIDI_NOTE_OFF_ID = 128;
+var MIDI_SYSEX_START_ID = 240;
+var MIDI_SYSEX_END_ID = 247;
 // "BUCKET SIZE" defines the "fader range" where encoders operate
 // incrementing and decrementing a stored value
 var BUCKET_EMPTY_VALUE = 0;
