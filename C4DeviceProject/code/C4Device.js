@@ -26,7 +26,7 @@
 //
 //
 inlets = 1;
-outlets = 3;// 0 for Note and CC messages, 1 for SYSEX messages, 2 not implemented
+outlets = 3;// 0 for Note and CC messages, 1 for SYSEX messages, 2 deviceLoadedBang
 //
 //
 //   ---- C4Device js-object definitions -----
@@ -78,6 +78,7 @@ function loadUp(modeSelect) {
             sendEncoderPageData(generateWelcomePageMsgs);
         }
         isInitialized = true;
+        outlet(2, "bang");
     }
 }
 function forceLoadUp() {

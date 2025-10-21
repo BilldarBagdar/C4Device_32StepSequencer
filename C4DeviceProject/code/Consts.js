@@ -44,6 +44,7 @@ var BUTTON_LED_OFF_VALUE = 0;
 var BUTTON_LED_BLINK_VALUE = 1;
 var BUTTON_LED_ON_VALUE = 127;
 var ENCODER_RING_BTN_LED_ON_OFFSET = 64;
+var ENCODER_TURN_CCW_OFFSET = 64;
 // (21 actual buttons + 11 spares) + (32 actual encoder buttons * 4 modeled encoder button pages) = 160
 //  TOTAL_BUTTONS is the "keyset size" of the "buttons" Dict, the largest data store.
 var TOTAL_BUTTONS = ENCODER_BTN_OFFSET + TOTAL_ENCODERS;// 32 + 128 = 160

@@ -49,6 +49,17 @@ C4Encoder.prototype.copyDataFrom = function(other) {
     this.altPressedValue = other.altPressedValue;
     this.lastIncrementValue = other.lastIncrementValue;
 };
+C4Encoder.prototype.copyDataFromDict = function(otherDict) {
+    this.pressedValue = otherDict.get("pressedValue");
+    this.releasedValue = otherDict.get("releasedValue");
+    this.ringLedFeedbackStyle = otherDict.get("ringLedFeedbackStyle");
+    this.buttonLedValue = otherDict.get("buttonLedValue");
+    this.shiftPressedValue = otherDict.get("shiftPressedValue");
+    this.optionPressedValue = otherDict.get("optionPressedValue");
+    this.controlPressedValue = otherDict.get("controlPressedValue");
+    this.altPressedValue = otherDict.get("altPressedValue");
+    this.lastIncrementValue = otherDict.get("lastIncrementValue");
+};
 C4Encoder.prototype.updateActiveDicts = function() {
 
     this.updateNamedDict("c4Encoders");
@@ -382,6 +393,22 @@ C4Encoder.prototype.getFeedbackValueRaw = function() {
         rtn = this.pressedValue;
     }
     return rtn;
+};
+C4Encoder.prototype.setFeedbackValueRaw = function(value) {
+
+    if (this.isShiftButtonPressed()) {
+        this.shiftPressedValue = value;
+    } else if (this.isOptionButtonPressed()) {
+        this.optionPressedValue = value;
+    } else if (this.isControlButtonPressed()) {
+        this.controlPressedValue = value;
+    } else if (this.isAltButtonPressed()) {
+        this.altPressedValue = value;
+    } else if (this.isButtonPressed()) {
+        this.pressedValue = value;
+    } else {
+        this.releasedValue = value;
+    }
 };
 C4Encoder.prototype.getFeedbackValueForWelcome = function() {
     var isHotStep = false;
