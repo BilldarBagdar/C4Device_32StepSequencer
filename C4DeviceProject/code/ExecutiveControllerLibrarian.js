@@ -452,27 +452,17 @@ isSysexMsg.local = 1;
 
 function isEncoderRingFeedbackMsg(midiMsg) {
     var MIDI_MSG_SIZE = 3;
-    //post("isEncoderRingFeedbackMsg:", midiMsg); post();
     var rtn = midiMsg.length === MIDI_MSG_SIZE;
     if (rtn) {
-        //post("isEncoderRingFeedbackMsg: is Note or CC msg", midiMsg); post();
         rtn = midiMsg[0] === MIDI_CC_ID;
         if (rtn) {
-            //post("isEncoderRingFeedbackMsg: is CC msg", midiMsg); post();
             rtn = midiMsg[1] >= ENCODER_FEEDBACK_ID_OFFSET &&
                 midiMsg[1] < ENCODER_FEEDBACK_ID_OFFSET + NBR_PHYSICAL_ENCODERS;
-            if (rtn) {
-                //post("isEncoderRingFeedbackMsg: is ring feedback msg", midiMsg); post();
-            } else {
+            if (!rtn) {
                 post("isEncoderRingFeedbackMsg: is CC msg but NOT ring feedback msg", midiMsg); post();
             }
-        } else {
-            //post("isEncoderRingFeedbackMsg: is NOT CC msg", midiMsg); post();
         }
     }
-
-
-    //post("isEncoderRingFeedbackMsg: returning", rtn); post();// , rtn === false ? "False" : "True"
     return rtn
 
 }
@@ -533,9 +523,7 @@ function commonEncoderKnobMsgGenerator(key, value) {
         var valBefore = lastEncoderValues[key].getFeedbackValueRaw();
         // no "turn speed" acceleration emulation === too many midi messages too fast?
         var valOut = valBefore > value ? ENCODER_TURN_CCW_OFFSET + 1 : 1;
-        var increment = valBefore > value ? valBefore - 1 : valBefore + 1;
         outlet(1, [MIDI_CC_ID, key, valOut]);// emulate encoder turn event value where CCW turn > 64 and CW < 64
-        // lastEncoderValues[key].setFeedbackValueRaw(value); // remember incremented raw data
     }
 }
 commonEncoderKnobMsgGenerator.local = 1;
@@ -569,7 +557,6 @@ function commonEncoderDictUpdate(key, value) {
     var valBefore = encodersDict.get(valKey);
     if (isProcessingMode()) {
         encodersDict.replace(valKey, value);
-        lastEncoderValues[key].releasedValue = value;
         var dtls = ["replaced encoder value", valBefore, "with", value, "at", valKey].join(" ");
         post("commonEncoderDictUpdate:", dtls);
         post();
