@@ -126,7 +126,7 @@ C4DeviceController.prototype.newCopy= function() {
     rtn.markerDeck.mrkrSplit.copyDataFrom(this.markerDeck.mrkrSplit);
     rtn.trackDeck.trckSplit.copyDataFrom(this.trackDeck.trckSplit);
     rtn.chanStDeck.chstSplit.copyDataFrom(this.chanStDeck.chstSplit);
-    rtn.functnDeck.fnctSplit .copyDataFrom(this.functnDeck.fnctSplit);
+    rtn.functnDeck.fnctSplit.copyDataFrom(this.functnDeck.fnctSplit);
 
     for (var i = 0; i < TOTAL_BUTTONS; i++) {// 160 logical buttons
         rtn.bridgeDeck.brdgButtons[i].copyDataFrom(this.bridgeDeck.brdgButtons[i]);
@@ -151,7 +151,7 @@ C4DeviceController.prototype.copyDataFrom= function(fileController) {
     this.markerDeck.mrkrSplit.copyDataFrom(fileController.markerDeck.mrkrSplit);
     this.trackDeck.trckSplit.copyDataFrom(fileController.trackDeck.trckSplit);
     this.chanStDeck.chstSplit.copyDataFrom(fileController.chanStDeck.chstSplit);
-    this.functnDeck.fnctSplit .copyDataFrom(fileController.functnDeck.fnctSplit);
+    this.functnDeck.fnctSplit.copyDataFrom(fileController.functnDeck.fnctSplit);
 
     for (var i = 0; i < TOTAL_BUTTONS; i++) {// 160 logical buttons
         this.bridgeDeck.brdgButtons[i].copyDataFrom(fileController.bridgeDeck.brdgButtons[i]);
