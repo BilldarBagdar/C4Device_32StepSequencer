@@ -2,7 +2,7 @@
 	"name" : "C4DeviceProject",
 	"version" : 1,
 	"creationdate" : 3800031733,
-	"modificationdate" : 3841492844,
+	"modificationdate" : 3844509109,
 	"viewrect" : [ 396.0, 104.0, 300.0, 500.0 ],
 	"autoorganize" : 0,
 	"hideprojectwindow" : 0,
@@ -45,12 +45,7 @@
 		"code" : 		{
 			"ExecutiveControllerLibrarian.js" : 			{
 				"kind" : "javascript",
-				"local" : 1,
-				"singleton" : 				{
-					"bootpath" : "D:/music/maxStuff/C4Projects/C4Device_32StepSequencer/C4DeviceProject/code",
-					"projectrelativepath" : "./code"
-				}
-
+				"local" : 1
 			}
 
 		}
