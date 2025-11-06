@@ -46,6 +46,9 @@ var utilEncoder = new C4Encoder();
 var utilButton = new C4Button();
 var controller = new C4DeviceController("single");
 
+var mySpecialName = "c4d";
+var myVarname = C4DEVICE_SCRIPTING_NAME;
+
 var showNoteNamesOrNoteNumbers = "numbers";
 function setNoteValueDisplayType(display) {
     display = display !== undefined ? display : "numbers";
@@ -60,10 +63,27 @@ function getNoteValueDisplayType() {
     return showNoteNamesOrNoteNumbers;
 }
 
+
+function notifydeleted() {
+    reqModule.setC4DeviceObj(undefined);
+}
+
 function loadUp(modeSelect) {
     if (!isInitialized) {
         // Run garbage collection to clear out any old objects.
         gc();
+
+        // The ‘box’ property of our patcher returns a Maxobj referring to our js object itself!
+        var thisMaxBox = this.box;
+        if (thisMaxBox.valid) {
+            thisMaxBox.varname = myVarname;
+            reqModule.setC4DeviceObj(thisMaxBox);
+            // if (reqModule.isC4DeviceObjValid()) {
+            //     post("loadUp: C4Device maxobj is valid"); post();
+            // } else {
+            //     post("loadUp: C4Device maxobj is NOT valid"); post();
+            // }
+        }
         if (!(modeSelect === 0 || modeSelect === 127)) {
             modeSelect = 127;
         }
@@ -74,11 +94,23 @@ function loadUp(modeSelect) {
         encIndexesByLcdRowDict.import_json("rowMap16RowsOf8Keys.json");
         midiNoteNumbersToNoteNamesDict.import_json("midiNoteNbrNameMap.json");
         saveInitControllerDictToFile();
+        if (reqModule.isLibrarianObjValid()) {
+            // post("loadUp: Librarian js object reference already valid"); post();
+        } else {
+            var maxobj = reqModule.getLibrarianObj(mySpecialName);
+            // if (maxobj && maxobj.valid) {
+            //     post("loadUp: Librarian js object reference now valid"); post();
+            // } else {
+            //     post("loadUp: Librarian js object reference NOT yet valid"); post();
+            // }
+        }
         if (modeSelect === 127) {
             sendEncoderPageData(generateWelcomePageMsgs);
         }
         isInitialized = true;
+        // post("loadUp: sending finished loading bang"); post();
         outlet(2, "bang");
+        messnamed("deviceLoaded", "bang");
     }
 }
 function forceLoadUp() {
@@ -250,6 +282,52 @@ function midievent(midiMsgIn) {
 
     var midiMsg = arrayfromargs(arguments);
     processMidiEventArray(midiMsg);
+}
+
+var fromLibrarianFeedbackBlocker = 0;
+function fromLibrarian(midiMsgIn) {
+
+    if (!reqModule.isLibrarianObjValid()) {
+        // since C4Device is calling and the return callout reference is not valid, update
+        var maxobj = reqModule.getLibrarianObj(mySpecialName);
+        if (!(maxobj && maxobj.valid)) {
+            post("fromLibrarian: method was called but cant get valid Librarian object reference")
+        }
+    }
+
+    if (!((midiMsgIn[0] === MIDI_NOTE_ON_ID || midiMsgIn[0] === MIDI_NOTE_OFF_ID) && midiMsgIn[1] < ENCODER_BTN_OFFSET)) {
+        // ?only send "from librarian" feedback messages (back to librarian) for "control button" events like
+        // ?page or deck changes (not for encoder button or knob events)?
+        fromLibrarianFeedbackBlocker = 127;
+    }
+    processMidiEventArray(midiMsgIn);
+    fromLibrarianFeedbackBlocker = 0
+}
+
+function isLibrarianFeedbackBlocked() {
+    var rtn = reqModule.isLibrarianObjValid();
+    if (rtn) {
+        rtn = fromLibrarianFeedbackBlocker > 0;
+    } else {
+        rtn = true;// block feedback to Librarian unless Librarian Object is valid
+    }
+    return rtn;
+}
+isLibrarianFeedbackBlocked.local = 1;
+
+function librarianHandshake(status) {
+    if (status > 0) {
+        if (!reqModule.isLibrarianObjValid()) {
+            var maxobj = reqModule.getLibrarianObj(mySpecialName);
+            if (maxobj && maxobj.valid) {
+                // post("librarianHandshake: checked and found valid Librarian object reference");post();
+            } else {
+                post("librarianHandshake: method was called ?but cant get valid Librarian object reference?");post();
+            }
+        } else {
+            // post("librarianHandshake: found already valid Librarian object reference");post();
+        }
+    }
 }
 
 var randomizeOnNextModifierRelease = false;

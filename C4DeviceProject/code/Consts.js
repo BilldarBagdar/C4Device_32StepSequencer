@@ -11,6 +11,10 @@ var encIndexesByLcdRowDict = new Dict("lcdScreenRowIndexRef");
 var midiNoteNumbersToNoteNamesDict = new Dict("noteNumberNameRef");
 var c4DeviceControllerDict = new Dict("C4DeviceExecutiveController");
 
+var C4DEVICE_SCRIPTING_NAME = "C4Device";
+var LIBRARIAN_SCRIPTING_NAME = "librarian";
+var jsObjs = [C4DEVICE_SCRIPTING_NAME, LIBRARIAN_SCRIPTING_NAME];
+
 var reqModule = require("commonRequire");
 
 var THE_BOOK = reqModule.getAllOffsets();
@@ -29,6 +33,7 @@ var ENCODERS_PER_LCD_SCREEN = 8;// ~~(NBR_PHYSICAL_ENCODERS / TOTAL_LCD_SCREENS)
 var LCD_BOTTOM_ROW_OFFSET = 56;// 0x38
 var TOTAL_BYTES_PER_SYSEX_MSG = 63
 var BYTES_PER_SYSEX_SEG = 7;// ~~(LCD_BOTTOM_ROW_OFFSET / ENCODERS_PER_LCD_SCREEN);
+var MIDI_MSG_SIZE = 3;
 var MIDI_CC_ID = 176;
 var MIDI_NOTE_ON_ID = 144;
 var MIDI_NOTE_OFF_ID = 128;

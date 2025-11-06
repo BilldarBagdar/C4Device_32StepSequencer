@@ -31,9 +31,14 @@ C4Encoder.prototype.newFromJSONStr = function(s) {
         enc.optionPressedValue, enc.controlPressedValue, enc.altPressedValue, enc.lastIncrementValue);
 };
 C4Encoder.prototype.newFromDict = function(d) {
-    return new C4Encoder(d.get("index"), d.get("kname"), d.get("pressedValue"), d.get("releasedValue"),
-        d.get("ringLedFeedbackStyle"), d.get("buttonLedValue"), d.get("shiftPressedValue"),
-        d.get("optionPressedValue"), d.get("controlPressedValue"), d.get("altPressedValue"), d.get("lastIncrementValue"));
+    if (d) {
+        return new C4Encoder(d.get("index"), d.get("kname"), d.get("pressedValue"), d.get("releasedValue"),
+            d.get("ringLedFeedbackStyle"), d.get("buttonLedValue"), d.get("shiftPressedValue"),
+            d.get("optionPressedValue"), d.get("controlPressedValue"), d.get("altPressedValue"), d.get("lastIncrementValue"));
+    } else {
+        post("C4Encoder.newFromDict: input Dict d is null, returning new default instead?");post();
+        return new C4Encoder();
+    }
 };
 C4Encoder.prototype.toJsonStr = function() {
     return JSON.stringify(this);

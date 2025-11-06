@@ -169,6 +169,30 @@ C4DeviceController.prototype.copyDataFrom= function(fileController) {
     }
 };
 
+C4DeviceController.prototype.copyDataFromDict= function(controllerDict) {
+
+    this.bridgeDeck.brdgSplit.copyDataFromDict(controllerDict.get("bridgeDeck::brdgSplit"));
+    this.markerDeck.mrkrSplit.copyDataFromDict(controllerDict.get("markerDeck::mrkrSplit"));
+    this.trackDeck.trckSplit.copyDataFromDict(controllerDict.get("trackDeck::trckSplit"));
+    this.chanStDeck.chstSplit.copyDataFromDict(controllerDict.get("chanStDeck::chstSplit"));
+    this.functnDeck.fnctSplit.copyDataFromDict(controllerDict.get("functnDeck::fnctSplit"));
+
+    for (var i = 0; i < TOTAL_BUTTONS; i++) {// 160 logical buttons on each deck
+        this.bridgeDeck.brdgButtons[i].copyDataFromDict(controllerDict.get("bridgeDeck::brdgButtons::" + i.toString()));
+        this.markerDeck.mrkrButtons[i].copyDataFromDict(controllerDict.get("markerDeck::mrkrButtons::" + i.toString()));
+        this.trackDeck.trckButtons[i].copyDataFromDict(controllerDict.get("trackDeck::trckButtons::" + i.toString()));
+        this.chanStDeck.chstButtons[i].copyDataFromDict(controllerDict.get("chanStDeck::chstButtons::" + i.toString()));
+        this.functnDeck.fnctButtons[i].copyDataFromDict(controllerDict.get("functnDeck::fnctButtons::" + i.toString()));
+        if (i < TOTAL_ENCODERS) {// 128 logical encoders on each deck
+            this.bridgeDeck.brdgEncoders[i].copyDataFromDict(controllerDict.get("bridgeDeck::brdgEncoders::" + i.toString()));
+            this.markerDeck.mrkrEncoders[i].copyDataFromDict(controllerDict.get("markerDeck::mrkrEncoders::" + i.toString()));
+            this.trackDeck.trckEncoders[i].copyDataFromDict(controllerDict.get("trackDeck::trckEncoders::" + i.toString()));
+            this.chanStDeck.chstEncoders[i].copyDataFromDict(controllerDict.get("chanStDeck::chstEncoders::" + i.toString()));
+            this.functnDeck.fnctEncoders[i].copyDataFromDict(controllerDict.get("functnDeck::fnctEncoders::" + i.toString()));
+        }
+    }
+}
+
 C4DeviceController.prototype.newRandomizedData = function() {
 
     var rtn = this.newCopy();

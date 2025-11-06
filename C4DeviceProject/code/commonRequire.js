@@ -8,6 +8,9 @@ var c4DeviceControllerDict = new Dict("C4DeviceExecutiveController");
 var pageOffsets = [0, 32, 64, 96];
 var controllerDecks = ["bridgeDeck", "markerDeck", "trackDeck", "chanStDeck", "functnDeck"];
 
+var C4DeviceObj = undefined;
+var LibrarianObj = undefined;
+
 exports.getAllOffsets = function gao() {
 	return pageOffsets;
 }
@@ -31,6 +34,25 @@ exports.areTwoModifiersPressed = function tmap() {
 }
 exports.generateMidiValue = function grmd() {
 	return getRandomMidiValue();
+}
+
+exports.setC4DeviceObj = function sc4d(deviceRef) {
+    setC4Device(deviceRef);
+}
+exports.setLibrarianObj = function slo(libRef) {
+    setLibrarian(libRef);
+}
+exports.getC4DeviceObj = function gc4d(caller) {
+    return getC4Device(caller);
+}
+exports.getLibrarianObj = function glo(caller) {
+    return getLibrarian(caller);
+}
+exports.isC4DeviceObjValid = function ic4dv() {
+    return isC4DeviceValid();
+}
+exports.isLibrarianObjValid = function ilv() {
+    return isLibrarianValid();
 }
 
 function getEncoderPageOffset() {
@@ -147,4 +169,113 @@ function deepCompare(arg1, arg2) {
 		return (arg1===arg2);
 	}
 	return false;
+}
+
+// The JS object with scripting name C4Device is in a top level patcher (C4Device_32StepSequencer.maxpat) or
+// (the same patcher) in a "bpatcher" sub-patcher in a top level patcher (openSequencerBypassing.maxpat for example)
+// The JS object with scripting name librarian is always in a top level patcher (ExecutiveControllerDictLibrarian.maxpat)
+//
+// Although the JS objects (C4Device, librarian) share project code files like this file, both objects maintain unique instances
+// of those "code objects" at runtime.  They may seem to share object instances too, but that's not true (or only true because
+// they do share Dict data).  For example, both "C4Device" and "librarian" can only "set" their own valid "Maxobj" reference,
+// neither can ever "get" a valid "Maxobj" reference for the other. Because each maintains its own copy of this "common" data.
+// Therefore, this code can only search the Max runtime environment to successfully locate valid "Maxobj" references to
+// pass around as available.
+function getMaxobjReference(scriptingName, caller) {
+    var topPatcher = max.frontpatcher;
+    var topPatcherCount = 1;
+    var rtn;
+    var keepLooking = true;
+    // var m = ["getMaxobjReference:", caller,  "looking for maxobj with scriptingName",
+    //     scriptingName, "at max.time", max.time].join(" ");
+    // post(m);post();
+    while (topPatcher && keepLooking) {
+        // m = ["getMaxobjReference:", caller,  "top patcher", topPatcherCount, "at filepath",
+        //     topPatcher.filepath, "contains", topPatcher.count, "maxobj objects"].join(" ");
+        // post(m);post();
+        var maxObj = topPatcher.getnamed(scriptingName);
+        if (maxObj) {
+            rtn = maxObj;// "this" js Maxobj with scripting name "patcherAjs" for example
+            // m = ["getMaxobjReference:", caller,  "found maxobj with scriptingName", scriptingName,
+            //     "by getnamed in top-patcher", topPatcherCount].join(" ");
+            // post(m);post();
+            keepLooking = false;
+            break;
+        } else {
+            maxObj = topPatcher.firstobject;
+            var maxObjCount = 1;
+            while (maxObj) {
+                // m = ["getMaxobjReference:", caller,  "max object", maxObjCount,  "in patcher has varname",
+                //     maxObj.varname ? maxObj.varname : "undefined", "and name",
+                //     maxObj.name ? maxObj.name : "undefined"].join(" ");
+                // post(m);post();
+                var bPatcher = maxObj.subpatcher();
+                if (bPatcher) {
+                    // m = ["getMaxobjReference:", caller,  "sub patcher name",
+                    //     bPatcher.name ? bPatcher.name : "undefined", "and varname",
+                    //     bPatcher.varname ? bPatcher.varname : "undefined",
+                    //     "of top patcher", topPatcherCount].join(" ");
+                    // post(m); post();
+                    var bMaxObj = bPatcher.getnamed(scriptingName);
+                    if (bMaxObj) {
+                        rtn = bMaxObj;
+                        // m = ["getMaxobjReference:", caller,  "found maxobj with scriptingName", scriptingName,
+                        //     "by getnamed in sub-patcher under top-patcher", topPatcherCount].join(" ");
+                        // post(m);post();
+                        keepLooking = false;// break outer loop too (necessary?)
+                        break;
+                    }
+                } else {
+                    //  redundant check here, if a valid reference exists, the topPatcher.getnamed(scriptingName)
+                    //  call above should have already found this object reference by scriptingName (before iterating
+                    //  over all patcher maxobjects individually)
+                    if (maxObj.varname === scriptingName && maxObj.valid) {
+                        rtn = maxObj;// "this" js Maxobj with scripting name "patcherBjs" for example
+                        // m = ["getMaxobjReference:", caller,  "found maxobj with scriptingName", scriptingName,
+                        //     "by iterating objects? in top-patcher at maxobjCount", maxObjCount].join(" ");
+                        // post(m);post();
+                        keepLooking = false;
+                        break;
+                    }
+                }
+                maxObj = maxObj.nextobject;
+                maxObjCount++;
+            }
+        }
+        var patcherWind = topPatcher.wind;
+        var nextWindow = patcherWind.next;
+        topPatcher = nextWindow ? nextWindow.assoc : undefined;
+        topPatcherCount++;
+    }
+    return rtn;
+}
+getMaxobjReference.local = 1;
+
+// setters only work "self referentially" because this file isn't "shared" across js silos,
+// see getMaxobjReference method above
+function setC4Device(deviceRef) {
+    C4DeviceObj = deviceRef;
+}
+function setLibrarian(deviceRef) {
+    LibrarianObj = deviceRef;
+}
+function getC4Device(caller) {
+    if (!isC4DeviceValid()) {
+        // note: since this file is "required" by consts.js (and every file that includes consts.js),
+        // this file can only use constants from consts.js declared before the line where this file is "required" (line 18).
+        C4DeviceObj = getMaxobjReference(C4DEVICE_SCRIPTING_NAME, caller);
+    }
+    return C4DeviceObj;
+}
+function getLibrarian(caller) {
+    if (!isLibrarianValid()) {
+        LibrarianObj = getMaxobjReference(LIBRARIAN_SCRIPTING_NAME, caller);
+    }
+    return LibrarianObj;
+}
+function isC4DeviceValid() {
+    return C4DeviceObj !== undefined && C4DeviceObj.valid;
+}
+function isLibrarianValid() {
+    return LibrarianObj !== undefined && LibrarianObj.valid;
 }
