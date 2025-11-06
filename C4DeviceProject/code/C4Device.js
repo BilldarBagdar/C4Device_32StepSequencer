@@ -246,206 +246,236 @@ function logAssignments(controllerDict) {
     }
 }
 
+function midievent(midiMsgIn) {
+
+    var midiMsg = arrayfromargs(arguments);
+    processMidiEventArray(midiMsg);
+}
+
 var randomizeOnNextModifierRelease = false;
 var secondRelease = false;
-function midievent(midiMsgIn) {
-    encodersDict.name = "c4Encoders";
+function processMidiEventArray(midiMsg) {
+    // encodersDict.name = "c4Encoders";
     buttonsDict.name = "c4Buttons";
-    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
+    // c4DeviceControllerDict.name = "C4DeviceExecutiveController";
 
-    var MIDI_MSG_SIZE = 3;
-    var midiMsg = arrayfromargs(arguments);
-    var size = midiMsg.length;
-    if (size > MIDI_MSG_SIZE - 1) {
+    if (midiMsg.length >= MIDI_MSG_SIZE) {
         var feedbackMsg = [midiMsg[0], midiMsg[1], midiMsg[2], 0];
         var pageChangeSignal = 0;
         var btnDict = buttonsDict.get(PROCESSING_BYPASS_SIGNAL_ID);
         var bypassBtn = utilButton.newFromDict(btnDict);
-        if (size === MIDI_MSG_SIZE) {
-            //post("C4Device.midievent: Processing is: ");
-            if (!bypassBtn.isBypassed()) {
-                //post("enabled", midiMsg);post();
-                if (midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) {
-                    if (midiMsg[1] === bypassBtn.index) {
-                        //post("C4Device.midievent: Processing Status change event received while processing", midiMsg);post();
-                    }
-                    feedbackMsg = processButtonMessage(midiMsg);
-                    var lstBtnIdx = EXTERNAL_TRANSPORT_STATUS_SIGNAL_ID;// actually "one past" so < works properly
-                    if (!(feedbackMsg[1] < ENCODER_BTN_OFFSET)) {
-                        // encoder button feedback
-                        feedbackMsg[0] = MIDI_CC_ID;
-                        var encoderId = (feedbackMsg[1] - ENCODER_BTN_OFFSET) + reqModule.getPageOffset();
-                        var encDict = encodersDict.get(encoderId);
-                        var encoder = utilEncoder.newFromDict(encDict);
-                        feedbackMsg[2] = encoder.getFeedbackValueForRingStyle();
-                    } else if (feedbackMsg[1] < 3 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
-                        // Split button "released" feedback.
-                        var encoderPageOffset = reqModule.getPageOffset();
-                        // post("C4Device.midievent: did the encoder-feedback-display page change?");
-                        if (lastEncoderPageOffset !== encoderPageOffset) {
-                            // post("YES, offset", lastEncoderPageOffset, "going to", encoderPageOffset);post();
-                            lastEncoderPageOffset = encoderPageOffset;
-                            pageChangeSignal = 1;
-                        } else {
-                            // post("NO, offset", lastEncoderPageOffset, "remaining", encoderPageOffset);post();
-                        }
-                    } else if (feedbackMsg[1] >= 5 && feedbackMsg[1] <= 8 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
-                        // (Assignment) Button "released" feedback
-                        // Reassign which "controller deck crew" is "on duty"
-                        swapActiveCrewsOnDuty(feedbackMsg[1]);
-                        // and set the stage the way they left it
-                        lastEncoderPageOffset = reqModule.getPageOffset();
-                        pageChangeSignal = 1;
-                    } else if (feedbackMsg[1] >= 9 && feedbackMsg[1] <= 12 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
-                        // (Parameter) Bank Left, Bank Right; Single Left or Single Right Button "released" feedback
-                        // Transform "encoder book" dict data by rotation
-                        // wrapping % 128 so 00 - 08 == 120
-                        transformEncoderBookData(feedbackMsg[1]);
-                        pageChangeSignal = 1;
-                    } else if (feedbackMsg[1] > 16 && feedbackMsg[1] < lstBtnIdx && midiMsg[2] === BUTTON_RELEASED_VALUE) {
-                        // (Session) Slot Up, or Down; Track Left or Right Button "released" feedback
-                        // Transform "encoder page" dict data by rotation
-                        // wrapping % 32 so 00 - 08 == 24
-                        transformEncoderPageData(feedbackMsg[1]);
-                        pageChangeSignal = 1;
-                    } else if (feedbackMsg[1] > 12 && feedbackMsg[1] <= 16 && midiMsg[2] === BUTTON_PRESSED_VALUE) {
-                        // Modifier button press feedback, check for two
-                        if (reqModule.areTwoModifiersPressed()) {
-                            randomizeOnNextModifierRelease = true;
-                        }
-                    } else if (feedbackMsg[1] > 12 && feedbackMsg[1] <= 16 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
-                        if (randomizeOnNextModifierRelease) {
-                            randomizeOnNextModifierRelease = false;
-                            secondRelease = true;
-                        } else if (secondRelease) {
-                            var randomizedControllerData = controller.newRandomizedData();
-                            //post(randomizedControllerData.toJsonStr()); post();
-                            currentDeckName = reqModule.getActiveControllerDeckName();
-                            updateActiveControllerDeckForSave(currentDeckName);
-                            randomizedControllerData.reconcileActiveModifiers(currentDeckName);
-
-                            c4DeviceControllerDict.parse(randomizedControllerData.toJsonStr());
-                            setNextController(randomizedControllerData);
-                            secondRelease = false;
-                        }
-                    }
-                    // pass all other button feedback messages
-                } else if (midiMsg[0] === MIDI_CC_ID && midiMsg[1] < NBR_PHYSICAL_ENCODERS) {
-                    feedbackMsg = processEncoderMessage(midiMsg);
-                } else {
-                    // true here: Processing enabled and this midiMsg is already encoder feedback (midiMsg[0] === MIDI_CC_ID && midiMsg[1] >= NBR_PHYSICAL_ENCODERS)
-                    // Live directly updates mapped parameter objects in the remote script when for example, the selected track changes,
-                    // those updates include sending CC feedback messages to update the C4 display
-                    // (directly from Live, not via any accessible remote script "send midi" methods?)
-                    // This patch is dropping that feedback here because the script is in USER mode and
-                    // this patch is charge of the C4 display right now.
-                    return;
-                    //post("C4Device.midievent: CC feedback netted while processing:", midiMsg.toString());post();
-                    //feedbackMsg = [0, 0, 0, 0];
-                    //outlet(0, midiMsg);
-                }
-            } else { // bypassBtn.isBypassed()
-                //post("bypassed");post();
-                // check for Stop bypassing signal
-                if (midiMsg[1] === bypassBtn.index) {
-                    //post("C4Device.midievent: Processing Status change event received while bypassed", midiMsg);post();
-                    feedbackMsg = processButtonMessage(midiMsg);
-                } else {
-                    // Note or CC feedback message from remote script passing thru
-                    //post("C4Device.midievent:", midiMsg.toString());
-                    outlet(0, midiMsg);
-                    return;
-                }
-            }
-        } else { // size > MIDI_MSG_SIZE is a SYSEX
-            // (NEVER HAPPENS, Max midiin objects don't pass sysex, need sysexin object)
-            post("C4Device.midievent: Processing is bypassed: <", bypassBtn.isBypassed(), ">");
-            post();
-            post(midiMsg.toString()[0]);
-            outlet(1, midiMsg);
+        var result = processMidiEvent(bypassBtn, feedbackMsg, midiMsg, pageChangeSignal);
+        if (result.length > 0) {
+            feedbackMsg = result[0];
+            pageChangeSignal = result[1];
+            sendMidiEventFeedback(bypassBtn, feedbackMsg, midiMsg, pageChangeSignal);
         }
-
-        if (!bypassBtn.isBypassed()) {
-            // if the output matches the input as expected, return the midi feedback msg to Max (to the C4)
-            var test = feedbackMsg[3] === (ENCODER_RING_BTN_LED_ON_OFFSET - midiMsg[2]);
-            if (feedbackMsg[3] === midiMsg[2] || test) {
-                // if (test) {
-                //     // pops when knob turns counter clockwise
-                //     post("C4Device.midiEvent: encoder button led ring offset test condition popped", midiMsg);post();
-                // }
-
-                outlet(0, [feedbackMsg[0], feedbackMsg[1], feedbackMsg[2]]);//  feedbackMsg[2] is an "led ring" value
-                // if there are any more feedback messages, return them next
-
-                // if the sequencer is running and the page changes, defer sysex feedback to sequencer control
-                // only send this "display page update" if the sequencer is not running when the page changes
-                if (!isSequencerRunning()) {
-                    if (pageChangeSignal > 0) {
-                        // assignment button - page change
-                        sendEncoderPageData(generateDisplayPageChangeMsgs);
-                    } else if (feedbackMsg[1] >= 13 && feedbackMsg[1] <= 16) {
-                        // modifier button - repaint showing "shift pressed" data for example
-                        //sendEncoderPageData(generateDisplayPageUpdateMsgs);
-                        paintDisplayUpdate();
-                    } else if (feedbackMsg[0] === MIDI_CC_ID) {
-                        encoderId = midiMsg[1];
-                        if ((midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) && feedbackMsg[0] === MIDI_CC_ID) {
-                            //post("C4Device.midiEvent: encoder button event", midiMsg);post();
-                            encoderId -= ENCODER_BTN_OFFSET;
-                        }
-                        // } else if (feedbackMsg[0] === midiMsg[0]) {
-                        //     post("C4Device.midiEvent: encoder knob event", midiMsg); post();
-                        // }
-                        // repaint encoder knob turn or button pressed/released data
-                        var lcdFdbkMsg = generateLcdFeedback(encoderId);
-                        // only send if content changed
-                        if (lcdFdbkMsg[0][0] !== ABORT_FEEDBACK_SIGNAL) {
-                            outlet(1, lcdFdbkMsg[0]);//top line
-                        }
-                        if (lcdFdbkMsg[1][0] !== ABORT_FEEDBACK_SIGNAL) {
-                            outlet(1, lcdFdbkMsg[1]);//bottom line
-                        }
-                    }
-                } // else sequencer is running
-            }
-            else if (feedbackMsg[1] === bypassBtn.index) {
-                // dropping because "button 22" is virtual, no physical LED.  Dictionary data is already updated
-                // post("C4Device.midievent: 'mode change' signal feedback netted while actively processing:",feedbackMsg.toString());
-            } else if (feedbackMsg[0] === MIDI_CC_ID && feedbackMsg[1] >= NBR_PHYSICAL_ENCODERS) {
-                // this seems to hit after the remote script leaves USER mode, the script is already sending these CCs
-                // post("C4Device.midievent: feedback netted:",feedbackMsg.toString());post();
-                // outlet(0, [midiMsg[0], midiMsg[1], midiMsg[2]]);
-            } else if (feedbackMsg[0] === 0 && feedbackMsg[1] === 0 && feedbackMsg[2] === 0 && feedbackMsg[3] === 0) {
-                post("C4Device.midievent: dropping unprocessed feedback msg result", feedbackMsg.toString());
-                post();
-            } else {
-                post("C4Device.midievent: unexpected event processing result", feedbackMsg.toString());
-                post();
-            }
-        }
-        // bypassBtn.isBypassed() &&
-        else if (feedbackMsg[1] === bypassBtn.index) {
-            // local event processing is bypassed
-            // dropping virtual button, no physical LED, no feedback
-            // post("C4Device.midievent: 'mode change' signal feedback netted while processing bypassed", feedbackMsg.toString());
-            // post();
-        } else if (midiMsg[1] >= NBR_PHYSICAL_ENCODERS) {
-            // local event processing is bypassed
-            post("C4Device.midievent: CC feedback netted, forwarding:", midiMsg.toString(), feedbackMsg.toString());post();
-            outlet(0, [midiMsg[0], midiMsg[1], midiMsg[2]]);
-        } else if (midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) {
-            // local event processing is bypassed
-            post("C4Device.midievent: Note feedback netted, forwarding:", midiMsg.toString(), feedbackMsg.toString());post();
-            outlet(0, [midiMsg[0], midiMsg[1], midiMsg[2]]);
-        } else {
-            post("C4Device.midievent: processing bypassed, dropping event:", midiMsg.toString(), feedbackMsg.toString());
-            post();
-        }
+        // else don't send any feedback data
     } else {
-        post("C4Device.midievent: too small for a 3 byte midi message", arguments);
+        post("C4Device.processMidiEventArray: args array too small for a midi message", arguments);
         post();
     }
 }
+
+function processMidiEvent(bypassBtn, feedbackMsg, midiMsg, pageChangeSignal) {
+    if (midiMsg.length === MIDI_MSG_SIZE) {
+        //post("C4Device.processMidiEvent: Processing is: ");
+        if (!bypassBtn.isBypassed()) {
+            //post("enabled", midiMsg);post();
+            if (midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) {
+                if (midiMsg[1] === bypassBtn.index) {
+                    //post("C4Device.processMidiEvent: Processing Status change event received while processing", midiMsg);post();
+                }
+                feedbackMsg = processButtonMessage(midiMsg);
+                var lstBtnIdx = EXTERNAL_TRANSPORT_STATUS_SIGNAL_ID;// actually "one past" so < works properly
+                if (!(feedbackMsg[1] < ENCODER_BTN_OFFSET)) {
+                    // encoder button feedback
+                    feedbackMsg[0] = MIDI_CC_ID;
+                    var encoderId = (feedbackMsg[1] - ENCODER_BTN_OFFSET) + reqModule.getPageOffset();
+                    var encDict = encodersDict.get(encoderId);
+                    var encoder = utilEncoder.newFromDict(encDict);
+                    feedbackMsg[2] = encoder.getFeedbackValueForRingStyle();
+                } else if (feedbackMsg[1] < 3 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
+                    // Split button "released" feedback.
+                    var encoderPageOffset = reqModule.getPageOffset();
+                    // post("C4Device.processMidiEvent: did the encoder-feedback-display page change?");
+                    if (lastEncoderPageOffset !== encoderPageOffset) {
+                        // post("YES, offset", lastEncoderPageOffset, "going to", encoderPageOffset);post();
+                        lastEncoderPageOffset = encoderPageOffset;
+                        pageChangeSignal = 1;
+                    } else {
+                        // post("NO, offset", lastEncoderPageOffset, "remaining", encoderPageOffset);post();
+                    }
+                } else if (feedbackMsg[1] >= 5 && feedbackMsg[1] <= 8 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
+                    // (Assignment) Button "released" feedback
+                    // Reassign which "controller deck crew" is "on duty"
+                    swapActiveCrewsOnDuty(feedbackMsg[1]);
+                    // and set the stage the way they left it
+                    lastEncoderPageOffset = reqModule.getPageOffset();
+                    pageChangeSignal = 1;
+                } else if (feedbackMsg[1] >= 9 && feedbackMsg[1] <= 12 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
+                    // (Parameter) Bank Left, Bank Right; Single Left or Single Right Button "released" feedback
+                    // Transform "encoder book" dict data by rotation
+                    // wrapping % 128 so 00 - 08 == 120
+                    transformEncoderBookData(feedbackMsg[1]);
+                    pageChangeSignal = 1;
+                } else if (feedbackMsg[1] > 16 && feedbackMsg[1] < lstBtnIdx && midiMsg[2] === BUTTON_RELEASED_VALUE) {
+                    // (Session) Slot Up, or Down; Track Left or Right Button "released" feedback
+                    // Transform "encoder page" dict data by rotation
+                    // wrapping % 32 so 00 - 08 == 24
+                    transformEncoderPageData(feedbackMsg[1]);
+                    pageChangeSignal = 1;
+                } else if (feedbackMsg[1] > 12 && feedbackMsg[1] <= 16 && midiMsg[2] === BUTTON_PRESSED_VALUE) {
+                    // Modifier button press feedback, check for two
+                    if (reqModule.areTwoModifiersPressed()) {
+                        randomizeOnNextModifierRelease = true;
+                    }
+                } else if (feedbackMsg[1] > 12 && feedbackMsg[1] <= 16 && midiMsg[2] === BUTTON_RELEASED_VALUE) {
+                    if (randomizeOnNextModifierRelease) {
+                        randomizeOnNextModifierRelease = false;
+                        secondRelease = true;
+                    } else if (secondRelease) {
+                        var randomizedControllerData = controller.newRandomizedData();
+                        currentDeckName = reqModule.getActiveControllerDeckName();
+                        updateActiveControllerDeckForSave(currentDeckName);
+                        randomizedControllerData.reconcileActiveModifiers(currentDeckName);
+
+                        c4DeviceControllerDict.parse(randomizedControllerData.toJsonStr());
+                        setNextController(randomizedControllerData);
+                        secondRelease = false;
+                    }
+                }
+                // pass all other button feedback messages
+            } else if (midiMsg[0] === MIDI_CC_ID && midiMsg[1] < NBR_PHYSICAL_ENCODERS) {
+                feedbackMsg = processEncoderMessage(midiMsg);
+            } else {
+                // true here: Processing enabled and this midiMsg is already encoder feedback (midiMsg[0] === MIDI_CC_ID && midiMsg[1] >= NBR_PHYSICAL_ENCODERS)
+                // Live directly updates mapped parameter objects in the remote script when for example, the selected track changes,
+                // those updates include sending CC feedback messages to update the C4 display
+                // (directly from Live, not via any accessible remote script "send midi" methods?)
+                // This patch is dropping that feedback here because the script is in USER mode and
+                // this patch is charge of the C4 display right now.
+                return [];
+                //post("C4Device.processMidiEvent: CC feedback netted while processing:", midiMsg.toString());post();
+                //feedbackMsg = [0, 0, 0, 0];
+                //outlet(0, midiMsg);
+            }
+        } else { // bypassBtn.isBypassed()
+            //post("bypassed");post();
+            // check for Stop bypassing signal
+            if (midiMsg[1] === bypassBtn.index) {
+                //post("C4Device.processMidiEvent: Processing Status change event received while bypassed", midiMsg);post();
+                feedbackMsg = processButtonMessage(midiMsg);
+            } else {
+                // Note or CC feedback message from remote script passing thru
+                //post("C4Device.processMidiEvent:", midiMsg.toString());
+                // don't forward this feedback to the librarian UI
+                outlet(0, midiMsg);
+                return [];
+            }
+        }
+    } else { // midiMsg.length > MIDI_MSG_SIZE is a SYSEX
+        // (NEVER HAPPENS, Max midiin objects don't pass sysex, need sysexin object)
+        post("C4Device.processMidiEvent: Processing is bypassed: <", bypassBtn.isBypassed(), "> but YIKES!!");
+        post();
+        post(midiMsg.toString()[0]);
+        outlet(1, midiMsg);
+    }
+    return [feedbackMsg, pageChangeSignal];
+}
+processMidiEvent.local = 1;
+
+function sendMidiEventFeedback(bypassBtn, feedbackMsg, midiMsg, pageChangeSignal) {
+    if (!bypassBtn.isBypassed()) {
+        // if the output matches the input as expected, return the midi feedback msg to Max (to the C4)
+        var altTest = feedbackMsg[3] === (ENCODER_RING_BTN_LED_ON_OFFSET - midiMsg[2]);
+        if (feedbackMsg[3] === midiMsg[2] || altTest) {
+            // if (altTest) {
+            //     // pops when knob turns counterclockwise
+            //     post("C4Device.sendMidiEventFeedback: encoder button led ring offset altTest condition popped", midiMsg);post();
+            // }
+            var outArr = [feedbackMsg[0], feedbackMsg[1], feedbackMsg[2]];//  feedbackMsg[2] is an "led ring" value
+
+            if (!isLibrarianFeedbackBlocked()) {
+                var maxobj = reqModule.getLibrarianObj();
+                if (maxobj && maxobj.valid) {
+                    maxobj.js["fromC4Device"](outArr);
+                } else {
+                    post("sendMidiEventFeedback: maxobj reference invalid, cant send alt feedback");post();
+                }
+            }
+            outlet(0, outArr);
+            // if there are any more feedback messages, return them next
+
+            // if the sequencer is running and the page changes, defer sysex feedback to sequencer control
+            // only send this "display page update" if the sequencer is not running when the page changes
+            if (!isSequencerRunning()) {
+                if (pageChangeSignal > 0) {
+                    // assignment button - page change
+                    sendEncoderPageData(generateDisplayPageChangeMsgs);
+                } else if (feedbackMsg[1] >= 13 && feedbackMsg[1] <= 16) {
+                    // modifier button - repaint showing "shift pressed" data for example
+                    //sendEncoderPageData(generateDisplayPageUpdateMsgs);
+                    paintDisplayUpdate();
+                } else if (feedbackMsg[0] === MIDI_CC_ID) {
+                    var encoderId = midiMsg[1];
+                    if ((midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) && feedbackMsg[0] === MIDI_CC_ID) {
+                        //post("C4Device.sendMidiEventFeedback: encoder button event", midiMsg);post();
+                        encoderId -= ENCODER_BTN_OFFSET;
+                    }
+                    // } else if (feedbackMsg[0] === midiMsg[0]) {
+                    //     post("C4Device.sendMidiEventFeedback: encoder knob event", midiMsg); post();
+                    // }
+                    // repaint encoder knob turn or button pressed/released data
+                    var lcdFdbkMsg = generateLcdFeedback(encoderId);
+                    // only send if content changed
+                    if (lcdFdbkMsg[0][0] !== ABORT_FEEDBACK_SIGNAL) {
+                        outlet(1, lcdFdbkMsg[0]);//top line
+                    }
+                    if (lcdFdbkMsg[1][0] !== ABORT_FEEDBACK_SIGNAL) {
+                        outlet(1, lcdFdbkMsg[1]);//bottom line
+                    }
+                }
+            } // else sequencer is running
+        } else if (feedbackMsg[1] === bypassBtn.index) {
+            // dropping because "button 22" is virtual, no physical LED.  Dictionary data is already updated
+            // post("C4Device.sendMidiEventFeedback: 'mode change' signal feedback netted while actively processing:",feedbackMsg.toString());
+        } else if (feedbackMsg[0] === MIDI_CC_ID && feedbackMsg[1] >= NBR_PHYSICAL_ENCODERS) {
+            // this seems to hit after the remote script leaves USER mode, the script is already sending these CCs
+            // post("C4Device.sendMidiEventFeedback: feedback netted:",feedbackMsg.toString());post();
+            // outlet(0, [midiMsg[0], midiMsg[1], midiMsg[2]]);
+        } else if (feedbackMsg[0] === 0 && feedbackMsg[1] === 0 && feedbackMsg[2] === 0 && feedbackMsg[3] === 0) {
+            post("C4Device.sendMidiEventFeedback: dropping unprocessed feedback msg result", feedbackMsg.toString());
+            post();
+        } else {
+            post("C4Device.sendMidiEventFeedback: unexpected event processing result", feedbackMsg.toString());
+            post();
+        }
+    }
+    // bypassBtn.isBypassed() &&
+    else if (feedbackMsg[1] === bypassBtn.index) {
+        // local event processing is bypassed
+        // dropping virtual button, no physical LED, no feedback
+        // post("C4Device.sendMidiEventFeedback: 'mode change' signal feedback netted while processing bypassed", feedbackMsg.toString());
+        // post();
+    } else if (midiMsg[1] >= NBR_PHYSICAL_ENCODERS) {
+        // local event processing is bypassed
+        post("C4Device.sendMidiEventFeedback: CC feedback netted, forwarding:", midiMsg.toString(), feedbackMsg.toString());
+        post();
+        // don't forward this to the librarian UI
+        outlet(0, [midiMsg[0], midiMsg[1], midiMsg[2]]);
+    } else if (midiMsg[0] === MIDI_NOTE_ON_ID || midiMsg[0] === MIDI_NOTE_OFF_ID) {
+        // local event processing is bypassed
+        post("C4Device.sendMidiEventFeedback: Note feedback netted, forwarding:", midiMsg.toString(), feedbackMsg.toString());
+        post();
+        // don't forward this to the librarian UI
+        outlet(0, [midiMsg[0], midiMsg[1], midiMsg[2]]);
+    } else {
+        post("C4Device.sendMidiEventFeedback: processing bypassed, dropping event:", midiMsg.toString(), feedbackMsg.toString());
+        post();
+    }
+}
+sendMidiEventFeedback.local = 1;
 
 var sysexMsg = [];
 function midiSysexEvent(byteVal) {
@@ -473,7 +503,7 @@ function midiSysexEvent(byteVal) {
                     // here, we can't do anything to resolve the situation without tracking the remote script's "display"
                     // so the LEDs and LCDs could be "unblanked" right back
                     // because the patch is "not processing", the remote script (or Live) would have passed through (or created) this message
-                    // so we should never land here? just log and eat the message 
+                    // so we should never land here? just log and eat the message
                     post("C4Device.midiSysexEvent: welcome sysex msg detected in bypassing mode, dropping", sysexMsg); post();
                 } else {
                     outlet(1, sysexMsg);
@@ -788,8 +818,17 @@ function sendEncoderPageData(encoderPageDataCallback) {
     if (rtn.length < 5) {
         post("C4Device.sendEncoderPageData: unexpected display processing result", rtn.toString());post();
     } else {
+        var maxobj = reqModule.getLibrarianObj();
+        var sendToLib = !isLibrarianFeedbackBlocked();
         for (var i = 0; i < rtn.length; i++) {
             if (i === 0 || i === 5) {
+                if (sendToLib) {
+                    if (maxobj && maxobj.valid) {
+                        maxobj.js["fromC4Device"](rtn[i]);
+                    } else {
+                        post("sendEncoderPageData: maxobj reference invalid, cant send feedback");post();
+                    }
+                }
                 outlet(0, rtn[i]);
             } else {
                 outlet(1, rtn[i]);
@@ -825,7 +864,18 @@ function processButtonMessage(midiNoteMsg) {
             if (midiNoteMsg[1] === 0 && rtn[0] < 3) {
                 // pass this expected Split button feedback address mismatch silently
             } else {
-                post("C4Device.processButtonMessage: Note number feedback address mismatch", midiNoteMsg.toString(), rtn.toString());post();
+                if (midiNoteMsg[1].valueOf() !== rtn[0].valueOf()) {
+                    // post("C4Device.processButtonMessage: passing 'string' and value mismatch anyway?", rtn.toString()); post();
+                } else {
+                    var msg = ["C4Device.processButtonMessage: midiNoteMsg[1]", midiNoteMsg[1], "!== rtn[0]",
+                        rtn[0] ? rtn[0] : "undefined"].join(" ");
+                    post(msg);
+                    post();
+                    msg = ["C4Device.processButtonMessage: Note number feedback address mismatch",
+                        midiNoteMsg.toString(), rtn.toString()].join(" ");
+                    post(msg);
+                    post();
+                }
             }
         }
         //feedbackRtn[0] = midiNoteMsg[0]; MIDI_NOTE_ON_ID (144)
@@ -848,10 +898,17 @@ function processEncoderMessage(midiCCMsg) {
     var size = midiCCMsg.length;
     if (size === 3) {
         var feedbackRtn = [midiCCMsg[0], midiCCMsg[1], midiCCMsg[2], 0];
-        var encDict = encodersDict.get(midiCCMsg[1] + reqModule.getPageOffset());
+        var pageOffsetEncoderId = parseInt(midiCCMsg[1]) + reqModule.getPageOffset();
+        var encDict = encodersDict.get(pageOffsetEncoderId);
+        if (!encDict) {
+            var test = ["C4Device.processEncoderMessage: couldn't get encoder Dict for msg", midiCCMsg.toString(),
+                "at encoder", midiCCMsg[1], "and page offset", reqModule.getPageOffset(), "making offset address",
+                pageOffsetEncoderId].join(" ");
+            post(test);post();
+        }
         var c4Encoder = utilEncoder.newFromDict(encDict);
         var rtn = c4Encoder.processIncrement(midiCCMsg[2]);
-        if (midiCCMsg[1] + ENCODER_BTN_OFFSET !== rtn[0]) {
+        if (parseInt(midiCCMsg[1]) + ENCODER_BTN_OFFSET !== rtn[0]) {
             post("C4Device.processEncoderMessage: CC number feedback address mismatch", midiCCMsg.toString(), rtn.toString());post();
         }
         //feedbackRtn[0] = midiCCMsg[0];// MIDI_CC_ID (176)
@@ -1234,6 +1291,14 @@ function processSequencerStep(encoderId) {
     }
     if (currentDisplayPage.length > 5) {
         // Note messages refreshing the five "Function group" button LEDs
+        if (!isLibrarianFeedbackBlocked()) {
+            var maxobj = reqModule.getLibrarianObj();
+            if (maxobj && maxobj.valid) {
+                maxobj.js["fromC4Device"](currentDisplayPage[5]);
+            } else {
+                post("processSequencerStep: maxobj reference invalid, cant send feedback");post();
+            }
+        }
         outlet(0, currentDisplayPage[5]);
     }
 }
@@ -1286,6 +1351,14 @@ function sendUpdatedPageInfo(last, current, encId) {
             rowCCs.push(current[0][i]);
         }
     }
+    if (!isLibrarianFeedbackBlocked()) {
+        var maxobj = reqModule.getLibrarianObj();
+        if (maxobj && maxobj.valid) {
+            maxobj.js["fromC4Device"](rowCCs);
+        } else {
+            post("sendUpdatedPageInfo: maxobj reference invalid, cant send feedback");post();
+        }
+    }
     outlet(0, rowCCs);
 
     var boundaryPageIndex = 0;
@@ -1306,6 +1379,18 @@ function sendUpdatedPageInfo(last, current, encId) {
         outlet(1, current[boundaryPageIndex]);
     }
 }
+
+function isLibrarianPreset() {
+    var rtn = reqModule.isLibrarianObjValid();
+    if (!rtn) {
+        var maxobj = reqModule.getLibrarianObj();
+        if (maxobj && maxobj.valid) {
+            rtn = true;
+        }
+    }
+    return rtn;
+}
+isLibrarianPreset.local = 1;
 
 function buttonsToJsonArr() {
     buttonsDict.name = "c4Buttons";
