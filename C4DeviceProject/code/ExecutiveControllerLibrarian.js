@@ -22,7 +22,7 @@ var midiProcessingLock = {} //=== unlocked, > 0 = locked
 var isInitialized = false;
 var sayHello = false;
 
-var mySpecialName = "lib";
+var myCallerName = "lib";
 var myVarname = LIBRARIAN_SCRIPTING_NAME;
 
 function notifydeleted() {
@@ -59,7 +59,7 @@ function init() {
         // post("init: C4Device js object reference already valid"); post();
         messnamed("librarianHandshake", 1);
     } else {
-        var maxobj = reqModule.getC4DeviceObj(mySpecialName);// caller
+        var maxobj = reqModule.getC4DeviceObj(myCallerName);// caller
         if (maxobj && maxobj.valid) {
             messnamed("librarianHandshake", 1);
             // post("init: C4Device js object reference now valid"); post();
@@ -140,7 +140,7 @@ function c4DeviceLoaded() {
         }
     } else {
         // since C4Device is calling, and our reference is invalid...
-        reqModule.getC4DeviceObj(mySpecialName);
+        reqModule.getC4DeviceObj(myCallerName);
     }
     return isC4DevicePresent();
 }
@@ -246,7 +246,7 @@ function fromC4Device(msg) {
 
     if (!reqModule.isC4DeviceObjValid()) {
         // since C4Device is calling and the return callout reference is not valid, update
-        var maxobj = reqModule.getC4DeviceObj(mySpecialName);
+        var maxobj = reqModule.getC4DeviceObj(myCallerName);
         if (!(maxobj && maxobj.valid)) {
             post("fromC4Device: method was called but cant get valid C4Device object reference");
         }
@@ -641,7 +641,7 @@ function commonControlButtonMsgGenerator(key, value) {
     var lockedOut = isMidiLocked();
     key = parseInt(key);
     if (isInitialized && !lockedOut && isProcessingMode()) {
-        var maxobj = reqModule.getC4DeviceObj(mySpecialName);// caller
+        var maxobj = reqModule.getC4DeviceObj(myCallerName);// caller
         if (maxobj && maxobj.valid) {
             maxobj.js["fromLibrarian"]([MIDI_NOTE_ON_ID, key, BUTTON_PRESSED_VALUE]);// emulate button press event
             //waitMillis(2);
@@ -681,7 +681,7 @@ function commonEncoderKnobMsgGenerator(key, value) {
             // no "turn speed" acceleration emulation === too many midi messages too fast?
             var valOut = valBefore > value ? ENCODER_TURN_CCW_OFFSET + 1 : 1;
             // emulate encoder turn event value where CCW turn > 64 and CW < 64 (not a feedback value for led ring)
-            var maxobj = reqModule.getC4DeviceObj(mySpecialName);// caller
+            var maxobj = reqModule.getC4DeviceObj(myCallerName);// caller
             if (maxobj && maxobj.valid) {
                 var encoderId = parseInt(key);
                 maxobj.js["fromLibrarian"]([MIDI_CC_ID, encoderId, valOut]);
@@ -711,6 +711,7 @@ function copySequenceToPage(a) {
     if (args.length > 3) {
         post("copySequenceToPage: called with args:", args[0], args[1], args[2], args[3]); post();
         var maxobj = reqModule.getC4DeviceObj(mySpecialName);// caller
+        var maxobj = reqModule.getC4DeviceObj(myCallerName);
         if (maxobj && maxobj.valid) {
             var allDecks = reqModule.getAllControllerDeckNames();
             var sourceDeckName = reqModule.getActiveControllerDeckName();

@@ -46,7 +46,7 @@ var utilEncoder = new C4Encoder();
 var utilButton = new C4Button();
 var controller = new C4DeviceController("single");
 
-var mySpecialName = "c4d";
+var myCallerName = "c4d";
 var myVarname = C4DEVICE_SCRIPTING_NAME;
 
 var showNoteNamesOrNoteNumbers = "numbers";
@@ -97,7 +97,7 @@ function loadUp(modeSelect) {
         if (reqModule.isLibrarianObjValid()) {
             // post("loadUp: Librarian js object reference already valid"); post();
         } else {
-            var maxobj = reqModule.getLibrarianObj(mySpecialName);
+            var maxobj = reqModule.getLibrarianObj(myCallerName);
             // if (maxobj && maxobj.valid) {
             //     post("loadUp: Librarian js object reference now valid"); post();
             // } else {
@@ -289,7 +289,7 @@ function fromLibrarian(midiMsgIn) {
 
     if (!reqModule.isLibrarianObjValid()) {
         // since C4Device is calling and the return callout reference is not valid, update
-        var maxobj = reqModule.getLibrarianObj(mySpecialName);
+        var maxobj = reqModule.getLibrarianObj(myCallerName);
         if (!(maxobj && maxobj.valid)) {
             post("fromLibrarian: method was called but cant get valid Librarian object reference")
         }
@@ -318,7 +318,7 @@ isLibrarianFeedbackBlocked.local = 1;
 function librarianHandshake(status) {
     if (status > 0) {
         if (!reqModule.isLibrarianObjValid()) {
-            var maxobj = reqModule.getLibrarianObj(mySpecialName);
+            var maxobj = reqModule.getLibrarianObj(myCallerName);
             if (maxobj && maxobj.valid) {
                 // post("librarianHandshake: checked and found valid Librarian object reference");post();
             } else {
