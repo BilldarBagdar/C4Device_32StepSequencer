@@ -707,18 +707,24 @@ function commonEncoderKnobMsgGenerator(key, value) {
 commonEncoderKnobMsgGenerator.local = 1;
 
 function copySequenceToPage(a) {
+    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
     var args = arrayfromargs(arguments);
     if (args.length > 3) {
         post("copySequenceToPage: called with args:", args[0], args[1], args[2], args[3]); post();
-        var maxobj = reqModule.getC4DeviceObj(mySpecialName);// caller
+        var verb = args[0];// currently unused
+        var copyAction = args[1];
+        var destDeckIndex = args[2];
+        var destPageIndex = args[3];
         var maxobj = reqModule.getC4DeviceObj(myCallerName);
         if (maxobj && maxobj.valid) {
             var allDecks = reqModule.getAllControllerDeckNames();
             var sourceDeckName = reqModule.getActiveControllerDeckName();
-            var destDeckName = allDecks[args[2]];
             maxobj.js["saveActiveDeck"](sourceDeckName);
             // now the current "active sequence" has been saved from the "active dicts" to the "controller dict"
             // copy current data to local librarian JSON object, then perform copy action on "controller dict" data
+            librarian.copyDataFromDict(c4DeviceControllerDict);
+            var destDeckName = allDecks[destDeckIndex];
+            librarian.copyCurrentDataPageToPage(destDeckName, destPageIndex, copyAction)
         } else {
             post("copySequenceToPage: nothing to save C4Device object not found"); post();
         }
