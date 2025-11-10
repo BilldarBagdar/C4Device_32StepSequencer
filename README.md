@@ -1,3 +1,19 @@
+<h3>Version 2.5</h3>
+<p>of this Max 9.1.0 project builds on the 2.0 "user mode sequencer" by adding a "sequence editor" librarian patcher.  Now users can copy sequence information 
+from page to page.  So after spending however much time creating a sequence from scratch, one "display page" of sequence data, forming a sequence they like, 
+users can copy that sequence or some of the data to any other "display page" and make modifications to the copy (or not). (and save changes).  There are
+20 unique "sequence pages" (four pages per deck and five decks) and each sequence (page), each 32 step LED ON/OFF pattern, each page, has 5 (6) possible 
+note pitch values that can be sent in the associated midi message (releasedValue, shiftValue, optionValue, controlValue, altValue, (and pressedValue)) 
+when that step is ON (and hot). So, 20 sequences with 5 note variations each means 100 sequence variations, and the librarian is now available to
+greatly speed up the process of building out all 100 variations possible in any given "C4Controller" save file.
+</p>
+<p> Note that the Librarian patcher displays a functional copy of the physical C4 device's "display" (encoder and button values).  Functional means you can
+change button and encoder values with the mouse in the patcher and those changes will appear on the C4 display, but it's way more tactilely satisfying
+to use the C4's physical buttons and encoders than using the mouse.  Technically, this fact means one can likely run this sequencer project successfully without 
+connecting to an actual C4 device.  The remote script requires a physical C4 unit, but you might be able to run this project in stand-alone mode 
+(openSequencerProcessing.maxpat) successfully without connecting the "control" midi port to a C4.  But other than curiosity maybe, there's not really any reason 
+to run this sequencer without a C4 unit.  There are so many "(M4L) sequencer devices" with dedicated "mousing" UI's already out there...
+</p>
 <h3>Version 2.0</h3> 
 <p>of this Max 9.0.7 project builds on the 1.0 "midi data server" and sequencer by integrating with the custom Mackie C4 remote script hosted by 
 <a href="https://github.com/markusschloesser/MackieC4_P3"> Markus Schloesser</a> as the script's USER mode.  
@@ -50,7 +66,7 @@ open the project patches in Live for editing and saving (in Max) without issue. 
 all the available midi ports in Max courtesy of your full license, even when Live is only running the "bundled (M4L) version of Max")
 </p>
 <p>
-The 2.0 update (and associated remote script updates) were entirely coded in 2025 using Max 8.x.x - 9.0.7 and Live 12.1.x - 12.2.1.  (WebStorm and PyCharm IDEs)
+The 2.0 update (and associated remote script updates) were entirely coded in 2025 using Max 8.x.x - 9.1.0 and Live 12.1.x - 12.2.3.  (WebStorm and PyCharm IDEs)
 The remote script should be backward compatible with both Live 10 and 11 and the sequencer patch is compatible with Max 8, but these combinations haven't been tested in 2025.  
 Except that Live 12.1.11 still ran "Max 8" as the default M4L engine, and this was the setup used for M4L-license-only testing until 12.2.  Live 12.2 bundles Max 9.
 </p>
@@ -179,9 +195,18 @@ eye is fixed on one spot, page change display updates can lag until the "hot ste
 <li>The sequencer no longer scales Note values to a 10 octave "piano range".  Now you will be more likely to hear "silent" sequencer Notes that are outside the range of 
 (above or below) whatever Instrument is receiving the Notes (The silence is especially noticeable with 16 pad drum kits. Out of 128 possibilities, there are 7 chances for 
 "silent misses" for each of the 16 "pad hit" chances.  If you want more chances for sequencer Note hits, use Live's Pitch "Midi Effect" device in "Fold" mode.  Set the 
-lowest note of the "Fold range" to the lowest note of the Instrument and set the "size" of the "Fold Range" to the "size" of the Instrument's Range (16 pads for example)</li>
-<li>The LCD screens will now display the stored encoder "midi Note value" data as "Note Numbers" (0 to 127) or as "Note Names" (C-2 to G8).  Use the dropdown menu in the patch UI
-to change between "numbers" and "names" Note value display</li>
+lowest note of the "Fold range" to the lowest note of the Instrument and set the "size" of the "Fold Range" to the "size" of the Instrument's Range (16 pads for example)
+<p>
+(when Pitch "folding" (in this 16 pad case) only midi notes that are common multiples of 12 and 16 align properly in an intuitive sense. If your midi keyboard's leftmost 
+key sends a note number 0 midi message (C-2), and the lowest drum pad "kick" sample is mapped to note number 36 (C1) as is common for Live Drum Instruments, when you play in 
+that lowest key (note 0, C-2), you get out (of the "fold") that lowest pad "kick" sound (note 36, C1) because 0 is a multiple of both 12 and 16.   But if you 
+play in a C-1, C0, or notably C1, then the "fold" doesn't give you that same C1 "kick" out because 12, 24, and 36 are not common multiples of 12 and 16.  The only common 
+multiples of 12 and 16 in the midi data are 0, 48, and 96.  Every other "C note" in folds such that you do not get the "kick" note out (specifically, "C1" in no longer 
+yields "C1" out.)  This 12 versus 16 cyclic behavior is exactly the same behavior you see when not "folding" the midi pitch, the only "kick" out is mapped to C1 bottom-left 
+pad.  If you play C1 in you get C1 out, but if you play C2 in you still get C2 out, top-left pad not bottom-left, which is mapped to a different sample. You haven't 
+played/mapped all 16 samples from C1 until you get to D#2)</p></li>
+<li>The LCD screens will now display the stored encoder "midi Note value" data as "Note Numbers" (0 to 127) or as "Note Names" (C-2 to G8).  Use the dropdown menu in 
+the patch UI to change between "numbers" and "names" Note value display</li>
 <li>Pressing two "modifier buttons" at the same time, then releasing them, will now randomize "all" sequencer data values.  There is a 50/50 chance any given "encoder button LED" will randomly
 turn ON during randomization.  However, encoder button LEDs only "flip" for actual randomization changes. LEDs that randomly hit ON will stay ON if already ON, for example, 
 while encoder values randomly change most of the time (always randomize).</li>
