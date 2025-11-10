@@ -10466,14 +10466,6 @@
             {
                 "patchline": {
                     "destination": [ "obj-105", 0 ],
-                    "order": 1,
-                    "source": [ "obj-93", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "destination": [ "obj-99", 0 ],
-                    "order": 0,
                     "source": [ "obj-93", 0 ]
                 }
             },
