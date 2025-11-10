@@ -650,9 +650,10 @@ function commonControlButtonMsgGenerator(key, value) {
         } else {
             post("commonControlButtonMsgGenerator: reference maxobj not valid", key);post();
         }
-    } else {
-        post("commonControlButtonMsgGenerator: midi locked, not processing, or C4Device not present, msg not sent", key);post();
     }
+    // else {
+    //     post("commonControlButtonMsgGenerator: midi locked, not processing, or C4Device not present, msg not sent", key);post();
+    // }
 }
 commonControlButtonMsgGenerator.local = 1;
 
@@ -700,9 +701,10 @@ function commonEncoderKnobMsgGenerator(key, value) {
             post("commonEncoderKnobMsgGenerator: js object key", key,
                 "not in encoder reference collection of size", lastEncoderValues["obj"].length);post();
         }
-    } else {
-        post("commonEncoderKnobMsgGenerator: midi locked, not processing, or C4Device not present, msg not sent", key);post();
     }
+    // else {
+    //     post("commonEncoderKnobMsgGenerator: midi locked, not processing, or C4Device not present, msg not sent", key);post();
+    // }
 }
 commonEncoderKnobMsgGenerator.local = 1;
 
