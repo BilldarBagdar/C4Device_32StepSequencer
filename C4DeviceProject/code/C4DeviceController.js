@@ -83,7 +83,7 @@ C4DeviceController.prototype.newFromDict = function(d) {
         rtn.markerDeck.mrkrSplit.copyDataFrom(utilBtn.newFromDict(d.get("markerDeck::mrkrSplit")));
         rtn.trackDeck.trckSplit.copyDataFrom(utilBtn.newFromDict(d.get("trackDeck::trckSplit")));
         rtn.chanStDeck.chstSplit.copyDataFrom(utilBtn.newFromDict(d.get("chanStDeck::chstSplit")));
-        rtn.functnDeck.fnctSplit .copyDataFrom(utilBtn.newFromDict(d.get("functnDeck::fnctSplit")));
+        rtn.functnDeck.fnctSplit.copyDataFrom(utilBtn.newFromDict(d.get("functnDeck::fnctSplit")));
 
         for (var i = 0; i < TOTAL_BUTTONS; i++) {
             var path = "bridgeDeck::brdgButtons::" + i.toString();
@@ -193,6 +193,39 @@ C4DeviceController.prototype.copyDataFromDict= function(controllerDict) {
     }
 }
 
+C4DeviceController.prototype.copyDeckCrewDataFromDict= function(controllerDictName, deckName, destPageIndex) {
+    var d = new Dict();
+    d.name = controllerDictName;
+    var btnCrewName = this.getCrewNameForDeck(deckName, "Buttons");
+    var encCrewName = this.getCrewNameForDeck(deckName, "Encoders");
+    var btnCrewKey = this.getCrewReplaceKeyForDeck(deckName, "Buttons");
+    var encCrewKey = this.getCrewReplaceKeyForDeck(deckName, "Encoders");
+
+    var destPageOffset = reqModule.getAllOffsets()[destPageIndex];
+    for (var i = 0; i < NBR_PHYSICAL_ENCODERS; i++) {
+        var btnIndex = destPageOffset + i + ENCODER_BTN_OFFSET;
+        var encIndex = destPageOffset + i;
+
+        var b = btnCrewKey + "::" + btnIndex;
+        var btnDict = d.get(b);
+        if (btnDict) {
+            this[deckName][btnCrewName][btnIndex].copyDataFromDict(btnDict);
+        } else {
+            post("copyDeckCrewDataFromDict: a button Dict at get key", b, "was not found in", d.name);
+            post("no data copied for this button");post();
+        }
+
+        var e = encCrewKey + "::" + encIndex;
+        var encDict = d.get(e);
+        if (encDict) {
+            this[deckName][encCrewName][encIndex].copyDataFromDict(encDict);
+        } else {
+            post("copyDeckCrewDataFromDict: an encoder Dict at get key", e, "was not found in", d.name);
+            post("no data copied for this encoder");post();
+        }
+    }
+}
+
 C4DeviceController.prototype.newRandomizedData = function() {
 
     var rtn = this.newCopy();
@@ -232,7 +265,8 @@ C4DeviceController.prototype.newRandomizedData = function() {
 };
 
 C4DeviceController.prototype.reconcileActiveModifiers = function(activeDeckName) {
-
+    // after randomizing all data, all the "active" Dicts need reconciliation,
+    // not just "modifier" property values.  Remove this method? (and calls to it)
 }
 
 C4DeviceController.prototype.toJsonStr = function() {
@@ -305,6 +339,10 @@ C4DeviceController.prototype.refreshDeckForFileLoad = function(deckName) {
         //post("C4DeviceController.refreshDeckForFileLoad: the two controllers don't agree updating", curDeckSplit.toJsonStr(), "to", backingSplitBtn.toJsonStr()); post();
         curDeckSplit.copyDataFrom(backingSplitBtn);
     }
+}
+
+C4DeviceController.prototype.refreshDeckFromDict = function(deckName) {
+    this.refreshDeckForFileLoad(deckName);
 }
 
 C4DeviceController.prototype.updateActiveDeckSplit = function(activeDeckName, activeSplitButton) {
@@ -460,7 +498,7 @@ C4DeviceController.prototype.bang = function() {
 // destDeck input expected as a "deck index" number or "deck Name" string
 // destPage input expected as a "page index" where page index number toString() === page name string
 //                                             and page name string valueOf() === page index number
-// copyAction input expected one of: all, sequence, pressed, released, shift, option, control, alt, lastIncrement
+// copyAction input expected one of: all, sequence, values, pressed, released, shift, option, control, alt, lastIncrement
 C4DeviceController.prototype.copyCurrentDataPageToPage = function(destDeck, destPage, copyAction) {
 
     var srcDeck = reqModule.getActiveControllerDeckName();
@@ -469,22 +507,22 @@ C4DeviceController.prototype.copyCurrentDataPageToPage = function(destDeck, dest
     var srcSplit = this[srcDeck][srcCrewPfx + "Split"];
     var srcSplitOffset = srcSplit.index - 256; // 0, 1, 2, 3, 4 === deck name index
     var allDecks = reqModule.getAllControllerDeckNames()
-    var deckName = allDecks[srcSplitOffset];
+    var sourceDeckName = allDecks[srcSplitOffset];
 
-    if (deckName === srcDeck) {// tautology?
+    if (sourceDeckName === srcDeck) {// tautology?
         var srcButtons = this[srcDeck][srcCrewPfx + "Buttons"];
         var srcEncoders = this[srcDeck][srcCrewPfx + "Encoders"];
         var destCrewPfx = this.getCrewNamePrefixForDeck(destDeck);
         if (destDeck in [0, 1, 2, 3, 4]) {
             destDeck = allDecks[destDeck];
         }
-        if (destDeck in allDecks) {
+        if (this.isDeckNameValid(destDeck)) {
             var destButtons = this[destDeck][destCrewPfx + "Buttons"];
             var destEncoders = this[destDeck][destCrewPfx + "Encoders"];
             if (destPage in pageOffsets) {
                 var destEncoderPageOffset = pageOffsets[destPage];
-                var currentEncoderPageOffset = reqModule.getEncoderPageOffset();
-                var shift = ENCODER_BUTTON_OFFSET;
+                var currentEncoderPageOffset = reqModule.getPageOffset(); //.getEncoderPageOffset() is not exported
+                var shift = ENCODER_BTN_OFFSET;
                 for (var i = 0; i < NBR_PHYSICAL_ENCODERS; i++) {
                     var j = currentEncoderPageOffset + i;
                     var k = destEncoderPageOffset + i;
@@ -494,10 +532,29 @@ C4DeviceController.prototype.copyCurrentDataPageToPage = function(destDeck, dest
                         case "all":
                             this.copyPageToPage(destDeck,
                                 destEncoders[k], srcEncoders[j], destButtons[btnK], srcButtons[btnJ]);
+                            if (!destEncoders[k].isDataMatch(srcEncoders[j])) {
+                                post("copyCurrentDataPageToPage: encoder data copy failed? dest[k]",
+                                    destEncoders[k].toJsonStr(), "src[j]", srcEncoders[j].toJsonStr()); post();
+                            }
+                            // else {
+                            //     post("copyCurrentDataPageToPage: successfully copied encoder data");post();
+                            //     post("from", destEncoders[k].kname, "to", srcEncoders[j].kname); post();
+                            // }
+                            if (!destButtons[btnK].isDataMatch(srcButtons[btnJ])) {
+                                post("copyCurrentDataPageToPage: button data copy failed? dest[btnK]",
+                                    destButtons[btnK].toJsonStr(), "src[btnJ]", srcButtons[btnJ].toJsonStr()); post();
+                            }
+                            // else {
+                            //     post("copyCurrentDataPageToPage: successfully copied encoder button data");post();
+                            //     post("from", destEncoders[k].kname, "to", srcEncoders[j].kname); post();
+                            // }
                             break;
                         case "sequence":
                             this.copyPageSequenceToPageSequence(destDeck,
                                 destEncoders[k], srcEncoders[j], destButtons[btnK], srcButtons[btnJ]);
+                            break;
+                        case "values":
+                            this.copyEncoderDataPageToPage(destDeck, destEncoders[k], srcEncoders[j]);
                             break;
                         case "pressed":
                         case "released":
@@ -510,83 +567,105 @@ C4DeviceController.prototype.copyCurrentDataPageToPage = function(destDeck, dest
                                 destEncoders[k], srcEncoders[j], copyAction);
                             break;
                         default:
-                            post("copyCurrentDataPageToPage: unknown copyAction value", property); post();
+                            post("copyCurrentDataPageToPage: unknown copyAction value", copyAction); post();
                     }
                 }
+                // this[destDeck][destCrewPfx + "Buttons"] = destButtons;
+                // this[destDeck][destCrewPfx + "Encoders"] = destEncoders;
             } else {
                 post("copyCurrentDataPageToPage: unknown destPage input", destPage); post();
             }
         } else {
-            post("copyCurrentDataPageToPage: unknown destDeck input", destDeck); post();
+            post("copyCurrentDataPageToPage: unknown destDeck input", destDeck, allDecks.toString()); post();
         }
     } else {
-        post("copyCurrentDataPageToPage: current Deck Split Button assumption issue", deckName, srcDeck); post();
+        post("copyCurrentDataPageToPage: current Deck Split Button assumption issue", sourceDeckName, srcDeck); post();
     }
 };
+
+C4DeviceController.prototype.isDeckNameValid = function(deckName) {
+    var allDecks = reqModule.getAllControllerDeckNames()
+    for (var i = 0; i < allDecks.length; i++) {
+        if (deckName === allDecks[i]) {
+            return true;
+        }
+    }
+    return false;
+}
+C4DeviceController.prototype.isDeckNameValid.local = 1;
+
+
 C4DeviceController.prototype.copyPageToPage = function(destDeck, destEncoder, srcEncoder, destButton, srcButton) {
-    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
 
     destEncoder.copyDataFrom(srcEncoder);
     destButton.copyDataFrom(srcButton);
-    var key = this.getCrewReplaceKeyForDeck(destDeck, "Encoders") + "::" + destEncoder.index.toString();
-    c4DeviceControllerDict.replace(key, srcEncoder.toJsonStr());
-    var btnKey = this.getCrewReplaceKeyForDeck(destDeck, "Buttons") + "::" + destButton.index.toString();
-    c4DeviceControllerDict.replace(btnKey, srcButton.toJsonStr());
+    var key = this.getCrewReplaceKeyForDeck(destDeck, "Encoders");
+    destEncoder.updateNamedDict("C4DeviceExecutiveController", key);
+    var btnKey = this.getCrewReplaceKeyForDeck(destDeck, "Buttons");
+    destButton.updateNamedDict("C4DeviceExecutiveController", btnKey);
 }
-// valid property inputs: pressed, released, shift, option, control, alt, lastIncrement
-C4DeviceController.prototype.copyPagePropertyToPageProperty = function(destDeck, destEncoder, srcEncoder, property) {
-    c4DeviceControllerDict.name = "C4DeviceExecutiveController";
 
-    var key = this.getCrewReplaceKeyForDeck(destDeck, "Encoders") + "::" + destEncoder.index.toString();
-    switch(property) {
-        case "pressed":
-            destEncoder.pressedValue = srcEncoder.pressedValue;
-            key += "::pressedValue";
-            c4DeviceControllerDict.replace(key, srcEncoder.pressedValue);
-            break;
-        case "released":
-            destEncoder.releasedValue = srcEncoder.releasedValue;
-            key += "::functionPressedValue";
-            c4DeviceControllerDict.replace(key, srcEncoder.releasedValue);
-            break;
-        case "shift":
-            destEncoder.shiftPressedValue = srcEncoder.shiftPressedValue;
-            key += "::shiftPressedValue";
-            c4DeviceControllerDict.replace(key, srcEncoder.shiftPressedValue);
-            break;
-        case "option":
-            destEncoder.optionPressedValue = srcEncoder.optionPressedValue;
-            key += "::optionPressedValue";
-            c4DeviceControllerDict.replace(key, srcEncoder.optionPressedValue);
-            break;
-        case "control":
-            destEncoder.controlPressedValue = srcEncoder.controlPressedValue;
-            key += "::controlPressedValue";
-            c4DeviceControllerDict.replace(key, srcEncoder.controlPressedValue);
-            break;
-        case "alt":
-            destEncoder.altPressedValue = srcEncoder.altPressedValue;
-            key += "::altPressedValue";
-            c4DeviceControllerDict.replace(key, srcEncoder.altPressedValue);
-            break;
-        case "lastIncrement":
-            destEncoder.lastIncrementValue = srcEncoder.lastIncrementValue;
-            key += "::lastIncrementValue";
-            c4DeviceControllerDict.replace(key, srcEncoder.lastIncrementValue);
-            break;
-        default:
-            post("copyPagePropertyToPageProperty: unknown property value", property); post();
+C4DeviceController.prototype.copyEncoderDataPageToPage = function(destDeck, destEncoder, srcEncoder) {
+    var buttonLedValue = destEncoder.buttonLedValue;
+    destEncoder.copyDataFrom(srcEncoder);
+    destEncoder.buttonLedValue = buttonLedValue;
+    var key = this.getCrewReplaceKeyForDeck(destDeck, "Encoders");
+    destEncoder.updateNamedDict("C4DeviceExecutiveController", key);
+}
+
+// valid encoder property inputs here: pressed, released, shift, option, control, alt, lastIncrement
+C4DeviceController.prototype.copyPagePropertyToPageProperty = function(destDeck, destEncoder, srcEncoder, property) {
+
+    if (property) {
+        var success = true;
+        switch (property) {
+            case "pressed":
+                property = "pressedValue";
+                destEncoder.pressedValue = srcEncoder.pressedValue;
+                break;
+            case "released":
+                property = "releasedValue";
+                destEncoder.releasedValue = srcEncoder.releasedValue;
+                break;
+            case "shift":
+                property = "shiftPressedValue";
+                destEncoder.shiftPressedValue = srcEncoder.shiftPressedValue;
+                break;
+            case "option":
+                property = "optionPressedValue";
+                destEncoder.optionPressedValue = srcEncoder.optionPressedValue;
+                break;
+            case "control":
+                property = "controlPressedValue";
+                destEncoder.controlPressedValue = srcEncoder.controlPressedValue;
+                break;
+            case "alt":
+                property = "altPressedValue";
+                destEncoder.altPressedValue = srcEncoder.altPressedValue;
+                break;
+            case "lastIncrement":
+                property = "lastIncrementValue";
+                destEncoder.lastIncrementValue = srcEncoder.lastIncrementValue;
+                break;
+            default:
+                success = false;
+                post("copyPagePropertyToPageProperty: unknown property value, no update", property); post();
+        }
+        if (success) {
+            var key = this.getCrewReplaceKeyForDeck(destDeck, "Encoders");
+            destEncoder.updateOnePropertyInNamedDict("C4DeviceExecutiveController", key, property);
+        }
+    } else {
+        post("copyPagePropertyToPageProperty: unexpected undefined property arg input, no update"); post();
     }
 }
 C4DeviceController.prototype.copyPageSequenceToPageSequence = function(destDeck, destEncoder, srcEncoder, destButton, srcButton) {
     c4DeviceControllerDict.name = "C4DeviceExecutiveController";
 
     destButton.copyDataFrom(srcButton);
-    destEncoder.buttonLedValue = srcEncoder.buttonLedValue;
-    var key = this.getCrewReplaceKeyForDeck(destDeck, "Encoders") + "::" + destEncoder.index.toString();
-    key += "::buttonLedValue";
-    c4DeviceControllerDict.replace(key, srcEncoder.buttonLedValue);
+    var key = this.getCrewReplaceKeyForDeck(destDeck, "Encoders");
+    destEncoder.updateOnePropertyInNamedDict("C4DeviceExecutiveController", key, "buttonLedValue");
 
-    var btnKey = this.getCrewReplaceKeyForDeck(destDeck, "Buttons") + "::" + destButton.index.toString();
-    c4DeviceControllerDict.replace(btnKey, srcButton.toJsonStr());
+    var btnKey = this.getCrewReplaceKeyForDeck(destDeck, "Buttons");
+    destButton.updateNamedDict("C4DeviceExecutiveController", btnKey);
 }

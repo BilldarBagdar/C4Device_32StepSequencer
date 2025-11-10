@@ -100,6 +100,76 @@ C4Encoder.prototype.updateNamedDict = function(dictName, keyPrefix) {
     replaceKey = meKey + "::lastIncrementValue";
     temp.replace(replaceKey, this.lastIncrementValue);
 };
+
+C4Encoder.prototype.updateOnePropertyInNamedDict = function(dictName, keyPrefix, property) {
+    var temp = new Dict();
+    temp.name = dictName;
+    if (keyPrefix !== undefined && keyPrefix.length < 5) {
+        post("C4Encoder.updateOnePropertyInNamedDict: unexpected keyPrefix", dictName, keyPrefix);post();
+    }
+    var meKey = keyPrefix !== undefined ? keyPrefix + "::" + this.index : this.index;
+    var replaceKey = meKey;
+    if (property) {
+        switch (property) {
+            case "pressedValue":
+                replaceKey += "::pressedValue";
+                temp.replace(replaceKey, this.pressedValue);
+                break;
+            case "releasedValue":
+                replaceKey += "::releasedValue";
+                temp.replace(replaceKey, this.releasedValue);
+                break;
+            case "ringLedFeedbackStyle":
+                replaceKey += "::ringLedFeedbackStyle";
+                temp.replace(replaceKey, this.ringLedFeedbackStyle);
+                break;
+            case "buttonLedValue":
+                replaceKey += "::buttonLedValue";
+                temp.replace(replaceKey, this.buttonLedValue);
+            case "shiftPressedValue":
+                replaceKey += "::shiftPressedValue";
+                temp.replace(replaceKey, this.shiftPressedValue);
+                break;
+            case "optionPressedValue":
+                replaceKey += "::optionPressedValue";
+                temp.replace(replaceKey, this.optionPressedValue);
+            case "controlPressedValue":
+                replaceKey += "::controlPressedValue";
+                temp.replace(replaceKey, this.controlPressedValue);
+                break;
+            case "altPressedValue":
+                replaceKey += "::altPressedValue";
+                temp.replace(replaceKey, this.altPressedValue);
+                break;
+            case "lastIncrementValue":
+                replaceKey += "::lastIncrementValue";
+                temp.replace(replaceKey, this.lastIncrementValue);
+                break;
+            default:
+                post("C4Encoder.updateOnePropertyInNamedDict: unexpected property value", property, "no update"); post();
+        }
+    } else {
+        post("C4Encoder.updateOnePropertyInNamedDict: unexpected undefined property value");post();
+    }
+};
+
+C4Encoder.prototype.isDataMatch = function(that) {
+    return this.pressedValue === that.pressedValue && this.releasedValue === that.releasedValue &&
+        this.ringLedFeedbackStyle === that.ringLedFeedbackStyle && this.buttonLedValue === that.buttonLedValue &&
+        this.shiftPressedValue === that.shiftPressedValue && this.optionPressedValue === that.optionPressedValue &&
+        this.controlPressedValue === that.controlPressedValue && this.altPressedValue === that.altPressedValue &&
+        this.lastIncrementValue === that.lastIncrementValue;
+}
+
+C4Encoder.prototype.isFullMatch = function(that) {
+    var rtn = false;
+    if (this.index === that.index && this.kname === that.kname) {
+        rtn = this.isDataMatch(that);
+    }
+    return rtn;
+}
+
+
 // "local" js "pointer" Dict
 var pressedOrReleased = new Dict();
 

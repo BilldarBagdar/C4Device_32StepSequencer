@@ -756,6 +756,26 @@ function saveActiveDeck(deckName) {
     }
 }
 
+function updateSavedDeckData(destDeckName, destPageIndex) {
+
+    controller.copyDeckCrewDataFromDict("C4DeviceExecutiveController", destDeckName, destPageIndex);
+    var destDeckIsOnDuty = reqModule.getActiveControllerDeckName() === destDeckName;
+    if (destDeckIsOnDuty) {
+        // "copy/paste" destination deck is on duty - refresh the "active" Dicts from controller data
+        activateSavedDeck(destDeckName);
+    }
+    // NOTE: It is not currently possible to copy data from a not-currently displayed deck and page to the currently
+    // displayed deck and page, nor is it possible to copy data from one property (name) to another property (name).
+    // But, for example, if "shiftedValue" property data was copied to the "releasedValue" properties that are displayed
+    // by default, then if the (updated) destination deck and page are "currently displayed"...
+    var destPageOffset = reqModule.getAllOffsets()[destPageIndex];
+    if (isPatchProcessingEnabled() && !isSequencerRunning()) {
+        if (destDeckIsOnDuty && reqModule.getPageOffset() === destPageOffset) {
+            paintDisplayUpdate();
+        }
+    }
+}
+
 function activateSavedDeck(deckName) {
     c4DeviceControllerDict.name = "C4DeviceExecutiveController";
     buttonsDict.name = "c4Buttons";

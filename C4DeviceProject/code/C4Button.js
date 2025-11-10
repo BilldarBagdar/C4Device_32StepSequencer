@@ -100,6 +100,26 @@ C4Button.prototype.copyDataFrom = function(other) {
     this.ledChangeCount = other.ledChangeCount;
     this.ledValue = other.ledValue;
 };
+C4Button.prototype.copyDataFromDict = function(otherDict) {
+    this.pressedValue = otherDict.get("pressedValue");
+    this.pressedCount = otherDict.get("pressedCount");
+    this.releasedCount = otherDict.get("releasedCount");
+    this.ledChangeCount = otherDict.get("ledChangeCount");
+    this.ledValue = otherDict.get("ledValue");
+};
+
+C4Button.prototype.isDataMatch = function(that) {
+    return this.pressedValue === that.pressedValue && this.pressedCount === that.pressedCount &&
+        this.releasedCount === that.releasedCount && this.ledChangeCount === that.ledChangeCount &&
+        this.ledValue === that.ledValue;
+}
+C4Button.prototype.isFullMatch = function(that) {
+    var rtn = false;
+    if (this.index === that.index && this.kname === that.kname) {
+        rtn = this.isDataMatch(that);
+    }
+    return rtn;
+}
 // should never need to clone
 // C4Button.prototype.cloneFrom = function(other) {
 //     this.index = other.index;
@@ -143,6 +163,54 @@ C4Button.prototype.updateNamedDict = function(dictName, keyPrefix) {
     temp.replace(replaceKey, this.ledChangeCount);
     replaceKey = meKey + "::ledValue";
     temp.replace(replaceKey, this.ledValue);
+};
+// undefined keyPrefix input means undefined output, some kind of error condition
+C4Button.prototype.updateOnePropertyInNamedDict = function(dictName, keyPrefix, property) {
+    var temp = new Dict();
+    temp.name = dictName;
+    if (keyPrefix !== undefined && keyPrefix.length < 20) {
+        post("C4Button.updateOnePropertyInNamedDict: unexpected keyPrefix", dictName, keyPrefix);post();
+    }
+
+    // NOTE: if this method is called with two inputs instead of three, and "the second arg", keyPrefix, is the missing value
+    // that fact won't be recognized here.  "The third arg", property, will be interpreted as "the second arg" here, because
+    // it is the second arg in that case, resulting in undefined behavior.
+    // So, for example, can't update one property of an "active Dict" button (where meKey === this.index)
+    var meKey = keyPrefix !== undefined ? keyPrefix + "::" + this.index : this.index;
+    var replaceKey = "error";
+    if (keyPrefix !== undefined &&
+        !(keyPrefix.toString().lastIndexOf("Buttons") > 0 || keyPrefix.toString().lastIndexOf("Encoders") > 0)) {
+        meKey = keyPrefix;
+    }
+    if (property) {
+        replaceKey = meKey;
+        switch(property) {
+            case "pressedValue":
+                replaceKey += "::" + property;
+                temp.replace(replaceKey, this.pressedValue);
+                break;
+            case "pressedCount":
+                replaceKey += "::" + property;
+                temp.replace(replaceKey, this.pressedCount);
+                break;
+            case "releasedCount":
+                replaceKey += "::" + property;
+                temp.replace(replaceKey, this.releasedCount);
+                break;
+            case "ledChangeCount":
+                replaceKey += "::" + property;
+                temp.replace(replaceKey, this.ledChangeCount);
+                break;
+            case "ledValue":
+                replaceKey += "::" + property;
+                temp.replace(replaceKey, this.ledValue);
+                break;
+            default:
+                post("C4Button.updateOnePropertyInNamedDict: unexpected property value", property, "no update"); post();
+        }
+    } else {
+        post("C4Button.updateOnePropertyInNamedDict: unexpected undefined property value");post();
+    }
 };
 
 C4Button.prototype.isEncoderButton = function() {

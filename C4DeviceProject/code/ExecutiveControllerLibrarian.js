@@ -710,7 +710,7 @@ function copySequenceToPage(a) {
     c4DeviceControllerDict.name = "C4DeviceExecutiveController";
     var args = arrayfromargs(arguments);
     if (args.length > 3) {
-        post("copySequenceToPage: called with args:", args[0], args[1], args[2], args[3]); post();
+        // post("copySequenceToPage: called with args:", args[0], args[1], args[2], args[3]); post();
         var verb = args[0];// currently unused
         var copyAction = args[1];
         var destDeckIndex = args[2];
@@ -719,12 +719,15 @@ function copySequenceToPage(a) {
         if (maxobj && maxobj.valid) {
             var allDecks = reqModule.getAllControllerDeckNames();
             var sourceDeckName = reqModule.getActiveControllerDeckName();
+            // tell the other js silo to save current deck.page data to backing Dict
             maxobj.js["saveActiveDeck"](sourceDeckName);
-            // now the current "active sequence" has been saved from the "active dicts" to the "controller dict"
-            // copy current data to local librarian JSON object, then perform copy action on "controller dict" data
+            // copy all current data from backing Dict to local silo js object (librarian JSON object)
             librarian.copyDataFromDict(c4DeviceControllerDict);
             var destDeckName = allDecks[destDeckIndex];
-            librarian.copyCurrentDataPageToPage(destDeckName, destPageIndex, copyAction)
+            // perform copy action on local and backing Dict data
+            librarian.copyCurrentDataPageToPage(destDeckName, destPageIndex, copyAction);
+            // tell the other js silo to pick up the changed deck.page data from backing Dict
+            maxobj.js["updateSavedDeckData"](destDeckName, destPageIndex);
         } else {
             post("copySequenceToPage: nothing to save C4Device object not found"); post();
         }
